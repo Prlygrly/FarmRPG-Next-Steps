@@ -1,7 +1,7 @@
 ---
 type: Dataset
 title: "Drop rates"
-description: "Explore and fishing drop rates per place, with each place's base and type."
+description: "Explore and fishing drop rates per place, with each place's base, type, and average XP and silver per explore/fish."
 resource: ../../drops.js
 tags: [data]
 sources:
@@ -13,7 +13,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 
 # About
 
-Explore and fishing drop rates per place, with each place's base and type. Loaded by the planner page as a plain script (works from file://).[^origin]
+Explore and fishing drop rates per place, with each place's base, type, and average XP and silver per explore/fish. Loaded by the planner page as a plain script (works from file://).[^origin]
 
 # Refresh
 

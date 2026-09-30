@@ -349,6 +349,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </details>
   </section>
 
+  <section class="card" data-tab="next" id="leveling" aria-labelledby="h-leveling" hidden>
+    <h2 id="h-leveling" style="margin-top:0">Leveling up</h2>
+    <p class="small muted" style="margin:0 0 6px">Farming, Fishing, Crafting and Exploring at 90 open big questlines, and 99 in all four ("4x99") is needed for the major ones.
+      Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level.</p>
+    <div id="leveling-list"></div>
+  </section>
+
   <section class="card" data-tab="next" id="plan" aria-labelledby="h-next" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-next" style="margin:0">Do these next</h2>
@@ -463,6 +470,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="seeds.js"></script>
 <script src="meals.js"></script>
 <script src="ww.js"></script>
+<script src="levels.js"></script>
 <script src="quests.js"></script>
 <script src="loot.js"></script>
 <script src="trade.js"></script>
@@ -747,6 +755,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderBites(p, tp, ap);
     renderTower(p, tp);
     $("d-tower").hidden = !!p.noTower;
+    if ($("d-ak")) $("d-ak").hidden = !!p.noTower;
+    renderLeveling(p);
     renderAK(ap, akTarget);
     renderStock();
     $("trips").hidden = false;
@@ -762,6 +772,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
   // Places the player can use this month: auto-detected from the paste, then their own ticks on top
   let W = null, C = null, O = null;
+  const PLACE_LEVEL = { "Ember Lagoon": ["Exploring", 60], "Whispering Creek": ["Exploring", 70], "Jundland Desert": ["Exploring", 80],
+    "Gary's Crushroom": ["Exploring", 90], "Lake Minerva": ["Fishing", 60], "Large Island": ["Fishing", 70], "Pirate's Cove": ["Fishing", 80],
+    "Glacier Lake": ["Fishing", 90] };
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const monthText = ms => ms.map(m => MONTHS[m - 1]).join("–");
   function where(p) {
@@ -772,6 +785,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const auto = placesUnlocked(seen, DROPS, SEASONS, { exploreEvidence: !!S.inventory });
     // Event places are only open for a few days of their month, so they start unticked: tick one while its event runs
     for (const loc of Object.keys(SEASONS.locs)) auto[loc] = false;
+    // Places also need a skill level (knowledge/mechanics/locked-places.md): below it, they're closed whatever the items say
+    const sk = p.skills || {};
+    for (const [loc, [skill, lv]] of Object.entries(PLACE_LEVEL)) if (sk[skill] != null && sk[skill] < lv) auto[loc] = false;
     const places = {};
     for (const loc of Object.keys(DROPS.locs)) places[loc] = S.places[loc] ?? auto[loc];
     // Trip places cost less: a 50% trip discount makes their costs count at half
@@ -851,7 +867,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     let fixed = null;                                                  // a note that isn't ranked (blocked / top of tower)
 
     // The next tower level: its cheapest mastery, or a blocked note
-    if (p.noTower) fixed = { t: "The Tower isn't open yet", d: "It opens with the \u201cA Towering Investment\u201d questline, which starts once Farming, Fishing, Crafting and Exploring all reach 90. Until then, the list below is the quickest masteries and quests." };
+    if (p.noTower) { /* no Tower talk before the Tower opens */ }
     else if (!next) fixed = { t: "You're at the top of the known Tower", d: "The tower table here ends at level 350." };
     else if (p.noTower) { /* nothing to climb yet */ }
     else if (next.unmet.length) fixed = wallBite(next, true);
@@ -863,9 +879,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }) });
     }
     // Other quick masteries (AK toward the levels after)
+    // Before the Tower, AK means nothing yet: show what the mastery pays instead
+    const gain = c => p.noTower ? MASTERY_REWARD[c.tier] : `+${c.ak} AK`;
     for (const c of ap.known.slice(0, 6)) {
       if (cands.some(x => x.item === c.item)) continue;
-      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, d: `${fmt(c.left)} more (+${c.ak} AK): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
+      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, d: `${fmt(c.left)} more (${gain(c)}): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
     const hidden = new Set(S.questHidden || []);
@@ -947,6 +965,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   const tierName = t => ({ m: "Mastery", gm: "Grand Mastery", mm: "Mega Mastery" }[t]);
+  // What each tier pays (FarmRPG wiki "Item Mastery"; see knowledge/mechanics/mastery.md)
+  const MASTERY_REWARD = { m: "1M silver, 5 gold and a perk point", gm: "250M silver and 25 gold", mm: "2.5B silver" };
   const UNIT = { AP: "Arnold Palmers", AC: "Apple Ciders", LN: "Large Nets", explores: "explores" };
   const short = n => n >= 999.5e9 ? `${(n / 1e12).toFixed(n >= 99.95e12 ? 0 : 1)}T` : n >= 999.5e6 ? `${(n / 1e9).toFixed(n >= 99.95e9 ? 0 : 1)}B` : n >= 999500 ? `${(n / 1e6).toFixed(n >= 99.95e6 ? 0 : 1)}M` : n >= 9500 ? `${(n / 1000).toFixed(n >= 99500 ? 0 : 1)}k` : fmt(Math.ceil(n));
   // "335 AP at Highland Hills for Fern Leaf + …" (forWhat names what each place is visited for, biggest first)
@@ -1370,6 +1390,54 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <div class="table-wrap"><table><thead><tr><th>Item</th><th class="num">About</th><th>What it does for you</th></tr></thead><tbody>${
           rows.slice(0, 12).map(r => `<tr><td>${esc(r.item)}</td><td class="num">${short(r.q)}</td><td class="small">${r.notes.join("; ") || "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
     }).join("");
+  }
+
+  // ---------- Leveling up (toward 4x90 and 4x99) ----------
+  // XP to the next level, to 90 and to 99 from the start of the current level (the paste has levels only). Exploring and
+  // Fishing also get "about how many" at your best open place: buddy.farm's XP per explore/fish covers the items found, so
+  // the wiki's flat 125 per explore and 75 per fish are added on top.
+  const MAIN_SKILLS = ["Farming", "Fishing", "Crafting", "Exploring"];
+  const lvTotal = l => LEVELS.total[Math.min(99, Math.max(1, l)) - 1];
+  // Crafting picks by level (FarmRPG wiki "Crafting Advice"): good XP and silver
+  const CRAFT_PICKS = [[1, "Iron Cup"], [11, "Awls and Wooden Buttons"], [20, "Sturdy Shields (Sawmill Silver)"], [46, "Fancy Pipes"], [70, "Lanterns"], [80, "late-game crafts (see the wiki's Late Game Crafting Advice)"]];
+  function renderLeveling(p) {
+    const sk = p.skills || {};
+    const low = MAIN_SKILLS.filter(k => sk[k] != null && sk[k] < 99);
+    $("leveling").hidden = !low.length;
+    if (!low.length) return;
+    const k = S.perks, variant = (k.ironDepot ? "D" : "") + (k.runecube ? "R" : "") || "-";
+    // Best open place for XP, per unit of effort
+    const best = type => {
+      let top = null;
+      for (const [loc, L] of Object.entries(DROPS.locs)) {
+        if (L.type !== type || !W || !W.places[loc] || !L.xp) continue;
+        const xp = type === "fishing" ? (L.xp[k.runecube ? "netR" : "net"] ?? L.xp.net) : (L.xp[variant] ?? L.xp["-"]);
+        if (xp == null) continue;
+        let per, unit;
+        if (type === "fishing") { per = (75 + xp) * (250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0)); unit = "LN"; }
+        else if (L.base) { per = (125 + xp) * ((k.cinnamonSticks ? 1250 : 1000) * 0.4 / L.base); unit = "AC"; }
+        else continue;
+        if (!top || per > top.per) top = { loc, per, unit, each: type === "fishing" ? 75 + xp : 125 + xp };
+      }
+      return top;
+    };
+    const fish = best("fishing"), expl = best("explore");
+    const rows = low.map(skill => {
+      const lv = sk[skill], toNext = lvTotal(lv + 1) - lvTotal(lv), to90 = lv < 90 ? lvTotal(90) - lvTotal(lv) : 0, to99 = lvTotal(99) - lvTotal(lv);
+      const how = [];
+      const plan = skill === "Fishing" ? fish : skill === "Exploring" ? expl : null;
+      if (plan) {
+        // Count fish/explores first (what a newer player does by hand), then nets/ciders
+        const hits = toNext / plan.each, units = toNext / plan.per, word = skill === "Fishing" ? "fish" : "explores";
+        const unitTxt = units < 1 ? `under 1 ${UNIT[plan.unit].replace(/s$/, "")}` : `about ${short(units)} ${short(units) === "1" ? UNIT[plan.unit].replace(/s$/, "") : UNIT[plan.unit]}`;
+        how.push(`next level: about ${short(hits)} ${word} at ${esc(plan.loc)} (about ${fmt(Math.round(plan.each))} XP each), or ${unitTxt}`);
+      }
+      if (skill === "Farming") how.push("every crop planted gives 15 XP, plus the crop's own XP when harvested (Grape Juice counts the same); extra crops from Double Prizes, Mega seeds or cookies don't add XP");
+      if (skill === "Crafting") { const pick = CRAFT_PICKS.filter(([l]) => lv >= l).pop(); how.push(`good XP and silver at your level: ${pick[1]}; Craftworks gives no XP`); }
+      return `<li><b>${skill} ${lv}</b> <span class="muted small">→ ${lv + 1}: ${short(toNext)} XP${to90 ? ` · to 90: ${short(to90)}` : ""} · to 99: ${short(to99)}</span>${
+        how.length ? `<br><span class="small">${how.join("; ")}.</span>` : ""}</li>`;
+    });
+    $("leveling-list").innerHTML = `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>`;
   }
 
   // ---------- Best use: "Spend my…" ----------

@@ -45,7 +45,7 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - `engine.js` — `towerPlan`, `akPlan`, `makeCoster` (gather vs craft, passive items, `forWhat`, `activeEffort`), effort/perk math,
   seasons/places, trips (`tripYield`), outlets (`outletPlan`).
 - Data snapshots (regenerate with `tools/snapshot-*.js`): `tower.js` (wiki Tower Masteries), `drops.js` (buddy.farm explore/fish rates),
-  `recipes.js` (craft/cook recipes + uses), `seeds.js` (crop growth), `meals.js` (cooking level, cook time, effect), `ww.js` (wishing well, hand-kept from the wiki), `quests.js` (1,235 open quests, chains both ways),
+  `recipes.js` (craft/cook recipes + uses), `seeds.js` (crop growth), `meals.js` (cooking level, cook time, effect), `levels.js` (XP per level), `ww.js` (wishing well, hand-kept from the wiki), `quests.js` (1,235 open quests, chains both ways),
   `loot.js` (chest/bag contents), `trade.js` (farmrpg-trade.live median AP prices), `seasons.js` (hand-kept month rules).
 
 ## Tabs (current)
@@ -124,10 +124,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - Under the tabs on every tab: week-old paste reminder (Mastery/Inventory/Help Needed) and the "ticked since your last paste" list.
 
 ## Roadmap (next batches, in order; numbers go to whatever is done next)
-- **Next: new-player batch.** Pre-Tower players see no Tower talk; masteries valued by their silver/gold/perk-point rewards (not AK);
-  a leveling helper toward 4x90/4x99 (XP table + per-skill XP rules in knowledge/mechanics/levels-and-xp.md; buddy.farm place
-  pages have `xpPerHit`; item XP values not found yet; the Mastery page shows levels only, not XP within a level); quests and
-  leveling ranked first for them.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Needs sell prices: NOT in buddy.farm item page data — find a source first. Sawmill
   Silver etc. in knowledge/mechanics/silver.md.
@@ -149,9 +145,15 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   OTHER_USES (items used outside crafting, e.g. pickaxes for mining) to grow as the player learns more.
 
 ## Decisions & rules (confirmed with the player)
-- Pre-Tower players (no Tower on the Mastery page, none typed): planned as level 0 with no Tower steps, a "Tower isn't open yet"
-  note (A Towering Investment: starts once all four main skills reach 90) and the Tower table hidden. OPEN: value masteries by their
-  silver/gold rewards for them (needs mastery reward data — buddy.farm item pages don't have it).
+- Pre-Tower players (no Tower on the Mastery page, none typed): planned as level 0, **no Tower talk at all** (no note, Tower and AK
+  tables hidden), masteries show their reward ("1M silver, 5 gold and a perk point" / "250M silver and 25 gold") instead of AK.
+- **Leveling up** card (Next steps) whenever a main skill is below 99: XP to next level / 90 / 99 from `levels.js` (counted from the
+  start of the current level — the paste has levels only); Fishing and Exploring get "about N fish/explores at <best open place>
+  (XP each), or N Large Nets / Apple Ciders" from buddy.farm's `xpPerHit` (drops.js `locs[].xp`, items only) + the wiki's flat 75 per
+  fish / 125 per explore (assumed not included); Farming gets the XP rules; Crafting the Crafting Advice pick for the level.
+- Places need their skill level too (PLACE_LEVEL: Ember Lagoon E60, Whispering Creek E70, Jundland E80, Gary's Crushroom E90, Lake
+  Minerva F60, Large Island F70, Pirate's Cove F80, Glacier Lake F90): auto-detection closes them below it.
+- drops.js `locs[].silver` = buddy.farm's silver per explore/fish (by variant) — ready for the silver goal.
 - Only items with a known production rate count as daily production; new visitors start with no paid perks (START_PERKS in the page;
   the engine's DEFAULT_PERKS still assume all perks, for the tests).
 - Stock wording: "uses all of your X" when a quest takes everything you have.

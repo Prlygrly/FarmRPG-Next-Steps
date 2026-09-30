@@ -39,6 +39,7 @@ Read the relevant concept before changing game rules in the code.
 * [Trade prices](data/trade.md) - median trade-chat prices
 * [Meals](data/meals.md) - cooking level, cook time, effect
 * [Wishing well odds](data/wishing-well.md) - what to toss for what
+* [Levels](data/levels.md) - total XP for each level
 * [Seasons](data/seasons.md) - month rules
 
 # Planner
