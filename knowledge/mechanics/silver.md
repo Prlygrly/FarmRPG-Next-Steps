@@ -51,6 +51,13 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 
 From the player's Market page (whole-stack values) divided by inventory counts; MIAB and Wooden Bow confirmed, and Sturdy Shield, Lantern, Awl and Wooden Button given, by the player. Raw materials (Wood, Boards, Planks, Stone) are never sold: always craft them into something first.[^player]
 
+# Fishing for silver
+
+- Players think per **net thrown**, never per fish: always show silver per Large Net.[^player]
+- buddy.farm's `silverPerHit` for a fishing place is the average base price per fish caught (one catch = one hit), e.g. Lake Minerva about 3.2k with nets.
+- Per Large Net = silver per fish x fish per Large Net (250, +150 Reinforced Netting, +100 Fishing Trawl), then x (1 + sell bonus).
+- Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
+
 # Sawmill Silver (from Crafting 20)
 
 1. Build the Sawmill and raise Boards per hour as far as you can.
