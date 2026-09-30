@@ -132,7 +132,7 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .bites li.group-head { list-style: none; margin: 10px 0 2px -18px; }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 #tip-pop { position: absolute; z-index: 20; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
-  border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); white-space: pre-line; line-height: 1.45; }
 .plant-row > summary, .boost > summary { cursor: pointer; padding: 5px 0; }
 .plant-row ul { margin: 2px 0 6px; padding-left: 22px; }
 select { font: inherit; color: inherit; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
@@ -643,30 +643,36 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     ["autoBuyIronNails", "Buys Iron and Nails automatically (counts them as unlimited)"]];
   // Where each number comes from in the game, named as on the Perks and Farm Supply pages, so it can be checked.
   // Perks of the same kind add up.
-  const tip = t => ` <span class="tip" title="${esc(t)}" aria-label="${esc(t)}">ⓘ</span>`;
+  const tip = t => ` <span class="tip" data-tip="${esc(t)}" aria-label="${esc(t)}" tabindex="0">ⓘ</span>`;
+  const tipLines = (...lines) => lines.join("\n");
   const PERK_SRC = {
-    reinforcedNetting: "Farm Supply › Fishing Upgrades: Reinforced Netting.",
-    fishingTrawl: "Perks › Artifact Perks: Fishing Trawl (Tower 70).",
-    lemonSqueezer: "Farm Supply › Exploring Upgrades: Lemon Squeezer.",
-    cinnamonSticks: "Farm Supply › Exploring Upgrades: Cinnamon Sticks.",
-    autoBuyIronNails: "Farm Supply › Quality of Life Upgrades: Iron Depot.",
-    wanderer: "Perks › Exploring Perks: Wanderer I-IV (4 + 7 + 9 + 13 = 33). The Explore page shows your total.",
-    resourceSaver: "Perks › Crafting Perks: Resource Saver I (10); Farm Supply › Crafting Upgrades: Resource Saver II (15); Farm Supply › Artifact Upgrades: Resource Saver III (20, Tower 90). Add up the ones you have.",
-    orchardNoon: "Farm Supply › Artifact Upgrades: Tree Shaker (Tower 170), 10% of Orchard Production at noon.",
-    antlerNoon: "Farm Supply › Artifact Upgrades: Antler Snare (Tower 160), 10% of Antler Production at noon.",
-    sellBonus: "Perks › Profit Perks: Negotiator I-IV (5 + 10 + 15 + 20); Farm Supply › Farming Upgrades: Fertilizer I (10); Perks › Artifact Perks: Gift of Persuasion (10, Tower 20). The Farmer's Market page states your total.",
-    craftSilverCut: "Perks › Crafting Perks: Artisan I-IV (5 + 10 + 15 + 20); Farm Supply › Crafting Upgrades: Toolbox I (10); Perks › Artifact Perks: Steady Hands (10, Tower 30).",
-    plots: "Your farm's planting spots: the number on Plant All on the farm page.",
-    grapeJuice: "1 a day, plus Farm Supply › Farming Upgrades: Grape Juice Pitcher (+1), Fountain (+2), Waterfall (+3); doubled by Farm Supply › Artifact Upgrades: Grape Juice Spring (Tower 150).",
-    wwTosses: "3 free, plus Farm Supply › Miscellaneous Upgrades: Extra Wish (+1), Extra Wishes (+5), Extra Wishes II (+10), Extra Wishes III (+10).",
-    ovens: "The first comes with the Kitchen; one more unlocks at Cooking 2, 5, 10, 20, 35, 50, 70, 90 and 99. Guessed from your Cooking level; type your own if you have fewer.",
-    cookFaster: "Perks › Cooking Perks: Quicker Cooking I-II (5 + 10); Farm Supply › Cooking Upgrades: Hotter Ovens I (10).",
-    cropGrowthCut: "Perks › Farming Perks: Quicker Farming I-IV (5 + 10 + 15 + 20); Farm Supply › Farming Upgrades: Irrigation System I-II (10 + 20); Perks › Artifact Perks: Enriched Soil (10, Tower 10).",
-    cornGrowthCut: "Perks › Farming Perks: Quicker Corn I-II (10 + 10), on top of the crop growth cut.",
-    doublePrizes: "Perks › Farming Perks: Double Prizes I-II (15 + 25)."
+    reinforcedNetting: tipLines("Farm Supply › Fishing Upgrades", "• Reinforced Netting"),
+    fishingTrawl: tipLines("Perks › Artifact Perks", "• Fishing Trawl (Tower 70)"),
+    lemonSqueezer: tipLines("Farm Supply › Exploring Upgrades", "• Lemon Squeezer"),
+    cinnamonSticks: tipLines("Farm Supply › Exploring Upgrades", "• Cinnamon Sticks"),
+    autoBuyIronNails: tipLines("Farm Supply › Quality of Life Upgrades", "• Iron Depot"),
+    wanderer: tipLines("Perks › Exploring Perks", "• Wanderer I-IV: 4 + 7 + 9 + 13", "The Explore page shows your total."),
+    resourceSaver: tipLines("Perks › Crafting Perks", "• Resource Saver I: 10", "Farm Supply › Crafting Upgrades", "• Resource Saver II: 15",
+      "Farm Supply › Artifact Upgrades", "• Resource Saver III: 20 (Tower 90)", "Add up the ones you have."),
+    orchardNoon: tipLines("Farm Supply › Artifact Upgrades", "• Tree Shaker: 10 (Tower 170)"),
+    antlerNoon: tipLines("Farm Supply › Artifact Upgrades", "• Antler Snare: 10 (Tower 160)"),
+    sellBonus: tipLines("Perks › Profit Perks", "• Negotiator I-IV: 5 + 10 + 15 + 20", "Farm Supply › Farming Upgrades", "• Fertilizer I: 10",
+      "Perks › Artifact Perks", "• Gift of Persuasion: 10 (Tower 20)", "The Farmer's Market page shows your total."),
+    craftSilverCut: tipLines("Perks › Crafting Perks", "• Artisan I-IV: 5 + 10 + 15 + 20", "Farm Supply › Crafting Upgrades", "• Toolbox I: 10",
+      "Perks › Artifact Perks", "• Steady Hands: 10 (Tower 30)"),
+    plots: tipLines("Farm page", "• the number on Plant All"),
+    grapeJuice: tipLines("1 a day, plus:", "Farm Supply › Farming Upgrades", "• Grape Juice Pitcher: +1", "• Grape Juice Fountain: +2", "• Grape Juice Waterfall: +3",
+      "Farm Supply › Artifact Upgrades", "• Grape Juice Spring: doubles it (Tower 150)"),
+    wwTosses: tipLines("3 free, plus:", "Farm Supply › Miscellaneous Upgrades", "• Extra Wish: +1", "• Extra Wishes: +5", "• Extra Wishes II: +10", "• Extra Wishes III: +10"),
+    ovens: tipLines("Kitchen", "• 1 comes with the Kitchen", "• 1 more at Cooking 2, 5, 10, 20, 35, 50, 70, 90, 99", "Guessed from your Cooking level; type your own if you have fewer."),
+    cookFaster: tipLines("Perks › Cooking Perks", "• Quicker Cooking I-II: 5 + 10", "Farm Supply › Cooking Upgrades", "• Hotter Ovens I: 10"),
+    cropGrowthCut: tipLines("Perks › Farming Perks", "• Quicker Farming I-IV: 5 + 10 + 15 + 20", "Farm Supply › Farming Upgrades", "• Irrigation System I-II: 10 + 20",
+      "Perks › Artifact Perks", "• Enriched Soil: 10 (Tower 10)"),
+    cornGrowthCut: tipLines("Perks › Farming Perks", "• Quicker Corn I-II: 10 + 10", "On top of the crop growth cut."),
+    doublePrizes: tipLines("Perks › Farming Perks", "• Double Prizes I-II: 15 + 25")
   };
-  const perkField = (label, k, max, min = 0) => `<label class="field" title="${esc(PERK_SRC[k] || "")}"><span>${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</span> <input type="number" min="${min}" max="${max}" data-perk="${k}"></label>`;
-  $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"${PERK_SRC[k] ? ` title="${esc(PERK_SRC[k])}"` : ""}><input type="checkbox" data-perk="${k}"> ${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</label>`).join("") +
+  const perkField = (label, k, max, min = 0) => `<label class="field"><span>${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</span> <input type="number" min="${min}" max="${max}" data-perk="${k}"></label>`;
+  $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"><input type="checkbox" data-perk="${k}"> ${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</label>`).join("") +
     perkField("Wanderer %", "wanderer", 100) + perkField("Resource Saver %", "resourceSaver", 100) +
     perkField("Orchard noon bonus %", "orchardNoon", 100) + perkField("Antler noon bonus %", "antlerNoon", 100) +
     perkField("Sell bonus %", "sellBonus", 200) + perkField("Crafting silver cut %", "craftSilverCut", 100) +
@@ -676,21 +682,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100);
   // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
   $("general").innerHTML =
-    `<label class="field" title="${esc(TIPS.apm)}"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
-    `<label class="field" title="${esc(TIPS.wait)}"><span>An hour of waiting feels like … minutes of play${tip(TIPS.wait)}</span> <input type="number" min="0" max="600" data-perk="waitWorth"></label>` +
-    `<label class="field" title="${esc(TIPS.slow)}"><span>Too slow after (days)${tip(TIPS.slow)}</span> <input type="number" min="1" max="365" data-perk="slowDays"></label>` +
-    `<label class="field" title="${esc(TIPS.trip)}"><span>Trip discount %${tip(TIPS.trip)}</span> <input type="number" min="0" max="100" data-perk="tripDiscount"></label>` +
-    `<span class="field" title="${esc(TIPS.checks)}"><span>I check the game${tip(TIPS.checks)}</span><span class="row" style="gap:6px;flex-wrap:nowrap">` +
+    `<label class="field"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
+    `<label class="field"><span>An hour of waiting feels like … minutes of play${tip(TIPS.wait)}</span> <input type="number" min="0" max="600" data-perk="waitWorth"></label>` +
+    `<label class="field"><span>Too slow after (days)${tip(TIPS.slow)}</span> <input type="number" min="1" max="365" data-perk="slowDays"></label>` +
+    `<label class="field"><span>Trip discount %${tip(TIPS.trip)}</span> <input type="number" min="0" max="100" data-perk="tripDiscount"></label>` +
+    `<span class="field"><span>I check the game${tip(TIPS.checks)}</span><span class="row" style="gap:6px;flex-wrap:nowrap">` +
     `<input type="number" min="1" max="1000" data-perk="checks" aria-label="How many times" style="width:5em"> times per ` +
     `<select data-perk="checkUnit" aria-label="Per" style="width:auto;min-width:0"><option value="hour">hour</option><option value="day">day</option><option value="week">week</option></select></span></span>` +
-    `<label class="field" title="${esc(TIPS.vj)}"><span>Veggie Juice on crops${tip(TIPS.vj)}</span> <select data-perk="vjMode" style="width:auto"><option value="none">No Veggie Juice</option><option value="max">As much as helps</option>` +
+    `<label class="field"><span>Veggie Juice on crops${tip(TIPS.vj)}</span> <select data-perk="vjMode" style="width:auto"><option value="none">No Veggie Juice</option><option value="max">As much as helps</option>` +
     `<option value="count">A set number each planting</option><option value="target">Down to a set time</option></select></label>` +
     `<label class="field" id="vj-count-wrap">Juices each planting <input type="number" min="1" max="100" data-perk="vjCount"></label>` +
     `<label class="field" id="vj-target-wrap">Down to (minutes) <input type="number" min="1" max="100000" data-perk="vjTarget"></label>` +
-    `<label class="small" id="abj-wrap" title="${esc(TIPS.abj)}"><input type="checkbox" data-perk="abjNotDone"> The questline "A Better Juice" isn't done yet${tip(TIPS.abj)}</label>` +
+    `<label class="small" id="abj-wrap"><input type="checkbox" data-perk="abjNotDone"> The questline "A Better Juice" isn't done yet${tip(TIPS.abj)}</label>` +
     `<span class="small muted" id="vj-cut-note"></span>` +
-    `<label class="field" title="${esc(TIPS.stirs)}"><span>Stirs per meal${tip(TIPS.stirs)}</span> <input type="number" min="0" max="100" data-perk="stirs"></label>` +
-    `<label class="field" title="${esc(TIPS.boost)}"><span>Harvests per Breakfast Boost${tip(TIPS.boost)}</span> <input type="number" min="1" max="10000" data-perk="boostRounds"></label>`;
+    `<label class="field"><span>Stirs per meal${tip(TIPS.stirs)}</span> <input type="number" min="0" max="100" data-perk="stirs"></label>` +
+    `<label class="field"><span>Harvests per Breakfast Boost${tip(TIPS.boost)}</span> <input type="number" min="1" max="10000" data-perk="boostRounds"></label>`;
   document.querySelectorAll("#perks [data-perk], #general [data-perk]").forEach(el => {
     const k = el.dataset.perk;
     if (el.type === "checkbox") el.checked = !!S.perks[k]; else el.value = S.perks[k];
@@ -2427,17 +2433,26 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   // ---------- Tap-to-show tips ----------
   // Hover text doesn't show on phones, so tapping an ⓘ opens its explanation in a small bubble; tapping anywhere closes it.
+  const showTip = t => {
+    const pop = $("tip-pop");
+    pop.textContent = t.dataset.tip; pop.dataset.for = t.dataset.tip; pop.hidden = false;
+    const r = t.getBoundingClientRect(), w = Math.min(340, document.documentElement.clientWidth - 24);
+    pop.style.width = w + "px";
+    pop.style.left = Math.max(12, Math.min(r.left + scrollX - w / 2, scrollX + document.documentElement.clientWidth - w - 12)) + "px";
+    pop.style.top = (r.bottom + scrollY + 6) + "px";
+  };
   document.addEventListener("click", e => {
     const t = e.target.closest(".tip"), pop = $("tip-pop");
     if (!t) { pop.hidden = true; return; }
     e.preventDefault(); e.stopPropagation();                  // don't tick a checkbox the ⓘ sits in
-    if (!pop.hidden && pop.dataset.for === t.title) { pop.hidden = true; return; }
-    pop.textContent = t.title; pop.dataset.for = t.title; pop.hidden = false;
-    const r = t.getBoundingClientRect(), w = Math.min(320, document.documentElement.clientWidth - 24);
-    pop.style.width = w + "px";
-    pop.style.left = Math.max(12, Math.min(r.left + scrollX - w / 2, scrollX + document.documentElement.clientWidth - w - 12)) + "px";
-    pop.style.top = (r.bottom + scrollY + 6) + "px";
+    if (!pop.hidden && pop.dataset.for === t.dataset.tip && !t.matches(":hover")) { pop.hidden = true; return; }
+    showTip(t);
   }, true);
+  // On a computer the same bubble opens on hover (or keyboard focus)
+  document.addEventListener("mouseover", e => { const t = e.target.closest && e.target.closest(".tip"); if (t) showTip(t); });
+  document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip"); if (t && !t.contains(e.relatedTarget)) $("tip-pop").hidden = true; });
+  document.addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("tip")) showTip(e.target); });
+  document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("tip")) $("tip-pop").hidden = true; });
 
   // ---------- Tabs ----------
   // One tab shows at a time. The choice is remembered on this device; with no Mastery paste yet, start on Setup.
