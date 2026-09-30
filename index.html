@@ -641,23 +641,40 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     ["lemonSqueezer", "Lemon Squeezer (Arnold Palmer finds 500 items)"], ["cinnamonSticks", "Cinnamon Sticks (Apple Cider explores 1,250 times)"],
     ["reinforcedNetting", "Reinforced Netting (+150 fish per Large Net)"], ["fishingTrawl", "Fishing Trawl (+100 fish per Large Net)"],
     ["autoBuyIronNails", "Buys Iron and Nails automatically (counts them as unlimited)"]];
-  $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"><input type="checkbox" data-perk="${k}"> ${label}</label>`).join("") +
-    `<label class="field">Wanderer % <input type="number" min="0" max="100" data-perk="wanderer"></label>` +
-    `<label class="field">Resource Saver % <input type="number" min="0" max="100" data-perk="resourceSaver"></label>` +
-    `<label class="field">Orchard noon bonus % <input type="number" min="0" max="100" data-perk="orchardNoon"></label>` +
-    `<label class="field">Antler noon bonus % <input type="number" min="0" max="100" data-perk="antlerNoon"></label>` +
-    `<label class="field">Sell bonus % <input type="number" min="0" max="200" data-perk="sellBonus"></label>` +
-    `<label class="field">Crafting silver cut % <input type="number" min="0" max="100" data-perk="craftSilverCut"></label>` +
-    `<label class="field">Crop plots <input type="number" min="0" max="10000" data-perk="plots"></label>` +
-    `<label class="field">Grape Juice per day <input type="number" min="0" max="1000" data-perk="grapeJuice"></label>` +
-    `<label class="field">Free wishing well tosses a day <input type="number" min="0" max="100" data-perk="wwTosses"></label>` +
-    `<label class="field">Ovens <input type="number" min="1" max="100" data-perk="ovens"></label>` +
-    `<label class="field">Cooking faster % <input type="number" min="0" max="90" data-perk="cookFaster"></label>` +
-    `<label class="field">Crop growth cut % <input type="number" min="0" max="99" data-perk="cropGrowthCut"></label>` +
-    `<label class="field">Corn extra cut % <input type="number" min="0" max="99" data-perk="cornGrowthCut"></label>` +
-    `<label class="field">Double crops chance % <input type="number" min="0" max="100" data-perk="doublePrizes"></label>`;
-  // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
+  // Where each number comes from in the game, named as on the Perks and Farm Supply pages, so it can be checked.
+  // Perks of the same kind add up.
   const tip = t => ` <span class="tip" title="${esc(t)}" aria-label="${esc(t)}">ⓘ</span>`;
+  const PERK_SRC = {
+    reinforcedNetting: "Farm Supply › Fishing Upgrades: Reinforced Netting.",
+    fishingTrawl: "Perks › Artifact Perks: Fishing Trawl (Tower 70).",
+    lemonSqueezer: "Farm Supply › Exploring Upgrades: Lemon Squeezer.",
+    cinnamonSticks: "Farm Supply › Exploring Upgrades: Cinnamon Sticks.",
+    autoBuyIronNails: "Farm Supply › Quality of Life Upgrades: Iron Depot.",
+    wanderer: "Perks › Exploring Perks: Wanderer I-IV (4 + 7 + 9 + 13 = 33). The Explore page shows your total.",
+    resourceSaver: "Perks › Crafting Perks: Resource Saver I (10); Farm Supply › Crafting Upgrades: Resource Saver II (15); Farm Supply › Artifact Upgrades: Resource Saver III (20, Tower 90). Add up the ones you have.",
+    orchardNoon: "Farm Supply › Artifact Upgrades: Tree Shaker (Tower 170), 10% of Orchard Production at noon.",
+    antlerNoon: "Farm Supply › Artifact Upgrades: Antler Snare (Tower 160), 10% of Antler Production at noon.",
+    sellBonus: "Perks › Profit Perks: Negotiator I-IV (5 + 10 + 15 + 20); Farm Supply › Farming Upgrades: Fertilizer I (10); Perks › Artifact Perks: Gift of Persuasion (10, Tower 20). The Farmer's Market page states your total.",
+    craftSilverCut: "Perks › Crafting Perks: Artisan I-IV (5 + 10 + 15 + 20); Farm Supply › Crafting Upgrades: Toolbox I (10); Perks › Artifact Perks: Steady Hands (10, Tower 30).",
+    plots: "Your farm's planting spots: the number on Plant All on the farm page.",
+    grapeJuice: "1 a day, plus Farm Supply › Farming Upgrades: Grape Juice Pitcher (+1), Fountain (+2), Waterfall (+3); doubled by Farm Supply › Artifact Upgrades: Grape Juice Spring (Tower 150).",
+    wwTosses: "3 free, plus Farm Supply › Miscellaneous Upgrades: Extra Wish (+1), Extra Wishes (+5), Extra Wishes II (+10), Extra Wishes III (+10).",
+    ovens: "The first comes with the Kitchen; one more unlocks at Cooking 2, 5, 10, 20, 35, 50, 70, 90 and 99. Guessed from your Cooking level; type your own if you have fewer.",
+    cookFaster: "Perks › Cooking Perks: Quicker Cooking I-II (5 + 10); Farm Supply › Cooking Upgrades: Hotter Ovens I (10).",
+    cropGrowthCut: "Perks › Farming Perks: Quicker Farming I-IV (5 + 10 + 15 + 20); Farm Supply › Farming Upgrades: Irrigation System I-II (10 + 20); Perks › Artifact Perks: Enriched Soil (10, Tower 10).",
+    cornGrowthCut: "Perks › Farming Perks: Quicker Corn I-II (10 + 10), on top of the crop growth cut.",
+    doublePrizes: "Perks › Farming Perks: Double Prizes I-II (15 + 25)."
+  };
+  const perkField = (label, k, max, min = 0) => `<label class="field" title="${esc(PERK_SRC[k] || "")}"><span>${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</span> <input type="number" min="${min}" max="${max}" data-perk="${k}"></label>`;
+  $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"${PERK_SRC[k] ? ` title="${esc(PERK_SRC[k])}"` : ""}><input type="checkbox" data-perk="${k}"> ${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</label>`).join("") +
+    perkField("Wanderer %", "wanderer", 100) + perkField("Resource Saver %", "resourceSaver", 100) +
+    perkField("Orchard noon bonus %", "orchardNoon", 100) + perkField("Antler noon bonus %", "antlerNoon", 100) +
+    perkField("Sell bonus %", "sellBonus", 200) + perkField("Crafting silver cut %", "craftSilverCut", 100) +
+    perkField("Crop plots", "plots", 10000) + perkField("Grape Juice per day", "grapeJuice", 1000) +
+    perkField("Free wishing well tosses a day", "wwTosses", 100) + perkField("Ovens", "ovens", 100, 1) +
+    perkField("Cooking faster %", "cookFaster", 90) + perkField("Crop growth cut %", "cropGrowthCut", 99) +
+    perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100);
+  // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
   $("general").innerHTML =
     `<label class="field" title="${esc(TIPS.apm)}"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
     `<label class="field" title="${esc(TIPS.wait)}"><span>An hour of waiting feels like … minutes of play${tip(TIPS.wait)}</span> <input type="number" min="0" max="600" data-perk="waitWorth"></label>` +
