@@ -314,9 +314,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <label class="field">Tower level <input id="f-level" type="number" min="0" inputmode="numeric"></label>
       <label class="field">Unused AK <input id="f-ak" type="number" min="0" inputmode="numeric"></label>
       <label class="field">Mega Masteries <input id="f-mm" type="number" min="0" inputmode="numeric"></label>
+      <label class="field">Silver <input id="f-silver" type="number" min="0" inputmode="numeric"></label>
       <button id="clear" type="button">Forget my pastes</button>
     </div>
-    <p class="small muted" style="margin:6px 0 0">These three fill in from your Mastery paste. You can also type them.
+    <p class="small muted" style="margin:6px 0 0">The first three fill in from your Mastery paste, Silver from any page copied in the Steam app. You can also type them.
       AK (Ascension Knowledge) is what the Tower costs: 100 AK per level.</p>
     </div>
   </section>
@@ -542,7 +543,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     let msg = "";
     // Any page copied with the top bar carries your silver: keep the newest
     const cash = parseSilver(text);
-    if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); }
+    if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); $("f-silver").value = S.silver; }
     if (kind === "mastery") {
       const r = parseMastery(text);
       const n = Object.keys(r.items).length;
@@ -610,6 +611,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       save(); render(false);
     });
   }
+  // Silver: typed or pasted, whichever came last
+  $("f-silver").addEventListener("input", () => {
+    const v = $("f-silver").value;
+    if (v === "") { delete S.silver; delete S.gold; delete S.silverAt; } else { S.silver = Math.max(0, parseInt(v, 10) || 0); S.silverAt = Date.now(); }
+    save(); renderLoaded(player());
+  });
   const TIPS = {
     apm: "Roughly how many Arnold Palmers, Apple Ciders or Large Nets you get through in a minute of play. Turns AP costs into minutes for the blended list.",
     wait: "Waiting on crops and buildings costs little, since you can do other things meanwhile. This says how much an hour of waiting counts, in minutes of active play, when ordering Do these next.",
@@ -737,6 +744,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       $("f-level").value = p.level ?? "";
       $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
       $("f-mm").value = p.mm ?? "";
+      $("f-silver").value = S.silver ?? "";
       syncProd();
     }
     const ready = S.mastery && p.level != null;
@@ -865,7 +873,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     li.push(o ? `<li>Orchard: ${Object.entries(o).map(([n, v]) => `${fmt(v.production)} ${n}s`).join(", ")} each midnight <span class="muted small">(${ago(S.orchardAt)})</span></li>`
               : `<li class="missing">Orchard: not pasted yet (optional, turns fruit into days of production)</li>`);
     li.push(S.silver != null ? `<li>Silver: ${fmt(S.silver)}${S.gold != null ? `, ${fmt(S.gold)} gold` : ""} <span class="muted small">(${ago(S.silverAt)})</span></li>`
-                             : `<li class="missing">Silver: not seen yet (read from the top bar of any page copied in the Steam app)</li>`);
+                             : `<li class="missing">Silver: not seen yet (pasted from the Steam app, or type it below)</li>`);
     // Older saves only kept one time for both perk pages
     const pp = S.perkPages || {}, pat = k => (S.perkAt || {})[k] || S.perkPagesAt;
     li.push(pp.perks ? `<li>Perks: read <span class="muted small">(${ago(pat("perks"))})</span></li>`
