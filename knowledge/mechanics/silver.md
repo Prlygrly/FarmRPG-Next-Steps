@@ -34,7 +34,20 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 - Worked example: Iron Cup, base 165, Grand Mastered or better, sells for 337: 165 x 1.7 x 1.2 = 336.6, so that player's sell perks add up to about 70%.[^player]
 - Mega Mastery seems to add no further sell bonus (x1.3 wouldn't fit the example).[^player]
 - The Farmer's Market page states the perk total ("You are getting an extra 70% due to your unlocked perks"), and one "Item of the day" sells for extra (e.g. Garnet +28%).[^player]
-- The Market lists each unlocked item's whole-stack value (count x sell price), not a per-item price, and nothing for locked items, so it isn't a source of base prices.[^player]
+- The Market lists each unlocked item's whole-stack value at the **base** price (count x base; perks and mastery are added when you sell), and nothing for locked items. Items at the cap say "MAX ON HAND" (count = your cap); for the rest, divide by the count from an Inventory paste taken at the same time. Iron Cup: 1,589,940 / 9,636 = 165 exactly.[^player]
+
+# Base sell prices (known so far)
+
+| Item | Base | Item | Base |
+|---|---|---|---|
+| Iron Cup | 165 | Fancy Pipe | 5,000 |
+| Lemon Quartz Ring | 1,500 | Barbed Wire | 20,000 |
+| Emerald Ring | 2,500 | Linked Lantern | 100,000 |
+| Shimmer Ring | 5,000 | Blue Purse | 110,000 |
+| MIAB | 2,000 (likely) | Crossbow | 125,000 |
+| Wooden Bow | 7,500 (likely) | | |
+
+From the player's Market page (whole-stack values) divided by inventory counts; "likely" = the count had changed since the Inventory paste, so the round number that fits is given.[^player]
 
 # Sawmill Silver (from Crafting 20)
 
