@@ -124,6 +124,7 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - Under the tabs on every tab: week-old paste reminder (Mastery/Inventory/Help Needed) and the "ticked since your last paste" list.
 
 ## Roadmap (next batches, in order; numbers go to whatever is done next)
+- **To do: shorter on-screen text.** Make the app's explanations less wordy (intros, tips, card descriptions).
 - **To do: paste a special request.** Special requests (the "Special Requests" section of Help Needed) are unique and often not
   in buddy.farm's quest data, so the planner can't see what they need. Let a player optionally paste a single quest's own page
   (quest.php) to read its needs and rewards, and include it like any other quest. Low priority: they're usually quick (about
