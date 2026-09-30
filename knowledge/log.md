@@ -1,6 +1,7 @@
 # Update log
 
 ## 2026-09-30
+* **Update**: [Planner design rules](/planner/rules.md): blended effort, new-player mode, starting perks, place levels, paste handling (chat, Steam), Veggie Juice setting, pantry kitchen, short text.
 * **Creation**: [Silver](/mechanics/silver.md) from the player's wiki pastes (Sawmill Silver, Crafting Advice, Badymaru's guide, How Should I Spend My Silver).
 * **Correction**: A Towering Investment needs 4x90 (all four main skills at 90); an earlier wrong figure was removed.
 * **Creation**: [Levels and XP](/mechanics/levels-and-xp.md), [Townsfolk friendship](/mechanics/friendship.md), [Progression stages](/mechanics/progression.md) from the player's wiki pastes (Level XP, XP Mechanics, Rkm's tips, D0rfy's guide, Rii's friendship tips).

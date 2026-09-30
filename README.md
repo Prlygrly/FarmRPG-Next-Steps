@@ -210,4 +210,7 @@ seasons/places, hide · 7 recipes · 8 gather vs craft · 9 outlets · 10 orchar
 effort, quick vs waits · 11 quests data/parser/cards · 12 trips (+ chain feeding) · 13 crops · 14–16 quest ranking, loot, stock use ·
 17 trade prices · 18 perks pages · 19 save codes · feedback fixes (wording, Mushroom gathering, gather-now option, "for X", side drops,
 Steel crafting, outlets always offered, pickaxes keep, quest wording, AP units, trade max, themes, paste Hide/Show, combined
-"Do these next", main quests) · 20 tabs · 21 Done ticks · 22 Spend my… (+ season filter on trip yields) · 23 What to plant now (+ Breakfast Boost batch) · 24 crops never planned to void · 25 Veggie Juice tab · 26 Daily overflow · 27 Kitchen (pantry, stir-based cook times) · 28 Wishing well.
+"Do these next", main quests) · 20 tabs · 21 Done ticks · 22 Spend my… (+ season filter on trip yields) · 23 What to plant now (+ Breakfast Boost batch) · 24 crops never planned to void · 25 Veggie Juice tab · 26 Daily overflow · 27 Kitchen (pantry, stir-based cook times) · 28 Wishing well. · then: Veggie Juice on crops setting (A Better Juice
+10%/20%), settings split (General settings, hover/tap tips, "I check the game N times per…"), Blended by effort / By type, knowledge/
+(OKF), public release on GitHub Pages (fresh history), welcome card, made-up fixtures, new-player batch (no Tower talk, mastery
+rewards, Leveling up card, place skill levels, starting perks), saved-page upload, Steam app copies + chat stripping.
