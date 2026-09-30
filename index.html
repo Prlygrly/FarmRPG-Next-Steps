@@ -572,6 +572,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
       Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster") });
       S.perkPagesAt = Date.now();
+      S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
       $("paste").value = "";
       const other = kind === "perks" ? "supply" : "perks";
       msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
@@ -859,6 +860,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const o = S.orchard;
     li.push(o ? `<li>Orchard: ${Object.entries(o).map(([n, v]) => `${fmt(v.production)} ${n}s`).join(", ")} each midnight <span class="muted small">(${ago(S.orchardAt)})</span></li>`
               : `<li class="missing">Orchard: not pasted yet (optional, turns fruit into days of production)</li>`);
+    // Older saves only kept one time for both perk pages
+    const pp = S.perkPages || {}, pat = k => (S.perkAt || {})[k] || S.perkPagesAt;
+    li.push(pp.perks ? `<li>Perks: read <span class="muted small">(${ago(pat("perks"))})</span></li>`
+                     : `<li class="missing">Perks page: not pasted yet (optional, fills in Your perks)</li>`);
+    li.push(pp.supply ? `<li>Farm Supply: read <span class="muted small">(${ago(pat("supply"))})</span></li>`
+                      : `<li class="missing">Farm Supply page: not pasted yet (optional, fills in Your perks)</li>`);
     $("loaded").innerHTML = li.join("");
     if (m && !m.tower && p.level == null) $("status").innerHTML ||= warn("Your Tower level wasn't in that paste. Type it in the box below.");
   }
@@ -1045,10 +1052,32 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // Crops that can also be gathered at a place you can use (Mushroom) are gathered, not farmed: exploring is
   // quick with AP while growing is slow. Only crops with no drop anywhere you can go count as farming.
   const gatherable = crop => { const e = W && window.FRP.bestEffort(crop, 1, DROPS, S.perks, W); return !!(e && e.unit !== "explores"); };
+  // Production lands in drops, and a drop can only fill your inventory: anything over your cap voids on arrival, and
+  // autocrafting runs after the drop, so it can't use the excess either. Between two of your checks you can use at most
+  // one inventory's worth, so the usable rate is min(made per gap, cap) / gap, where the gap is the drop interval or the
+  // time between your checks, whichever is longer. (Straw every 10 minutes, emptied each time, really can be 6 caps an hour.)
+  const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grubs: 24, Minnows: 24, Grapes: 24,
+    Straw: 1 / 6, Stone: 1 / 6, Coal: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };   // everything else hourly
+  const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
+  const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
+  const usableRate = (n, perHour) => {
+    const gap = Math.max(DROP_HOURS[n] || 1, checkGap());
+    return Math.min(perHour * gap, invCap()) / gap;
+  };
+  // Orchard fruit per day: the midnight drop plus the noon bonus (a % of the full production, not of what fit), each
+  // capped on its own when you check between them; one cap for both if you don't
+  const fruitPerDay = n => {
+    const o = S.orchard && S.orchard[n];
+    if (!o || !o.production) return 0;
+    const P = o.production, bonus = P * (S.perks.orchardNoon ?? 10) / 100, cap = invCap(), gap = checkGap();
+    if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
+    return Math.min(P + bonus, cap) * 24 / Math.max(24, gap);
+  };
   const allProd = () => {
     const crops = cropRates();
     for (const c of Object.keys(crops)) if (gatherable(c)) delete crops[c];
-    return { ...crops, ...(S.production || {}) };
+    const bld = Object.fromEntries(Object.entries(S.production || {}).map(([n, v]) => [n, v > 0 ? usableRate(n, v) : v]));
+    return { ...crops, ...bld };
   };
 
   // A Hickory Omelette makes the Sawmill also produce 20% of its hourly amount every 10 minutes, for 1 hour:
@@ -1062,7 +1091,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const t = { fruit: {}, fruitDays: 0, slow: null, sawHours: 0, otherHours: 0, rest: {} };
     for (const [n, v] of Object.entries(p || {})) {
       if (v < 0.5 || bought.includes(n)) continue;
-      if (orch[n]) { t.fruit[n] = v; t.fruitDays = Math.max(t.fruitDays, v / (orch[n].production * noon)); }
+      if (orch[n]) { t.fruit[n] = v; t.fruitDays = Math.max(t.fruitDays, v / fruitPerDay(n)); }
       else if (prod[n] > 0) {
         const h = v / prod[n];
         if (!t.slow || h > t.slow.hours) t.slow = { item: n, hours: h };
@@ -1093,7 +1122,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // Then whatever production can't make in time is gathered or crafted (Coal at Black Rock Canyon, Steel from
     // Carbon Sphere + Glass Orb), and that AP is added. Things with no other source (Grapes) stay slow.
     for (const [n, v] of Object.entries(out.passive)) {
-      const cap = orch[n] ? orch[n].production * noon * (hrs / 24) : prod[n] > 0 ? prod[n] * hrs : null;
+      const cap = orch[n] ? fruitPerDay(n) * (hrs / 24) : prod[n] > 0 ? prod[n] * hrs : null;
       if (cap == null || v <= cap) continue;
       const g = C.activeEffort(n, v - cap);
       if (!g || !g.amount) continue;
@@ -1356,7 +1385,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const want = isMain ? q0 : chain && chain.demand[item] || 0, used = Math.min(q0, want), q = q0 - used;
       const chainNote = !used ? "" : isMain ? `<b>all go into ${esc(chain.product)}</b>`
         : want > q0 ? `<b>all of it goes into your ${esc(chain.product)} chain</b> (you'd need about ${short(want - q0)} more${
-            S.production && S.production[item] > 0 ? `: ${hoursText((want - q0) / S.production[item])} of your ${esc(item)} production` : ""})`
+            S.production && S.production[item] > 0 ? `: ${hoursText((want - q0) / usableRate(item, S.production[item]))} of your ${esc(item)} production` : ""})`
         : `${short(used)} go into your ${esc(chain.product)} chain`;
       // Only items on the Mastery page have tiers (Wood, Straw, Antler… don't). Mastery counts all q0 gathered;
       // only the overflow check uses what's left after the chain (q).
@@ -1622,13 +1651,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (!O || O.cap === Infinity) { $("overflow-list").innerHTML = `<p class="small muted">Paste My Inventory to see what's filling up.</p>`; return; }
     const onHand = O.onHand, cap = O.cap, saver = 1 + (S.perks.resourceSaver ?? 0) / 100;
     const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
-    // Per-day amounts: farm buildings (per hour) and the orchard (per day, plus the noon bonus)
-    const perDay = {};
-    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) perDay[n] = v * 24;
-    for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) perDay[n] = o.production * noon;
+    // Per-day amounts you can actually use (each drop capped at your inventory): farm buildings and the orchard.
+    // "Full in" still uses the full rate: that's how fast the space goes.
+    const perDay = {}, rawDay = {};
+    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24; }
+    for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) { perDay[n] = fruitPerDay(n); rawDay[n] = o.production * noon; }
     if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
     if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
-    const fullIn = n => { const room = cap - (onHand[n] || 0); return room <= 0 ? 0 : room / (perDay[n] / 24); };
+    const fullIn = n => { const room = cap - (onHand[n] || 0); return room <= 0 ? 0 : room / (rawDay[n] / 24); };
     const fullText = n => { const h = fullIn(n); return h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`; };
     // The standing ones: follow the chain and say how far the Mega Mastery is at this rate
     const standing = Object.entries(STANDING).filter(([n]) => perDay[n]).map(([n, chain]) => {

@@ -34,6 +34,14 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Iron Depot (Farm Supply): Iron and Nails bought automatically, effectively unlimited.[^player]
 - Resource Saver: chance a **craft** gives double (cooking doesn't).[^player]
 
+# Drops and the cap
+
+- Production arrives in drops (the building's interval above). A drop only fills your inventory: anything over your cap voids on arrival.[^player]
+- Autocrafting runs after the drop, so it can't use the excess either.[^player]
+- So between two checks of the game you can use at most one inventory's worth. Usable rate = min(made per gap, cap) / gap, where the gap is the drop interval or the time between your checks, whichever is longer. Straw every 10 minutes, emptied each time, really can be six caps an hour.[^player]
+- The orchard noon bonus is a % of the full production (not of what fit at midnight), capped on its own.[^player]
+- Voiding from production over your cap is harmless (e.g. Antlers from raptors you can't control). The costly kind, a full inventory right before a drop, isn't modelled yet.[^player]
+
 # Year-long blockers
 
 Large Net, Orange Juice and Lemonade Mega Masteries take a year or more even at full production; keep Antlers -> Fishing Nets -> Large Nets, Oranges -> Orange Juice and Lemons -> Lemonade going every day.[^player]
