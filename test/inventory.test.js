@@ -110,6 +110,7 @@ assert.strictEqual(ss.grapeJuice, 14);        // (1 + 1 + 2 + 3) x 2; the "on sa
 assert.strictEqual(parsePerks(supplyText).unlocked.filter(u => u.name === "Grape Juice Fountain").length, 1);
 assert.ok(!parsePerks(supplyText).unlocked.some(u => /Upgrades on Sale/.test(u.name)));
 assert.strictEqual(ss.orchardNoon, 10);
+assert.ok(ss.antlerNoon === 0 || ss.antlerNoon === 10);
 assert.ok(ss.reinforcedNetting && ss.lemonSqueezer && ss.cinnamonSticks && ss.autoBuyIronNails);
 // Steam app: headings in capitals (perk text itself stays as written)
 const capHeads = t => t.split(String.fromCharCode(10)).map(l => /^(Farming Perks|Cap Upgrades|Farming Upgrades|Points Left|Perks Avail|Unlocked)$/.test(l.trim()) ? l.toUpperCase() : l).join(String.fromCharCode(10));

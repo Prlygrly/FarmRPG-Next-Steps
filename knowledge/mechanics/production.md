@@ -39,7 +39,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Production arrives in drops (the building's interval above). A drop only fills your inventory: anything over your cap voids on arrival.[^player]
 - Autocrafting runs after the drop, so it can't use the excess either.[^player]
 - So between two checks of the game you can use at most one inventory's worth. Usable rate = min(made per gap, cap) / gap, where the gap is the drop interval or the time between your checks, whichever is longer. Straw every 10 minutes, emptied each time, really can be six caps an hour.[^player]
-- The orchard noon bonus is a % of the full production (not of what fit at midnight), capped on its own.[^player]
+- Noon bonuses (Tree Shaker, Tower 170: orchard; Antler Snare, Tower 160: Antlers) are 10% of the full production (not of what fit at midnight), capped on their own.[^player]
 - Voiding from production over your cap is harmless (e.g. Antlers from raptors you can't control). The costly kind, a full inventory right before a drop, isn't modelled yet.[^player]
 
 # Year-long blockers

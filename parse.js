@@ -216,7 +216,8 @@
       out.lemonSqueezer = has("Lemon Squeezer");
       out.cinnamonSticks = has("Cinnamon Sticks");
       out.autoBuyIronNails = has("Iron Depot");
-      out.orchardNoon = unlocked.some(u => /10% of Orchard Production/.test(u.desc)) ? 10 : 0;
+      out.orchardNoon = unlocked.some(u => /10% of Orchard Production/i.test(u.desc)) ? 10 : 0;   // Tree Shaker (Tower 170)
+      out.antlerNoon = unlocked.some(u => /10% of Antler Production/i.test(u.desc)) ? 10 : 0;     // Antler Snare (Tower 160)
       // Wishing well: 3 free tosses a day, plus Extra Wish (+1) and Extra Wishes I-III (+5, +10, +10) = 29 at most (beta testers +1)
       out.wwTosses = 3 + (unlocked.some(u => /An extra toss into the Well/i.test(u.desc)) ? 1 : 0) + sum(/^\+(\d+) tosses into the Well/i);
     }

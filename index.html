@@ -480,7 +480,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
-    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, autoBuyIronNails: false, grapeJuice: 2 };
+    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, autoBuyIronNails: false, grapeJuice: 2 };
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n).toLocaleString("en-US");
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -626,6 +626,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     `<label class="field">Wanderer % <input type="number" min="0" max="100" data-perk="wanderer"></label>` +
     `<label class="field">Resource Saver % <input type="number" min="0" max="100" data-perk="resourceSaver"></label>` +
     `<label class="field">Orchard noon bonus % <input type="number" min="0" max="100" data-perk="orchardNoon"></label>` +
+    `<label class="field">Antler noon bonus % <input type="number" min="0" max="100" data-perk="antlerNoon"></label>` +
     `<label class="field">Crop plots <input type="number" min="0" max="10000" data-perk="plots"></label>` +
     `<label class="field">Grape Juice per day <input type="number" min="0" max="1000" data-perk="grapeJuice"></label>` +
     `<label class="field">Free wishing well tosses a day <input type="number" min="0" max="100" data-perk="wwTosses"></label>` +
@@ -749,7 +750,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderPlaces(p);
     // Anything the farm makes counts as "daily production" (costed in time, not AP)
     // Only things with a known rate count (a new player with no farm/orchard paste gathers or crafts everything)
-    const passive = [...new Set([...Object.keys(allProd()), ...Object.keys(S.orchard || {}), ...(S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [])])];
+    const passive = [...new Set([...Object.entries(allProd()).filter(([, v]) => v > 0).map(([n]) => n), ...Object.keys(S.orchard || {}), ...(S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [])])];
     C = makeCoster(DROPS, RECIPES, S.perks, W, passive);
     const ap = akPlan(p.items, { akTarget, tower: TOWER, fromLevel: p.level, skills: p.skills, drops: DROPS, coster: C, where: W, hidden: S.hidden,
       adjust, timeOf, quickHours: 24, slowHours: (S.perks.slowDays ?? 7) * 24 });
@@ -1061,17 +1062,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
   const usableRate = (n, perHour) => {
+    if (n === "Antler") return noonDay(perHour * 24, S.perks.antlerNoon ?? 10) / 24;
     const gap = Math.max(DROP_HOURS[n] || 1, checkGap());
     return Math.min(perHour * gap, invCap()) / gap;
+  };
+  // A daily drop plus a noon bonus (Tree Shaker, Antler Snare): the bonus is a % of the full production, not of what
+  // fit. Each is capped on its own when you check between them; one cap for both if you don't.
+  const noonDay = (P, pct) => {
+    const bonus = P * pct / 100, cap = invCap(), gap = checkGap();
+    if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
+    return Math.min(P + bonus, cap) * 24 / Math.max(24, gap);
   };
   // Orchard fruit per day: the midnight drop plus the noon bonus (a % of the full production, not of what fit), each
   // capped on its own when you check between them; one cap for both if you don't
   const fruitPerDay = n => {
     const o = S.orchard && S.orchard[n];
     if (!o || !o.production) return 0;
-    const P = o.production, bonus = P * (S.perks.orchardNoon ?? 10) / 100, cap = invCap(), gap = checkGap();
-    if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
-    return Math.min(P + bonus, cap) * 24 / Math.max(24, gap);
+    return noonDay(o.production, S.perks.orchardNoon ?? 10);
   };
   const allProd = () => {
     const crops = cropRates();
@@ -1654,7 +1661,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // Per-day amounts you can actually use (each drop capped at your inventory): farm buildings and the orchard.
     // "Full in" still uses the full rate: that's how fast the space goes.
     const perDay = {}, rawDay = {};
-    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24; }
+    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24 * (n === "Antler" ? 1 + (S.perks.antlerNoon ?? 10) / 100 : 1); }
     for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) { perDay[n] = fruitPerDay(n); rawDay[n] = o.production * noon; }
     if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
     if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
