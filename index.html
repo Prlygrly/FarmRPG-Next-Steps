@@ -2032,6 +2032,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       missing.push({ item, need, have, left, effort: e });
     }
     const levels = Object.entries(data.lv || {}).filter(([k, v]) => k === "Tower" ? (p.level ?? 0) < v : (p.skills[k] ?? 99) < v).map(([k, v]) => `${k} ${v}`);
+    // Silver the quest costs: a gate like a level when you can't afford it (or we don't know your silver), otherwise
+    // it's spent from your stock like an item
+    if (data.silver) {
+      const have = S.silver;
+      if (have == null) levels.push(`${short(data.silver)} silver (type your silver in Setup)`);
+      else if (have < data.silver) levels.push(`${short(data.silver)} silver (you're ${short(data.silver - have)} short)`);
+      else stock.push({ item: "silver", used: data.silver, have, share: data.silver / have, costed: false });
+    }
     return { missing, cost, byPlace, forWhat, passive, uncosted, levels, stock, stockCost };
   }
   // "uses 13 of your 32 Hearts (41%)" for the stock a quest takes; big shares first
