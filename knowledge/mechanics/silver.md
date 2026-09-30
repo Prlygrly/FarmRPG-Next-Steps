@@ -33,6 +33,8 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 - Sell price = base price x (1 + sell perks %) x mastery bonus (x1.1 once Mastered, x1.2 once Grand Mastered).[^wiki-mastery]
 - Worked example: Iron Cup, base 165, Grand Mastered or better, sells for 337: 165 x 1.7 x 1.2 = 336.6, so that player's sell perks add up to about 70%.[^player]
 - Mega Mastery seems to add no further sell bonus (x1.3 wouldn't fit the example).[^player]
+- The Farmer's Market page states the perk total ("You are getting an extra 70% due to your unlocked perks"), and one "Item of the day" sells for extra (e.g. Garnet +28%).[^player]
+- The Market lists each unlocked item's whole-stack value (count x sell price), not a per-item price, and nothing for locked items, so it isn't a source of base prices.[^player]
 
 # Sawmill Silver (from Crafting 20)
 
