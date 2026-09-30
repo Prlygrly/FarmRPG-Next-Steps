@@ -678,7 +678,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const k = el.dataset.perk;
     if (el.type === "checkbox") el.checked = !!S.perks[k]; else el.value = S.perks[k];
     el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
-      S.perks[k] = el.type === "checkbox" ? el.checked : el.tagName === "SELECT" ? el.value : Math.min(+el.max || 100, Math.max(0, +el.value || 0)); save(); render(false); });
+      S.perks[k] = el.type === "checkbox" ? el.checked : el.tagName === "SELECT" ? el.value : Math.min(+el.max || 100, Math.max(0, +el.value || 0));
+      if (k === "ovens") S.perks.ovensTyped = el.value !== "";       // typed ovens win over the cooking-level guess; clear the box to guess again
+      save(); render(false); });
   });
 
   // Typed production: shown in each building's natural unit, stored per hour (orchard: midnight amount)
@@ -744,7 +746,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (S.perks.checks == null) { S.perks.checks = S.perks.harvestsPerHour ?? 4; S.perks.checkUnit = "hour"; }
     S.perks.harvestsPerHour = Math.max(1e-3, S.perks.checks / (CHECK_HOURS[S.perks.checkUnit] || 1));
   }
+  // Ovens unlock with Cooking level (the first comes with the Kitchen); assume every allowed oven was bought
+  const OVEN_LEVELS = [1, 2, 5, 10, 20, 35, 50, 70, 90, 99];
+  const ovensFor = lv => OVEN_LEVELS.filter(l => lv >= l).length || 1;
   function render(syncFields = true) {
+    const cookLv = S.mastery && S.mastery.skills ? S.mastery.skills.Cooking : null;
+    if (!S.perks.ovensTyped && cookLv != null) S.perks.ovens = ovensFor(cookLv);
     syncChecks();
     $("welcome").hidden = !!S.mastery;                // first visit: explain what to paste
     const p = player();
