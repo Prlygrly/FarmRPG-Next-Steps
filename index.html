@@ -955,7 +955,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const view = S.nextView || "blend";
     document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
     const TAG = { ready: "ready", quest: "Quest", mastery: "Mastery", tower: "Tower" };
-    const effortTag = c => c.mins === Infinity ? "can't cost yet" : c.mins < 1 ? "under a minute" : `about ${minText(c.mins)} of play`;
+    // The tag splits the two parts the ranking blends: active play (AP at your pace) and real waiting time
+    const effortTag = c => {
+      if (c.mins === Infinity) return "can't cost yet";
+      const play = c.ready ? 0 : c.cost / apm, waitM = c.ready ? 0 : c.hours * 60;
+      const playTxt = play < 1 ? "under a minute of play" : `about ${minText(play)} of play`;
+      return waitM >= 1 ? `${playTxt} + ${minText(waitM)} of waiting` : playTxt;
+    };
     const li = b => `<li>${b.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${b.t}</strong>${b.done}</div>` : `<strong>${b.t}</strong>`}${
       b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}</li>`;
     const extra = [];
@@ -1171,7 +1177,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   // Hours of production an effort needs (orchard days count as whole days): used to keep slow things off the quick list
   const timeOf = e => { const t = prodTime(e.passive); return Math.max(Math.ceil(t.fruitDays) * 24, t.slow ? t.slow.hours : 0); };
-  const hoursText = h => h < 12 ? `about ${Math.max(1, Math.ceil(h))} hour${Math.ceil(h) > 1 ? "s" : ""}` : `${fmt(Math.ceil(h / 24))} day${Math.ceil(h / 24) === 1 ? "" : "s"}`;
+  const hoursText = h => h < 12 ? `about ${minText(h * 60)}` : `${fmt(Math.ceil(h / 24))} day${Math.ceil(h / 24) === 1 ? "" : "s"}`;
   function passiveText(p) {
     const orch = S.orchard || {};
     const { fruit, fruitDays, slow, sawHours, otherHours, rest } = prodTime(p);
