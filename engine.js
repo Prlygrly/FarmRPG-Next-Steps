@@ -39,6 +39,14 @@
     return { levels, walls, firstWall, freeLevels, akToClearFree, mmCount };
   }
 
+  // Silver to advance TO a level: level x the rate for its band (1-100: 50M, 101-199: 100M, 200-300: 300M, 301+: 500M)
+  function towerSilver(tower, L) {
+    const s = tower.silverPerLevel;
+    if (!s) return 0;
+    const band = s.bands.find(([to]) => L <= to);
+    return band ? L * band[1] : 0;
+  }
+
   // Where each item shows up in the tower above the player's level: item -> [{level, tier}]
   function towerUses(tower, fromLevel) {
     const uses = {};
@@ -310,7 +318,7 @@
     return out;
   }
 
-  const api = { DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

@@ -128,4 +128,11 @@ assert.deepStrictEqual(Q["A Way Back XXVII"].next, ["A Way Back XXVIII"]);
 assert.strictEqual(Q["A Way Back XXVIII"].pred, "A Way Back XXVII");
 assert.ok(!Object.keys(Q).some(n => /<br/i.test(n)));
 
+// Tower silver: level x 50M (1-100), 100M (101-199), 300M (200-300), 500M (301+)
+const { towerSilver } = require("../engine.js");
+assert.strictEqual(towerSilver(TOWER, 60), 3e9);
+assert.strictEqual(towerSilver(TOWER, 101), 10.1e9);
+assert.strictEqual(towerSilver(TOWER, 221), 66.3e9);
+assert.strictEqual(towerSilver(TOWER, 301), 150.5e9);
+
 console.log("engine tests passed");

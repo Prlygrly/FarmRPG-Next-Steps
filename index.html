@@ -896,6 +896,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   // "Do these next": one list of masteries, tower and quests, quickest first. Each candidate carries its AP cost
   // and how long it waits on production; ready quests cost nothing. Up to 5 are shown, then a "start early" wall note.
+  // Tower levels also cost silver (level x 50M/100M/300M/500M by band)
+  const tSilver = L => window.FRP.towerSilver(TOWER, L);
+  const silverShort = L => S.silver == null ? 0 : Math.max(0, tSilver(L) - S.silver);
+  const silverNote = L => S.silver == null ? `, plus ${short(tSilver(L))} silver (type yours in Setup to check)` : `, and the ${short(tSilver(L))} silver`;
   function renderBites(p, tp, ap) {
     const cands = [];
     const need = tower100(p.ak);
@@ -907,7 +911,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (!next) fixed = { t: "You're at the top of the known Tower", d: "The tower table here ends at level 350." };
     else if (p.noTower) { /* nothing to climb yet */ }
     else if (next.unmet.length) fixed = wallBite(next, true);
-    else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
+    else if (silverShort(next.level) > 0) fixed = { t: `Save up silver for Tower level ${next.level}`,
+      d: `It costs ${short(tSilver(next.level))} silver; you're ${short(silverShort(next.level))} short.${funGuyDone(p) ? "" : " See Making silver."}` };
+    else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs${silverNote(next.level)}.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
     else {
       const k = ap.known.find(x => x.ak >= need);
       if (k) cands.push({ t: `Finish ${esc(k.item)} ${tierName(k.tier)} to reach Tower level ${next.level}`,
@@ -1548,6 +1554,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (each && (!spot || each > spot.each)) spot = { loc, each };
     }
     if (spot) rows.push(`<li><b>Large Nets at ${esc(spot.loc)}, then sell the fish</b>: about ${short(spot.each * perNet * (1 + (k.sellBonus ?? 0) / 100))} silver a net for you, if you sell the catch <span class="muted small">(less if you keep rare or cooking fish)</span>.</li>`);
+    if (!p.noTower && p.level != null) {
+      const L = p.level + 1, cost = tSilver(L);
+      if (cost) rows.push(`<li>Your next Tower level (${L}) costs <b>${short(cost)}</b> silver${S.silver != null ? ` (you have ${short(S.silver)})` : ""}.</li>`);
+    }
     $("silver-list").innerHTML = rows.length ? `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>` : `<p class="small muted">Paste your Mastery page to see picks for your level.</p>`;
   }
 

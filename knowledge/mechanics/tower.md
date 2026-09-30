@@ -19,6 +19,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 # Rules
 
 - Each level costs **100 AK** (Ascension Knowledge).[^player]
+- Each level also costs **silver**: advancing to level L costs L x 50M (levels 1-100), L x 100M (101-199), L x 300M (200-300), L x 500M (301+, still being tested). Checked: level 221 costs 66.3B.[^player]
 - Levels 101-200: need ceil((level - 100) / 4) Mega Masteries of any kind.
 - Levels 201-300: named MMs. Levels 301-350: named GMs and MMs. The list is in [tower data](/data/tower.md).[^wiki-tower]
 - AK sources: Mastery 10, GM 100, merit badge 300, each skill at 99 = 100, daily chores about 80 a month.[^player]

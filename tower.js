@@ -3,6 +3,10 @@
   const TOWER = {
     "_source": "FarmRPG Library 'Tower Masteries' (2026-09-19). levels[L] = what you need to advance TO level L. Item names match the Mastery Progress page.",
     "akPerLevel": 100,
+    "silverPerLevel": {
+      "_rule": "advancing TO level L costs L x rate; FarmRPG wiki. The 301+ rate still needs testing.",
+      "bands": [[100, 50000000], [199, 100000000], [300, 300000000], [100000, 500000000]]
+    },
     "anyMM": {
       "from": 101,
       "to": 200,
