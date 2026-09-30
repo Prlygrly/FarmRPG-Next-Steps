@@ -57,6 +57,11 @@ assert.deepStrictEqual(parseFarm(farmText.toUpperCase()), farm);
 assert.strictEqual(detectPage(orch.toUpperCase()), "orchard");
 assert.deepStrictEqual(parseOrchard(orch.toUpperCase()), parseOrchard(orch));
 assert.strictEqual(parseFarm(["HARVEST ALL", "CROPSPLANT ALL", "SELECTED", "LEEK (36)", "AROUND YOUR FARM"].join(String.fromCharCode(10))).plots, 36);
+// Steam's Orchard page also lists the farm: it's still the orchard, and both halves read
+const steamOrchard = farmText.replace("Around Your Farm", "AROUND YOUR FARM") + String.fromCharCode(10) + orch.replace("About the orchard", "ABOUT THE ORCHARD").replace("Trees (", "TREES (");
+assert.strictEqual(detectPage(steamOrchard), "orchard");
+assert.deepStrictEqual(parseOrchard(steamOrchard), parseOrchard(orch));
+assert.deepStrictEqual(parseFarm(steamOrchard), farm);
 
 // Help Needed page
 const { parseQuests } = require("../parse.js");

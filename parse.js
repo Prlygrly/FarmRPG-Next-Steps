@@ -228,8 +228,9 @@
   function detectPage(text) {
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
     if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
-    if (/Around Your Farm/i.test(text)) return "farm";
+    // The orchard first: in the Steam app the Orchard page also lists the whole farm ("Around Your Farm")
     if (/About the orchard/i.test(text)) return "orchard";
+    if (/Around Your Farm/i.test(text)) return "farm";
     if (/cannot have more than [\d,]+ of any single thing|Inventory Stats/.test(text)) return "inventory";
     if (/[\d,]+\s*\/\s*([\d,]+|∞)\s*Progress/.test(text)) return "mastery";
     if (/Active Requests|Special Requests/i.test(text)) return "quests";

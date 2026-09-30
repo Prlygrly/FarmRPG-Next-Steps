@@ -580,6 +580,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
       else S.orchard = Object.fromEntries(Object.entries(r).map(([n, v]) => [n, { production: v.production, trees: v.trees }]));
       if (S.orchard) S.orchardAt = Date.now();
+      // The Steam app's Orchard page also carries the farm's building list: read that too
+      if (/Around Your Farm/i.test(text)) {
+        const f = parseFarm(text);
+        if (Object.keys(f).length) { S.production = f; if (f.plots) S.perks.plots = f.plots; S.productionAt = Date.now(); }
+      }
     } else if (kind === "quests") {
       const r = parseQuests(text).filter(q => q.section !== "personal");
       if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
