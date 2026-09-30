@@ -12,3 +12,4 @@
 
 ## 2026-09-30
 * **Initialization**: Created the bundle from the README's rules, the planner's data files and the player's wiki pastes (Cooking, Wishing Well, WW Wants, rare items, super rares).
+* **Addition**: data/perks.md from the player's Chrome copies of the Perks and Farm Supply pages (game facts only). Sell perks confirmed to stack: Negotiator I-IV + Fertilizer I + Gift of Persuasion = 70%, matching Iron Cup 165 -> 337. Silver: sell price formula; production: drops capped at inventory, noon bonuses.

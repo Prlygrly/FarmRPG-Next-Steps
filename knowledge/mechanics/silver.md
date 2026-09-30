@@ -16,6 +16,9 @@ sources:
   - id: wiki-spend
     resource: https://farmrpg.com/wiki.php?page=How%20Should%20I%20Spend%20My%20Silver
     title: "FarmRPG wiki: How Should I Spend My Silver"
+  - id: wiki-mastery
+    resource: https://farmrpg.com/wiki.php?page=Item%20Mastery
+    title: "FarmRPG wiki: Item Mastery"
   - id: player
     resource: confirmed by the player in planning chats
     title: "Player confirmation"
@@ -24,6 +27,12 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T21:00:00Z }
 # Why silver matters
 
 Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles are available (Truffles make big silver). Before then, crafting and selling or fishing and selling are the main sources.[^player]
+
+# Sell price
+
+- Sell price = base price x (1 + sell perks %) x mastery bonus (x1.1 once Mastered, x1.2 once Grand Mastered).[^wiki-mastery]
+- Worked example: Iron Cup, base 165, Grand Mastered or better, sells for 337: 165 x 1.7 x 1.2 = 336.6, so that player's sell perks add up to about 70%.[^player]
+- Mega Mastery seems to add no further sell bonus (x1.3 wouldn't fit the example).[^player]
 
 # Sawmill Silver (from Crafting 20)
 
@@ -92,4 +101,5 @@ More fruit means more juices, which means more stamina: the Orchard is the best 
 [^wiki-crafting]: FarmRPG wiki: Crafting Advice
 [^badymaru]: Badymaru's silver crafting guide
 [^wiki-spend]: FarmRPG wiki: How Should I Spend My Silver
+[^wiki-mastery]: FarmRPG wiki: Item Mastery
 [^player]: Player confirmation

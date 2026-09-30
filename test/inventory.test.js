@@ -102,7 +102,17 @@ const supplyText = fs.readFileSync(path.join(__dirname, "fixtures", "supply-trim
 assert.strictEqual(detectPage(perksText), "perks");
 assert.strictEqual(detectPage(supplyText), "supply");
 const ps = perkSettings(parsePerks(perksText));
-assert.deepStrictEqual(ps, { cropGrowthCut: 60, cornGrowthCut: 20, resourceSaver: 10, cookFaster: 0, doublePrizes: 40, wanderer: 33, fishingTrawl: true });
+assert.deepStrictEqual(ps, { cropGrowthCut: 60, cornGrowthCut: 20, resourceSaver: 10, cookFaster: 0, sellBonus: 0, craftSilverCut: 0, doublePrizes: 40, wanderer: 33, fishingTrawl: true });
+// Sell and crafting-silver perks stack (Negotiator I-IV + Gift of Persuasion; Artisan I-II + Steady Hands)
+const sellPage = ['52', 'Points Left', '19', 'Perks Avail', 'Farming Perks',
+  '* Artisan I', 'Crafting costs 5% less Silver', 'Unlocked', '* Artisan II', 'Crafting costs 10% less Silver', 'Unlocked', '* Artisan III', 'Crafting costs 15% less Silver', '30 Points',
+  'Profit Perks', '* Negotiator I', 'Items sold earn 5% more Silver', 'Unlocked', '* Negotiator II', 'Items sold earn 10% more Silver', 'Unlocked',
+  '* Negotiator III', 'Items sold earn 15% more Silver', 'Unlocked', '* Negotiator IV', 'Items sold earn 20% more Silver', 'Unlocked',
+  'Artifact Perks', '* Gift of Persuasion', 'Items sold earn 10% more Silver', 'Requires Tower Level 20', 'Unlocked',
+  '* Steady Hands', 'Crafting costs 10% less Silver', 'Requires Tower Level 30', 'Unlocked', 'Consume a meal'].join(String.fromCharCode(10));
+const sp = perkSettings(parsePerks(sellPage));
+assert.strictEqual(sp.sellBonus, 60);
+assert.strictEqual(sp.craftSilverCut, 25);
 const ss = perkSettings(parsePerks(supplyText));
 assert.strictEqual(ss.cropGrowthCut, 30);
 assert.strictEqual(ss.resourceSaver, 35);

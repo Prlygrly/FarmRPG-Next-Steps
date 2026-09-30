@@ -35,6 +35,7 @@ Read the relevant concept before changing game rules in the code.
 * [Recipes](data/recipes.md) - craft and cook recipes and uses
 * [Seeds](data/seeds.md) - growth time, crops per seed
 * [Quests](data/quests.md) - needs, rewards, chains
+* [Perks and Farm Supply](data/perks.md) - every perk, what stacks, how the pages copy
 * [Chest and bag contents](data/loot.md) - what chests and bags hold
 * [Trade prices](data/trade.md) - median trade-chat prices
 * [Meals](data/meals.md) - cooking level, cook time, effect

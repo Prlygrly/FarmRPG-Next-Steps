@@ -205,7 +205,10 @@
       cropGrowthCut: sum(/^Crops grow (\d+)% faster/),
       cornGrowthCut: sum(/^Corn grows (\d+)% faster/),
       resourceSaver: sum(/^(\d+)% chance item is duplicated/),
-      cookFaster: sum(/Cooking is (\d+)% faster/i)
+      cookFaster: sum(/Cooking is (\d+)% faster/i),
+      // Negotiator I-IV, Fertilizer I, Gift of Persuasion; Artisan I-IV, Toolbox I, Steady Hands (both pages add up)
+      sellBonus: sum(/Items sold earn (\d+)% more Silver/i),
+      craftSilverCut: sum(/Crafting costs (\d+)% less Silver/i)
     };
     if (page === "perks") {
       out.doublePrizes = sum(/^(\d+)% chance a crop will yield 2/);

@@ -481,7 +481,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
-    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, autoBuyIronNails: false, grapeJuice: 2 };
+    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, autoBuyIronNails: false, grapeJuice: 2 };
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n).toLocaleString("en-US");
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -574,7 +574,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const got = perkSettings(parsePerks(text));
       S.perkPages = { ...(S.perkPages || {}), [kind]: got };
       const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
-      Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster") });
+      Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster"), sellBonus: add("sellBonus"), craftSilverCut: add("craftSilverCut") });
       S.perkPagesAt = Date.now();
       S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
       $("paste").value = "";
@@ -637,6 +637,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     `<label class="field">Resource Saver % <input type="number" min="0" max="100" data-perk="resourceSaver"></label>` +
     `<label class="field">Orchard noon bonus % <input type="number" min="0" max="100" data-perk="orchardNoon"></label>` +
     `<label class="field">Antler noon bonus % <input type="number" min="0" max="100" data-perk="antlerNoon"></label>` +
+    `<label class="field">Sell bonus % <input type="number" min="0" max="200" data-perk="sellBonus"></label>` +
+    `<label class="field">Crafting silver cut % <input type="number" min="0" max="100" data-perk="craftSilverCut"></label>` +
     `<label class="field">Crop plots <input type="number" min="0" max="10000" data-perk="plots"></label>` +
     `<label class="field">Grape Juice per day <input type="number" min="0" max="1000" data-perk="grapeJuice"></label>` +
     `<label class="field">Free wishing well tosses a day <input type="number" min="0" max="100" data-perk="wwTosses"></label>` +

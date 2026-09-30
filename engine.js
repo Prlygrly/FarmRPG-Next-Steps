@@ -101,7 +101,7 @@
 
   // ---------- Effort: how many AC / AP / Large Nets to gather `left` more of an item ----------
   // Formulas match buddy.farm (src/utils/format.tsx). 1 AC = 1 AP = 1 Large Net for ranking, for now.
-  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
+  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
     plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20 };
 
   // Every way to get the item, cheapest first: [{loc, unit, amount}]
