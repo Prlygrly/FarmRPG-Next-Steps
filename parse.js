@@ -238,6 +238,15 @@
     return null;
   }
 
+  // Silver and gold from the top bar: "[122,730,994,151](https://farmrpg.com/bank.php)   [513](https://farmrpg.com/gold.php)".
+  // Only pages copied with that bar (the Steam app) have it; null when it isn't there.
+  function parseSilver(text) {
+    const s = String(text || "").match(/\[([\d,]+)\]\([^)]*\/bank\.php\)/i);
+    if (!s) return null;
+    const g = String(text).match(/\[([\d,]+)\]\([^)]*\/(?:steam_)?gold\.php\)/i);
+    return { silver: toInt(s[1]), gold: g ? toInt(g[1]) : null };
+  }
+
   // Chat: every copied page carries the chat panel. Cut it out before anything else looks at the text, so a message like
   // "Active Requests (5)" or "Chicken Coop" can't fool page detection or a parser (and other players' names go nowhere).
   // 1. The whole panel: from the channel tabs ("HELP GLOBAL SPOILERS…" or "Help / Global / Spoilers") or the first
@@ -264,7 +273,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), perkSettings,
-    detectPage: noChat(detectPage), stripChat, toInt };
+    detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

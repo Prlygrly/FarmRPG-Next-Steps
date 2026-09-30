@@ -144,4 +144,9 @@ const steamChat = "[HELPGLOBALSPOILERSTRIVIAGIVEAWAYSTRADE](https://farmrpg.com/
 assert.strictEqual(detectPage(steamChat), null);
 assert.strictEqual(stripChat("12:01:02 AM" + NL + "Plain Name" + NL + "Active Requests (3)" + NL + "Keep this line").trim(), "Keep this line");
 
+// Silver from the top bar (Steam copies); none without it
+const { parseSilver } = require("../parse.js");
+assert.deepStrictEqual(parseSilver("x" + NL + "[1,234,567](https://farmrpg.com/bank.php)   [89](https://farmrpg.com/gold.php)   [2,000](https://farmrpg.com/town.php)" + NL + "Consume a meal"), { silver: 1234567, gold: 89 });
+assert.strictEqual(parseSilver(qText), null);
+
 console.log("inventory tests passed");

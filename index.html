@@ -477,7 +477,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -540,6 +540,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (!text.trim()) return;
     const kind = detectPage(text);
     let msg = "";
+    // Any page copied with the top bar carries your silver: keep the newest
+    const cash = parseSilver(text);
+    if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); }
     if (kind === "mastery") {
       const r = parseMastery(text);
       const n = Object.keys(r.items).length;
@@ -861,6 +864,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const o = S.orchard;
     li.push(o ? `<li>Orchard: ${Object.entries(o).map(([n, v]) => `${fmt(v.production)} ${n}s`).join(", ")} each midnight <span class="muted small">(${ago(S.orchardAt)})</span></li>`
               : `<li class="missing">Orchard: not pasted yet (optional, turns fruit into days of production)</li>`);
+    li.push(S.silver != null ? `<li>Silver: ${fmt(S.silver)}${S.gold != null ? `, ${fmt(S.gold)} gold` : ""} <span class="muted small">(${ago(S.silverAt)})</span></li>`
+                             : `<li class="missing">Silver: not seen yet (read from the top bar of any page copied in the Steam app)</li>`);
     // Older saves only kept one time for both perk pages
     const pp = S.perkPages || {}, pat = k => (S.perkAt || {})[k] || S.perkPagesAt;
     li.push(pp.perks ? `<li>Perks: read <span class="muted small">(${ago(pat("perks"))})</span></li>`
