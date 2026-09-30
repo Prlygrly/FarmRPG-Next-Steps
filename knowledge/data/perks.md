@@ -7,6 +7,9 @@ sources:
   - id: paste-chrome
     resource: Perks and Farm Supply pages copied from Chrome by the player, 2026-09-30 (player's own unlocks left out)
     title: "Chrome copies of the Perks and Farm Supply pages"
+  - id: paste-steam
+    resource: Farm Supply page copied from the Steam app by the player, 2026-09-30
+    title: "Steam copy of the Farm Supply page"
   - id: player
     resource: confirmed by the player in planning chats
     title: "Player confirmation"
@@ -279,7 +282,12 @@ Wheel Boost (bigger rewards), Wheel Credit (lower AC cost), Wheel Bonus (15% cha
 - Headings are in title case ("Profit Perks", "Bank Upgrades").
 
 ## Steam
-- Headings come in capitals (e.g. "FARMING PERKS", "CAP UPGRADES"); the parser matches headings in any case. Perk names and descriptions keep their case. (To confirm against a Steam copy of these two pages.)
+- Farm Supply (confirmed): the same lines as Chrome, but every heading is in capitals ("CAP UPGRADES", "UPGRADES ON SALE (CHANGES ON MONDAYS)", "ARTIFACT UPGRADES", and the Town districts above them). Perk names, descriptions, costs and "Unlocked" keep their case. The parser matches headings in any case.
+- Chat messages carry an extra "flag_fill" line after the sender (stripped with the chat).[^paste-steam]
+- After the last section, before "Consume a meal", Steam adds the top bar: "[silver](…/bank.php)   [gold](…/gold.php)   [N](…/town.php)", a bar of tracked masteries ("[84,384/100K   ](…/item.php?id=378)…"), a "[Mastery Progress]" link, then the silver bar again. These have no "Unlocked" line, so the perk reader ignores them; `parseSilver` reads the first silver link.
+- Perks page: expected the same way (capital headings such as "FARMING PERKS"); not yet seen from Steam.
+- The Town page's "Bank … 300.2B" is silver deposited in the Bank, not silver on hand.
 
 [^paste-chrome]: Chrome copies of the Perks and Farm Supply pages
+[^paste-steam]: Steam copy of the Farm Supply page
 [^player]: Player confirmation
