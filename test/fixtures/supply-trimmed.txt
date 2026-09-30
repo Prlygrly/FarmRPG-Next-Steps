@@ -1,0 +1,83 @@
+Farm Supply
+Cap Upgrades
+
+* +50 Inventory Cap
+Current Cap is 9,850
+285 Gold
+
+Upgrades on Sale (Changes on Mondays)
+
+* Grape Juice Fountain
++2 Extra Grape Juice uses per day
+Unlocked
+
+Farming Upgrades
+
+* Irrigation System I
+Crops grow 10% faster
+Unlocked
+* Irrigation System II
+Crops grow 20% faster
+Unlocked
+* Grape Juice Pitcher
++1 Extra Grape Juice uses per day
+Unlocked
+* Grape Juice Fountain
++2 Extra Grape Juice uses per day
+Unlocked
+* Grape Juice Waterfall
++3 Extra Grape Juice uses per day
+Unlocked
+* Grape Juice Vat
+Bulk use Grape Juice
+500 Gold
+
+Fishing Upgrades
+
+* Reinforced Netting
+Fishing Nets catch 15 things
+Unlocked
+
+Crafting Upgrades
+
+* Resource Saver II
+15% chance item is duplicated
+during crafting or resources
+are returned if max inventory
+Unlocked
+
+Exploring Upgrades
+
+* Lemon Squeezer
+Drinking Lemonade gives 20 Items
+Unlocked
+* Cinnamon Sticks
+Apple Cider is 25% more effective
+Unlocked
+
+Quality of Life Upgrades
+
+* Iron Depot
+Keeps inventory full of iron and nails
+by auto-buying with Silver
+Unlocked
+
+Artifact Upgrades
+
+* Resource Saver III
+20% chance item is duplicated
+during crafting or resources
+are returned if max inventory
+Tower 90 Artifact
+Unlocked
+* Grape Juice Spring
+Doubles Grape Juice use allowed daily
+Tower 150 Artifact
+Unlocked
+* Tree Shaker
+10% of Orchard Production
+drops at Noon daily
+Tower 170 Artifact
+Unlocked
+
+Consume a meal

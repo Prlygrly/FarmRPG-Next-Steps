@@ -1,0 +1,75 @@
+40
+Points Left
+650
+Points Used
+17
+Perks Avail
+
+Farming Perks
+
+* Farming Primer
+Earn 10% more XP when farming
+10 Points
+* Quicker Farming I
+Crops grow 5% faster
+Unlocked
+* Quicker Farming II
+Crops grow 10% faster
+Unlocked
+* Quicker Farming III
+Crops grow 15% faster
+Unlocked
+* Quicker Farming IV
+Crops grow 20% faster
+Unlocked
+* Double Prizes I
+15% chance a crop will yield 2 of the crop
+Unlocked
+* Double Prizes II
+25% chance a crop will yield 2 of the crop
+Unlocked
+* Quicker Corn I
+Corn grows 10% faster
+Unlocked
+* Quicker Corn II
+Corn grows 10% faster
+Unlocked
+
+Crafting Perks
+
+* Artisan III
+Crafting costs 15% less Silver
+30 Points
+* Resource Saver I
+10% chance item is duplicated
+during crafting or resources
+are returned if max inventory
+Unlocked
+
+Exploring Perks
+
+* Wanderer I
+4% chance exploring won't use Stamina
+Unlocked
+* Wanderer II
+7% chance exploring won't use Stamina
+Unlocked
+* Wanderer III
+9% chance exploring won't use Stamina
+Unlocked
+* Wanderer IV
+13% chance exploring won't use Stamina
+Unlocked
+
+Artifact Perks
+
+* Enriched Soil
+Crops grow 10% faster
+Requires Tower Level 10
+Unlocked
+* Fishing Trawl
+Large Nets are more effective
+Requires Tower Level 70
+Unlocked
+
+Consume a meal

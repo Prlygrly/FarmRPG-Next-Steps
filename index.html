@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FarmRPG Next Steps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F3EFE7;
+  --surface: #FFFFFF;
+  --surface-2: #E8E1D3;
+  --ink: #2A2238;
+  --muted: #625A70;
+  --line: #D6CCBA;
+  --gold: #946312;
+  --stone: #5B4E86;
+  --good: #2B7453;
+  --warn: #A8432B;
+  --focus: #4A63B8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #17131F;
+    --surface: #221C2D;
+    --surface-2: #2E2640;
+    --ink: #ECE6F4;
+    --muted: #ADA3BD;
+    --line: #41375A;
+    --gold: #E6BD6E;
+    --stone: #B3A5E8;
+    --good: #6CC096;
+    --warn: #F0907A;
+    --focus: #9DB2F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17131F;
+  --surface: #221C2D;
+  --surface-2: #2E2640;
+  --ink: #ECE6F4;
+  --muted: #ADA3BD;
+  --line: #41375A;
+  --gold: #E6BD6E;
+  --stone: #B3A5E8;
+  --good: #6CC096;
+  --warn: #F0907A;
+  --focus: #9DB2F5;
+  color-scheme: dark;
+}
+/* ---------- Extra themes ---------- */
+/* Starry night: deep blue with a scattering of twinkling stars */
+:root[data-theme="starry"] {
+  --bg: #0B1330; --surface: #121D45; --surface-2: #1A2A5E; --ink: #E8EEFF; --muted: #A5B3DC; --line: #2B3F7E;
+  --gold: #F4D57A; --stone: #9CB8FF; --good: #7FD8B0; --warn: #FF9E8A; --focus: #FFE58A; color-scheme: dark;
+}
+/* Spooky: black and pumpkin orange, with a little glow */
+:root[data-theme="spooky"] {
+  --bg: #120B08; --surface: #1D130D; --surface-2: #2A1A10; --ink: #FBE9D8; --muted: #C9A487; --line: #4A2A14;
+  --gold: #FF9A1F; --stone: #FF7A00; --good: #9BD65A; --warn: #FF5A4E; --focus: #FFB547; color-scheme: dark;
+}
+/* Festive: dark green and dark red, with a string of twinkle lights across the top */
+:root[data-theme="festive"] {
+  --bg: #0E2016; --surface: #152C1F; --surface-2: #1E3B2A; --ink: #F5EEDD; --muted: #BFD2B8; --line: #2F5A3C;
+  --gold: #E8C15A; --stone: #D23A3A; --good: #7FD08A; --warn: #FF7B6B; --focus: #F2D675; color-scheme: dark;
+}
+/* Noir: black and greys, no colour at all */
+:root[data-theme="noir"] {
+  --bg: #0A0A0A; --surface: #151515; --surface-2: #222222; --ink: #EDEDED; --muted: #9E9E9E; --line: #3A3A3A;
+  --gold: #D6D6D6; --stone: #CFCFCF; --good: #E0E0E0; --warn: #FFFFFF; --focus: #FFFFFF; color-scheme: dark;
+}
+/* Paper: plain white, black text, high contrast */
+:root[data-theme="paper"] {
+  --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F1F1F1; --ink: #000000; --muted: #3D3D3D; --line: #000000;
+  --gold: #000000; --stone: #000000; --good: #000000; --warn: #000000; --focus: #0047FF; color-scheme: light;
+}
+:root[data-theme="paper"] .card { border-width: 2px; }
+:root[data-theme="paper"] .tag { border-color: #000; color: #000; }
+/* Decorations sit behind everything and never catch clicks */
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+:root[data-theme="starry"] body::before {
+  background-image:
+    radial-gradient(1.5px 1.5px at 20px 30px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 90px 120px, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 160px 60px, #FFE9A8 50%, transparent 51%),
+    radial-gradient(1px 1px at 230px 170px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 300px 90px, #CFE0FF 50%, transparent 51%),
+    radial-gradient(1px 1px at 350px 210px, #fff 50%, transparent 51%),
+    radial-gradient(ellipse at 70% 10%, rgba(80, 110, 220, .25), transparent 60%);
+  background-size: 380px 260px, 380px 260px, 380px 260px, 380px 260px, 380px 260px, 380px 260px, 100% 100%;
+  animation: twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity: .55; } to { opacity: 1; } }
+:root[data-theme="spooky"] body::before {
+  background: radial-gradient(ellipse at 50% 110%, rgba(255, 122, 0, .22), transparent 60%),
+              radial-gradient(circle at 88% 8%, rgba(255, 230, 180, .18) 0 40px, transparent 41px);
+}
+:root[data-theme="spooky"] h1 { text-shadow: 0 0 12px rgba(255, 122, 0, .55); }
+:root[data-theme="spooky"] .card { box-shadow: 0 0 0 1px rgba(255, 122, 0, .12), 0 6px 24px rgba(0, 0, 0, .5); }
+:root[data-theme="festive"] body::before {
+  background:
+    radial-gradient(circle at 10px 10px, #FF4D4D 0 4px, transparent 5px) 0 0 / 80px 22px repeat-x,
+    radial-gradient(circle at 30px 14px, #FFD84D 0 4px, transparent 5px) 0 0 / 80px 22px repeat-x,
+    radial-gradient(circle at 50px 10px, #4DD2FF 0 4px, transparent 5px) 0 0 / 80px 22px repeat-x,
+    radial-gradient(circle at 70px 14px, #6BFF7A 0 4px, transparent 5px) 0 0 / 80px 22px repeat-x;
+  animation: lights 1.6s steps(2) infinite;
+}
+@keyframes lights { 50% { filter: brightness(1.8) saturate(1.4); } }
+:root[data-theme="festive"] h1 { color: #F2D675; }
+:root[data-theme="festive"] main { padding-top: 34px; }            /* room under the string of lights */
+/* Tabs: only the chosen tab's sections show (main[data-tab] is set by the page) */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.tabs button { border-radius: 999px; }
+.tabs button[aria-selected="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); font-weight: 700; }
+main[data-tab] > section[data-tab] { display: none; }
+main[data-tab="next"] > section[data-tab="next"]:not([hidden]),
+main[data-tab="quests"] > section[data-tab="quests"]:not([hidden]),
+main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
+main[data-tab="trips"] > section[data-tab="trips"]:not([hidden]),
+main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
+main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
+/* Spend my…: each place's masteries and quests side by side (stacked on phones) */
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 4px 16px; }
+.two-col h4 { margin: 8px 0 4px; font-size: .95em; }
+.two-col ul { margin: 0; padding-left: 18px; }
+.best-place > summary { cursor: pointer; padding: 6px 0; }
+.tip { cursor: help; color: var(--muted); font-size: .85em; }
+.bites li.group-head { list-style: none; margin: 10px 0 2px -18px; }
+[data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
+#tip-pop { position: absolute; z-index: 20; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.plant-row > summary, .boost > summary { cursor: pointer; padding: 5px 0; }
+.plant-row ul { margin: 2px 0 6px; padding-left: 22px; }
+select { font: inherit; color: inherit; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+h1, h2, h3 { font-family: "Bricolage Grotesque", "Segoe UI", sans-serif; line-height: 1.2; margin: 0 0 .4em; }
+h1 { font-size: 1.7rem; font-weight: 800; }
+h2 { font-size: 1.25rem; font-weight: 700; }
+main { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+header p { margin: 0; color: var(--muted); }
+button, input, textarea { font: inherit; color: inherit; }
+button {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 12px; cursor: pointer;
+}
+button:hover { border-color: var(--stone); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+textarea {
+  width: 100%; min-height: 110px; resize: vertical; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+}
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.muted { color: var(--muted); }
+.small { font-size: .9rem; }
+.loaded { list-style: none; padding: 0; margin: 10px 0 0; }
+.loaded li::before { content: "✓ "; color: var(--good); font-weight: 700; }
+.loaded li.missing::before { content: "○ "; color: var(--muted); }
+.note { border-left: 4px solid var(--warn); padding: 6px 10px; background: var(--surface-2); border-radius: 6px; margin-top: 10px; }
+label.field, span.field { display: flex; flex-direction: column; font-size: .9rem; color: var(--muted); }
+#theme { max-width: 100%; }
+label.field input, label.field select, span.field input, span.field select {
+  width: 8.5em; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
+}
+label.field select, span.field select { width: auto; min-width: 8.5em; max-width: 100%; }   /* fit the longest option ("Arnold Palmers") */
+.bites { list-style: none; padding: 0; margin: 0; counter-reset: bite; }
+.bites li {
+  counter-increment: bite; position: relative; padding: 10px 12px 10px 48px;
+  border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--bg);
+}
+.bites li::before {
+  content: counter(bite); position: absolute; left: 12px; top: 10px; width: 26px; height: 26px;
+  border-radius: 50%; background: var(--stone); color: var(--surface); font-weight: 700;
+  display: grid; place-items: center; font-size: .9rem;
+}
+.bites strong { display: block; }
+.tag { display: inline-block; font-size: .78rem; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin-left: 4px; white-space: nowrap; }
+.tag.tower { color: var(--stone); border-color: var(--stone); }
+details { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+summary { cursor: pointer; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.05rem; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: .95rem; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 700; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ok { color: var(--good); }
+.bad { color: var(--warn); }
+.stock { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+.stock div { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.stock b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>FarmRPG Next Steps</h1>
+      <p>Paste your game pages. Get a short list of what to do next.</p>
+    </div>
+    <label class="small muted">Theme
+      <select id="theme" aria-label="Page theme">
+        <option value="">Auto (match my device)</option>
+        <option value="light">Cream</option>
+        <option value="dark">Purple</option>
+        <option value="starry">Starry night</option>
+        <option value="spooky">Spooky</option>
+        <option value="festive">Festive</option>
+        <option value="noir">Noir</option>
+        <option value="paper">Paper</option>
+      </select>
+    </label>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" data-go="next" title="Your short list: quests ready to hand in, then the quickest masteries and quests, the next Tower level and your main quests. Also the Tower and AK tables.">Next steps</button>
+    <button type="button" role="tab" data-go="quests" title="Every quest from your Help Needed paste: what it still needs and costs, what the reward is worth to you, and what comes next in the chain. Plus today's wishing well tosses.">Quests</button>
+    <button type="button" role="tab" data-go="best" title="Where to spend a pile of Large Nets, Arnold Palmers or Apple Ciders; what to plant now; what your farm will soon overflow with; and what to cook.">Best use</button>
+    <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
+    <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
+    <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
+  </nav>
+  <div id="stale-banner" class="small" hidden></div>
+  <details id="changes" class="card" hidden style="padding:10px 14px">
+    <summary id="changes-sum"></summary>
+    <p class="small muted" style="margin:6px 0">Things you've ticked as done since your last paste. The next Mastery Progress, My Inventory or Help Needed paste replaces them with the real numbers.
+      Undo puts things back as they were before that tick (and any ticks after it).</p>
+    <ol id="changes-list" class="small" style="margin:0;padding-left:20px"></ol>
+  </details>
+
+  <section class="card" data-tab="next" id="next-empty" hidden>
+    <p style="margin:0"><b>Welcome!</b> Start in the <a href="#" data-go="setup">Setup</a> tab: paste (or upload) your <b>Mastery Progress</b>
+      page, and your next steps will show up here.</p>
+  </section>
+  <section class="card" data-tab="quests" id="quests-empty" hidden>
+    <p style="margin:0">Paste your <b>Help Needed</b> page in the <a href="#" data-go="setup">Setup</a> tab to see your quests here.</p>
+  </section>
+  <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
+    <h2 id="h-best">Spend my…</h2>
+    <p class="small muted">Where would a pile of Large Nets, Arnold Palmers or Apple Ciders do the most? Each place lists the masteries and
+      quests it would finish, then the long goals it moves closer (every bit counts). Places that finish the most come first.</p>
+    <div class="row">
+      <label class="field">Using <select id="best-unit" style="width:auto"><option value="LN">Large Nets</option><option value="AP">Arnold Palmers</option><option value="AC">Apple Ciders</option></select></label>
+      <label class="field">Amount <input id="best-amt" type="number" min="1" inputmode="numeric"></label>
+    </div>
+    <p id="best-note" class="small muted" style="margin:6px 0 0"></p>
+    <div id="best-list"></div>
+  </section>
+  <section class="card" data-tab="best" id="plant" aria-labelledby="h-plant">
+    <h2 id="h-plant">What to plant now</h2>
+    <p class="small muted">Best crop for your plots, by the quests and masteries it feeds. Tap one for the rest.</p>
+    <div id="plant-list"></div>
+  </section>
+  <section class="card" data-tab="best" id="overflow" aria-labelledby="h-overflow">
+    <h2 id="h-overflow">Daily overflow</h2>
+    <p class="small muted">What your farm makes every day, soonest to fill up first, and the best thing to turn it into. Tap one for more.</p>
+    <div id="overflow-list"></div>
+  </section>
+  <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
+    <h2 id="h-kitchen">Kitchen</h2>
+    <p class="small muted">Refill your pantry: meals your quests need come first (up to 5 ahead), then whatever you're lowest on. One meal
+      per oven; times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks). Tap one for more.</p>
+    <label class="field">Recipes I don't have <input id="kitchen-missing" type="text" placeholder="e.g. Cabbage Stew, Acorn Pie" style="min-width:240px"></label>
+    <div id="kitchen-list" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card" data-tab="setup" id="welcome" aria-labelledby="h-welcome" hidden>
+    <h2 id="h-welcome" style="margin-top:0">Welcome! Let's find your next steps</h2>
+    <p style="margin:0 0 8px">This planner reads pages from FarmRPG and tells you what to do next: the quickest masteries, quests and Tower
+      levels to finish, and the best use of your Arnold Palmers, Apple Ciders and Large Nets.</p>
+    <ol style="margin:0 0 8px;padding-left:20px">
+      <li><b>Mastery Progress</b> (Home → Perks, Mastery &amp; More → Mastery Progress; open every tier first). This one's needed.</li>
+      <li><b>My Inventory</b> and <b>Help Needed</b>, for what you have and your quests.</li>
+      <li>Optional: your <b>Perks</b>, <b>Farm Supply</b>, <b>farm page</b> and <b>Orchard</b>, so the numbers match your farm.</li>
+    </ol>
+    <p class="small muted" style="margin:0">On a computer, open each page, press Ctrl+A then Ctrl+C, and paste it in the box below. On a phone,
+      save the page and use <b>Upload a saved page</b>. Everything stays in this browser; nothing is sent anywhere.</p>
+  </section>
+
+  <section class="card" data-tab="setup" aria-labelledby="h-paste">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="h-paste" style="margin:0">Paste a page from the game</h2>
+      <button id="paste-toggle" type="button" aria-expanded="true" aria-controls="paste-body">Hide</button>
+    </div>
+    <div id="paste-summary" class="small" hidden></div>
+    <div id="paste-body">
+    <p class="small muted">On farmrpg.com, open a page, press <b>Ctrl+A</b> (select all), then <b>Ctrl+C</b> (copy), and paste it here.
+      Pages that work: <b>Mastery Progress</b> (Home → Perks, Mastery &amp; More → Mastery Progress; open every tier first), <b>My Inventory</b>, <b>Help Needed</b>, the <b>Orchard</b>, your <b>farm page</b>, <b>Perks</b> and <b>Farm Supply</b> (these two set Your perks).
+      Paste one at a time. Each one is remembered on this device.</p>
+    <textarea id="paste" placeholder="Paste here…" aria-label="Paste a game page"></textarea>
+    <div class="row" style="margin:6px 0 0;align-items:center">
+      <button id="file-btn" type="button">Upload a saved page</button>
+      <input type="file" id="file-in" accept=".mht,.mhtml,.webarchive,.html,.htm,multipart/related,message/rfc822,application/x-webarchive,text/html" hidden>
+      <span class="small muted">On a phone, where copying doesn't work: save the game page instead (in Chrome: ⋮ → Download), then upload it here.
+        It's read on this device only; nothing is sent anywhere.</span>
+    </div>
+    <div id="status" aria-live="polite"></div>
+    <ul class="loaded" id="loaded"></ul>
+    <div class="row" style="margin-top:10px">
+      <label class="field">Tower level <input id="f-level" type="number" min="0" inputmode="numeric"></label>
+      <label class="field">Unused AK <input id="f-ak" type="number" min="0" inputmode="numeric"></label>
+      <label class="field">Mega Masteries <input id="f-mm" type="number" min="0" inputmode="numeric"></label>
+      <button id="clear" type="button">Forget my pastes</button>
+    </div>
+    <p class="small muted" style="margin:6px 0 0">These three fill in from your Mastery paste. You can also type them.
+      AK (Ascension Knowledge) is what the Tower costs: 100 AK per level.</p>
+    </div>
+  </section>
+
+  <section class="card" data-tab="setup" id="settings" aria-labelledby="h-settings">
+    <h2 id="h-settings">Your settings</h2>
+    <p class="small muted" style="margin:0">Pastes fill most of these in; change anything that's wrong or missing.</p>
+    <details id="d-perks">
+      <summary>Your perks</summary>
+      <p class="small muted">These change how many Arnold Palmers, Apple Ciders and Large Nets things take. Resource Saver is the chance a craft gives double. Untick any you don't have yet.
+        <b>Or fill them in automatically:</b> paste your <b>Perks</b> page and your <b>Farm Supply</b> page in the paste box above.</p>
+      <div class="row" id="perks"></div>
+    </details>
+    <details id="d-general">
+      <summary>General settings</summary>
+      <p class="small muted">How you play, rather than what the game gives you. Hover the ⓘ for what each one does.</p>
+      <div class="row" id="general"></div>
+    </details>
+    <details id="d-places">
+      <summary>Places I can use</summary>
+      <p class="small muted">Ticked places count when working out effort. They tick themselves from your Mastery paste: a place counts as open
+        once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked because they're only open for a few days. Tick one while its event is on.</p>
+      <div id="places"></div>
+    </details>
+    <details id="d-prod">
+      <summary>Daily production</summary>
+      <p class="small muted">What your farm buildings make. These fill in from your farm page (if you can copy it) or the Orchard page.
+        Type any that are missing. Leave a box empty if you don't have that building.</p>
+      <div class="row" id="prod"></div>
+    </details>
+  </section>
+
+  <section class="card" data-tab="next" id="plan" aria-labelledby="h-next" hidden>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 id="h-next" style="margin:0">Do these next</h2>
+      <div class="row" role="group" aria-label="Order" style="gap:4px">
+        <button type="button" data-view="blend" title="Everything in one list, quickest first: AP turned into minutes of play, plus waiting (set both in General settings).">Blended by effort</button>
+        <button type="button" data-view="type" title="Grouped: ready to turn in, quests, masteries, Tower. Quickest first within each.">By type</button>
+      </div>
+    </div>
+    <ol class="bites" id="bites"></ol>
+    <button type="button" id="bites-more" hidden>Show more</button>
+
+    <details id="d-tower">
+      <summary>Tower: what the next levels need</summary>
+      <p class="small muted">A Mega Mastery (MM) means 1,000,000 of an item gathered in total. A Grand Mastery (GM) means 100,000.</p>
+      <div class="table-wrap"><table id="t-tower"></table></div>
+    </details>
+
+    <details id="d-ak">
+      <summary>AK: the quickest masteries to finish</summary>
+      <p class="small muted">Each Mastery (10,000 gathered) gives 10 AK. Each Grand Mastery (100,000) gives 100 AK.
+        "Left" is how many more you need to gather. "Effort" is the cheaper of gathering them or crafting them from ingredients,
+        using drop rates and recipes from buddy.farm and your perks. Things you make every day (wood, boards, fruit, feathers…)
+        count as free for now. For now 1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same.</p>
+      <div class="table-wrap"><table id="t-ak"></table></div>
+      <p class="small muted" id="ak-other"></p>
+    </details>
+
+    <details id="d-stock">
+      <summary>Your supplies</summary>
+      <div id="stock"></div>
+    </details>
+  </section>
+
+  <section class="card" data-tab="vj" id="vj" aria-labelledby="h-vj">
+    <h2 id="h-vj">Veggie Juice cycle</h2>
+    <p class="small muted">The usual loop: grow Tomato and Watermelon (taking turns) when nothing else needs the plots, until full; Breakfast
+      Boost the five quick crops until full; then Grape Juice the Beets and craft until the Tomatoes and Watermelons run out. Repeat.</p>
+    <div id="vj-cycle"></div>
+  </section>
+  <section class="card" data-tab="vj" aria-labelledby="h-vjc">
+    <h2 id="h-vjc">Veggie Juice calculator</h2>
+    <p class="small muted">Each Veggie Juice takes <span id="vj-cut-text">10%</span> off the time <b>left</b> (20% once "A Better Juice" is done; never below 1 minute), so use them all at once, right after planting.</p>
+    <div class="row">
+      <label class="field">Crop <select id="vj-crop"></select></label>
+      <label class="field">Minutes left <input id="vj-left" type="number" min="1" inputmode="numeric"></label>
+      <label class="field">Want it ready within (minutes) <input id="vj-target" type="number" min="1" inputmode="numeric" value="60"></label>
+    </div>
+    <div id="vj-out" class="small" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card" data-tab="trips" id="trips" aria-labelledby="h-trips" hidden>
+    <h2 id="h-trips">I'm exploring here anyway</h2>
+    <p class="small muted">Going somewhere a lot anyway, like the Forest for Antlers? Add it here. You'll see what else the trip brings home,
+      and things found there get cheaper in the lists above (by the "Trip discount" in Your perks).</p>
+    <div class="row">
+      <label class="field">Place <select id="trip-loc"></select></label>
+      <label class="field">Plan
+        <select id="trip-mode"><option value="spend">Spend a set amount</option><option value="until">Until I've gathered…</option></select></label>
+      <label class="field" id="trip-amt-wrap">Amount <input id="trip-amt" type="number" min="1" inputmode="numeric" value="1000"></label>
+      <label class="field" id="trip-item-wrap" hidden>Item <select id="trip-item"></select></label>
+      <label class="field" id="trip-qty-wrap" hidden>How many <input id="trip-qty" type="number" min="1" inputmode="numeric" value="10000"></label>
+      <label class="field">Using <select id="trip-unit"></select></label>
+      <button id="trip-add" type="button">Add trip</button>
+    </div>
+    <div id="trip-list"></div>
+  </section>
+
+  <section class="card" data-tab="quests" id="quests" aria-labelledby="h-quests" hidden>
+    <h2 id="h-quests">Quests</h2>
+    <p class="small muted">From your Help Needed paste. "Still needed" compares each quest with your inventory (paste My Inventory for this),
+      and the cost uses the same rules as above. Hide quests you've decided to skip; they move to the bottom.</p>
+    <div id="quest-list"></div>
+  </section>
+  <section class="card" data-tab="quests" id="ww" aria-labelledby="h-ww" hidden>
+    <h2 id="h-ww">Wishing well</h2>
+    <p class="small muted">Things your quests need (the current one and up to 5 ahead) that you're short of and the wishing well can give,
+      with the best thing to toss in. Only today's free tosses are planned.</p>
+    <div id="ww-list"></div>
+  </section>
+
+  <section class="card" data-tab="setup" id="saves" aria-labelledby="h-saves">
+    <h2 id="h-saves">Save and load</h2>
+    <p class="small muted">Everything you've pasted and typed is kept in this browser, but clearing site data or switching devices loses it.
+      Keep a save code somewhere safe (a note, an email to yourself) and load it here any time.</p>
+    <div class="row">
+      <button id="save-make" type="button">Make a save code</button>
+      <button id="save-copy" type="button" hidden>Copy it</button>
+      <button id="save-file" type="button">Download save file</button>
+      <label class="small" style="cursor:pointer"><input id="save-upload" type="file" accept=".txt,text/plain" hidden><span class="muted">or</span> <u>load a save file</u></label>
+    </div>
+    <textarea id="save-code" readonly hidden aria-label="Your save code" style="min-height:70px;margin-top:8px;font-family:monospace;font-size:.8rem"></textarea>
+    <div class="row" style="margin-top:10px">
+      <textarea id="load-code" placeholder="Paste a save code here to load it…" aria-label="Paste a save code" style="min-height:50px;font-family:monospace;font-size:.8rem"></textarea>
+      <button id="load-go" type="button">Load this code</button>
+    </div>
+    <div id="save-status" aria-live="polite"></div>
+  </section>
+  <div id="tip-pop" class="small" role="tooltip" hidden></div>
+  <footer class="small muted" style="margin:24px 0 8px;text-align:center">
+    Fan-made, not affiliated with FarmRPG. Data from <a href="https://buddy.farm" target="_blank" rel="noopener">buddy.farm</a>,
+    the <a href="https://farmrpg.com/wiki.php" target="_blank" rel="noopener">FarmRPG wiki</a> and
+    <a href="https://farmrpg-trade.live" target="_blank" rel="noopener">farmrpg-trade.live</a>.
+    Your pastes stay in this browser. <a href="https://github.com/Prlygrly/FarmRPG-Next-Steps" target="_blank" rel="noopener">Source</a>
+  </footer>
+</main>
+
+<script src="tower.js"></script>
+<script src="parse.js"></script>
+<script src="drops.js"></script>
+<script src="seasons.js"></script>
+<script src="recipes.js"></script>
+<script src="seeds.js"></script>
+<script src="meals.js"></script>
+<script src="ww.js"></script>
+<script src="quests.js"></script>
+<script src="loot.js"></script>
+<script src="trade.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
+  const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
+    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, autoBuyIronNails: false, grapeJuice: 2 };
+  const $ = id => document.getElementById(id);
+  const fmt = n => Number(n).toLocaleString("en-US");
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const STORE = "frp-planner-v1";
+
+  // ---------- State (remembered on this device) ----------
+  let S = { mastery: null, inventory: null, manual: {}, perks: { ...START_PERKS }, places: {}, hidden: [] };
+  try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
+  S.perks = { ...START_PERKS, ...S.perks };
+  // Older saves may have "Lorn -  Main Quest" stuck in the NPC name (extra space before the dash parse fix)
+  const fixQuestKinds = () => {
+    for (const q of S.quests || []) {
+      const m = !q.kind && q.npc && q.npc.match(/^(.+?)\s*[-–—]\s*(Main Quest|Side Request)\s*$/i);
+      if (m) { q.npc = m[1]; q.kind = /main/i.test(m[2]) ? "main" : "side"; }
+    }
+  };
+  fixQuestKinds();
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
+
+  // ---------- Theme ----------
+  // "" = Auto: no data-theme, so the page follows the device's light/dark setting
+  const setTheme = t => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+  try { const t = localStorage.getItem("frp-theme") || ""; setTheme(t); $("theme").value = t; } catch (e) {}
+  $("theme").addEventListener("change", () => {
+    const t = $("theme").value;
+    setTheme(t);
+    try { localStorage.setItem("frp-theme", t); } catch (e) {}
+  });
+
+  // ---------- Paste ----------
+  // Saved page (.mht/.mhtml/.html, e.g. Chrome's Download on a phone): turn its HTML back into the line-per-thing text a
+  // copy would give, so the same parsers read it. Chrome's .mht is quoted-printable (long lines broken with "=", "=" written
+  // "=3D"), so decode that first. Same approach as the net planner's savedPageToText().
+  function savedPageToText(raw) {
+    if (/Content-Transfer-Encoding:\s*quoted-printable/i.test(raw)) {
+      const bytes = raw.replace(/=\r?\n/g, "").replace(/=([0-9A-F]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
+      try { raw = new TextDecoder("utf-8").decode(Uint8Array.from(bytes, c => c.charCodeAt(0) & 255)); } catch (e) { raw = bytes; }
+    }
+    const start = raw.search(/<html[\s>]/i), end = raw.indexOf("</html>", start);
+    let html = start < 0 ? raw : raw.slice(start, end < 0 ? undefined : end);
+    html = html.replace(/<(script|style|svg|head)[\s\S]*?<\/\1>/gi, "")
+      .replace(/<br\s*\/?>|<\/(div|li|p|strong|span|h\d|tr|td|th|a|button|label)>/gi, "\n")
+      .replace(/<[^>]*>/g, " ");
+    const dec = document.createElement("textarea");
+    dec.innerHTML = html;
+    return dec.value.split("\n").map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
+  }
+  $("file-btn").addEventListener("click", () => $("file-in").click());
+  $("file-in").addEventListener("change", e => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    if (f.size > 30e6) { $("status").innerHTML = warn("That file is too big. Save just the one game page and try again."); return; }
+    f.text().then(raw => { $("paste").value = savedPageToText(raw); $("paste").dispatchEvent(new Event("input")); });
+  });
+  $("paste").addEventListener("input", () => {
+    const text = $("paste").value;
+    if (!text.trim()) return;
+    const kind = detectPage(text);
+    let msg = "";
+    if (kind === "mastery") {
+      const r = parseMastery(text);
+      const n = Object.keys(r.items).length;
+      if (!n) msg = warn("No mastery lines were found. Open every tier on the Mastery Progress page, then copy again.");
+      else {
+        S.mastery = { items: r.items, tower: r.tower, skills: r.skills, totals: r.totals, at: Date.now() };
+        S.changes = [];                                                  // real numbers replace any Done ticks
+        S.manual = {};
+        if (r.collapsed.length) msg = warn(`Some tiers were folded shut when you copied: ${esc(r.collapsed.join(", "))}. Open them and copy again for the full list.`);
+      }
+    } else if (kind === "inventory") {
+      const r = parseInventory(text);
+      if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
+      else { S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = []; }
+    } else if (kind === "farm") {
+      const r = parseFarm(text);
+      if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
+      else {
+        S.production = r;
+        if (r.plots) S.perks.plots = r.plots;
+        S.productionAt = Date.now();
+        const o = {};
+        for (const n of ["Apple", "Orange", "Lemon"]) if (r[n]) o[n] = { production: Math.round(r[n] * 24) };
+        if (Object.keys(o).length) { S.orchard = o; S.orchardAt = Date.now(); }
+      }
+    } else if (kind === "perks" || kind === "supply") {
+      // Each page knows some perks; the two pages' crop-growth and Resource Saver amounts add up
+      const got = perkSettings(parsePerks(text));
+      S.perkPages = { ...(S.perkPages || {}), [kind]: got };
+      const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
+      Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster") });
+      S.perkPagesAt = Date.now();
+      $("paste").value = "";
+      const other = kind === "perks" ? "supply" : "perks";
+      msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
+    } else if (kind === "orchard") {
+      const r = parseOrchard(text);
+      if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
+      else S.orchard = Object.fromEntries(Object.entries(r).map(([n, v]) => [n, { production: v.production, trees: v.trees }]));
+      if (S.orchard) S.orchardAt = Date.now();
+    } else if (kind === "quests") {
+      const r = parseQuests(text).filter(q => q.section !== "personal");
+      if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
+      else { S.quests = r; S.questsAt = Date.now(); S.changes = []; }
+    } else {
+      msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
+    }
+    $("status").innerHTML = msg;
+    if (!msg) $("paste").value = "";
+    save();
+    render();
+  });
+  const warn = s => `<div class="note">${s}</div>`;
+
+  for (const [id, key] of [["f-level", "level"], ["f-ak", "ak"], ["f-mm", "mm"]]) {
+    $(id).addEventListener("input", () => {
+      const v = $(id).value;
+      if (v === "") delete S.manual[key]; else S.manual[key] = Math.max(0, parseInt(v, 10) || 0);
+      save(); render(false);
+    });
+  }
+  const TIPS = {
+    apm: "Roughly how many Arnold Palmers, Apple Ciders or Large Nets you get through in a minute of play. Turns AP costs into minutes for the blended list.",
+    wait: "Waiting on crops and buildings costs little, since you can do other things meanwhile. This says how much an hour of waiting counts, in minutes of active play, when ordering Do these next.",
+    slow: "Jobs that would wait on your daily production longer than this count as slow: the planner gathers or crafts the rest instead of waiting, and ranks them after quicker things.",
+    trip: "Places you've added in the Trips tab get visited anyway, so things found there count this much cheaper in the other lists.",
+    checks: "Roughly how often you check the game. Crops only get harvested when you look, so this sets how often a planting can be collected; a crop that's ready sooner doesn't come in any faster.",
+    vj: "How you use Veggie Juice on planted crops (Breakfast Boost crops are left out). It changes crop times everywhere in the planner.",
+    abj: "Finishing Mariya's questline \"A Better Juice\" (needs Tower 100 and Farming, Fishing, Crafting and Exploring at 99) makes each Veggie Juice take 20% off a crop's time left instead of 10%. The planner assumes it's done once you qualify and none of it is in Help Needed; tick this if you haven't actually finished it.",
+    stirs: "How many times you usually stir each meal. The first stir is possible after 1 minute, then every 15 minutes; each takes 10% off the time left.",
+    boost: "How many Plant All + Harvest All rounds you usually manage during one 2-minute Breakfast Boost."
+  };
+  const PERKS = [["ironDepot", "Iron Depot (more explore drops)"], ["runecube", "Runecube (more explore drops)"],
+    ["lemonSqueezer", "Lemon Squeezer (Arnold Palmer finds 500 items)"], ["cinnamonSticks", "Cinnamon Sticks (Apple Cider explores 1,250 times)"],
+    ["reinforcedNetting", "Reinforced Netting (+150 fish per Large Net)"], ["fishingTrawl", "Fishing Trawl (+100 fish per Large Net)"],
+    ["autoBuyIronNails", "Buys Iron and Nails automatically (counts them as unlimited)"]];
+  $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"><input type="checkbox" data-perk="${k}"> ${label}</label>`).join("") +
+    `<label class="field">Wanderer % <input type="number" min="0" max="100" data-perk="wanderer"></label>` +
+    `<label class="field">Resource Saver % <input type="number" min="0" max="100" data-perk="resourceSaver"></label>` +
+    `<label class="field">Orchard noon bonus % <input type="number" min="0" max="100" data-perk="orchardNoon"></label>` +
+    `<label class="field">Crop plots <input type="number" min="0" max="10000" data-perk="plots"></label>` +
+    `<label class="field">Grape Juice per day <input type="number" min="0" max="1000" data-perk="grapeJuice"></label>` +
+    `<label class="field">Free wishing well tosses a day <input type="number" min="0" max="100" data-perk="wwTosses"></label>` +
+    `<label class="field">Ovens <input type="number" min="1" max="100" data-perk="ovens"></label>` +
+    `<label class="field">Cooking faster % <input type="number" min="0" max="90" data-perk="cookFaster"></label>` +
+    `<label class="field">Crop growth cut % <input type="number" min="0" max="99" data-perk="cropGrowthCut"></label>` +
+    `<label class="field">Corn extra cut % <input type="number" min="0" max="99" data-perk="cornGrowthCut"></label>` +
+    `<label class="field">Double crops chance % <input type="number" min="0" max="100" data-perk="doublePrizes"></label>`;
+  // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
+  const tip = t => ` <span class="tip" title="${esc(t)}" aria-label="${esc(t)}">ⓘ</span>`;
+  $("general").innerHTML =
+    `<label class="field" title="${esc(TIPS.apm)}"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
+    `<label class="field" title="${esc(TIPS.wait)}"><span>An hour of waiting feels like … minutes of play${tip(TIPS.wait)}</span> <input type="number" min="0" max="600" data-perk="waitWorth"></label>` +
+    `<label class="field" title="${esc(TIPS.slow)}"><span>Too slow after (days)${tip(TIPS.slow)}</span> <input type="number" min="1" max="365" data-perk="slowDays"></label>` +
+    `<label class="field" title="${esc(TIPS.trip)}"><span>Trip discount %${tip(TIPS.trip)}</span> <input type="number" min="0" max="100" data-perk="tripDiscount"></label>` +
+    `<span class="field" title="${esc(TIPS.checks)}"><span>I check the game${tip(TIPS.checks)}</span><span class="row" style="gap:6px;flex-wrap:nowrap">` +
+    `<input type="number" min="1" max="1000" data-perk="checks" aria-label="How many times" style="width:5em"> times per ` +
+    `<select data-perk="checkUnit" aria-label="Per" style="width:auto;min-width:0"><option value="hour">hour</option><option value="day">day</option><option value="week">week</option></select></span></span>` +
+    `<label class="field" title="${esc(TIPS.vj)}"><span>Veggie Juice on crops${tip(TIPS.vj)}</span> <select data-perk="vjMode" style="width:auto"><option value="none">No Veggie Juice</option><option value="max">As much as helps</option>` +
+    `<option value="count">A set number each planting</option><option value="target">Down to a set time</option></select></label>` +
+    `<label class="field" id="vj-count-wrap">Juices each planting <input type="number" min="1" max="100" data-perk="vjCount"></label>` +
+    `<label class="field" id="vj-target-wrap">Down to (minutes) <input type="number" min="1" max="100000" data-perk="vjTarget"></label>` +
+    `<label class="small" id="abj-wrap" title="${esc(TIPS.abj)}"><input type="checkbox" data-perk="abjNotDone"> The questline "A Better Juice" isn't done yet${tip(TIPS.abj)}</label>` +
+    `<span class="small muted" id="vj-cut-note"></span>` +
+    `<label class="field" title="${esc(TIPS.stirs)}"><span>Stirs per meal${tip(TIPS.stirs)}</span> <input type="number" min="0" max="100" data-perk="stirs"></label>` +
+    `<label class="field" title="${esc(TIPS.boost)}"><span>Harvests per Breakfast Boost${tip(TIPS.boost)}</span> <input type="number" min="1" max="10000" data-perk="boostRounds"></label>`;
+  document.querySelectorAll("#perks [data-perk], #general [data-perk]").forEach(el => {
+    const k = el.dataset.perk;
+    if (el.type === "checkbox") el.checked = !!S.perks[k]; else el.value = S.perks[k];
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
+      S.perks[k] = el.type === "checkbox" ? el.checked : el.tagName === "SELECT" ? el.value : Math.min(+el.max || 100, Math.max(0, +el.value || 0)); save(); render(false); });
+  });
+
+  // Typed production: shown in each building's natural unit, stored per hour (orchard: midnight amount)
+  const PROD = [["Wood", "hour"], ["Board", "hour"], ["Stone", "hour"], ["Coal", "hour"], ["Iron", "hour"], ["Nails", "hour"],
+    ["Steel", "hour"], ["Steel Wire", "hour"], ["Straw", "hour"], ["Worms", "hour"], ["Gummy Worms", "hour"], ["Mealworms", "hour"],
+    ["Apple", "orchard"], ["Orange", "orchard"], ["Lemon", "orchard"], ["Grapes", "day"], ["Milk", "day"], ["Eggs", "day"],
+    ["Feathers", "day"], ["Antler", "day"], ["Steak Kabob", "day"], ["Trout", "day"], ["Grubs", "day"], ["Minnows", "day"]];
+  $("prod").innerHTML = PROD.map(([n, u]) => `<label class="field">${esc(n)} ${u === "hour" ? "per hour" : u === "orchard" ? "at midnight" : "per day"}
+    <input type="number" min="0" inputmode="numeric" data-prod="${esc(n)}" data-unit="${u}"></label>`).join("");
+  function syncProd() {
+    // Perk fields too, since pastes can change them (the farm page sets Crop plots)
+    document.querySelectorAll("#perks [data-perk], #general [data-perk]").forEach(el => {
+      if (el.type === "checkbox") el.checked = !!S.perks[el.dataset.perk];
+      else if (document.activeElement !== el) el.value = S.perks[el.dataset.perk] ?? "";
+    });
+    $("prod").querySelectorAll("[data-prod]").forEach(el => {
+      const n = el.dataset.prod, u = el.dataset.unit;
+      const v = u === "orchard" ? S.orchard && S.orchard[n] && S.orchard[n].production : S.production && S.production[n];
+      el.value = v == null ? "" : Math.round(u === "day" ? v * 24 : v);
+    });
+  }
+  $("prod").addEventListener("input", e => {
+    const n = e.target.dataset.prod, u = e.target.dataset.unit;
+    if (!n) return;
+    const v = e.target.value === "" ? null : Math.max(0, +e.target.value || 0);
+    if (u === "orchard") {
+      S.orchard = S.orchard || {};
+      if (v == null) delete S.orchard[n]; else S.orchard[n] = { production: v };
+      S.orchardAt = S.orchardAt || Date.now();
+    } else {
+      S.production = S.production || {};
+      if (v == null) delete S.production[n]; else S.production[n] = u === "day" ? v / 24 : v;
+      S.productionAt = S.productionAt || Date.now();
+    }
+    save(); render(false);
+  });
+
+  $("clear").addEventListener("click", () => {
+    if (!confirm("Forget your pasted pages and typed numbers on this device?")) return;
+    S = { mastery: null, inventory: null, manual: {}, perks: S.perks, places: {}, hidden: S.hidden };
+    save(); $("status").innerHTML = ""; render();
+  });
+
+  // ---------- Player from pastes + typed numbers ----------
+  function player() {
+    const m = S.mastery;
+    const items = m ? m.items : {};
+    const fromPaste = {
+      level: m && m.tower ? m.tower.level : null,
+      ak: m && m.tower ? m.tower.ak : null,
+      mm: m && m.totals ? m.totals.mm : (m ? Object.values(items).filter(v => v >= 1e6).length : null)
+    };
+    const pick = k => S.manual[k] != null ? S.manual[k] : fromPaste[k];
+    // No Tower on the Mastery page (and none typed): the Tower isn't open yet. Plan as level 0, without Tower steps.
+    const noTower = !!m && !m.tower && S.manual.level == null;
+    return { items, level: noTower ? 0 : pick("level"), ak: pick("ak") || 0, mm: pick("mm"), skills: m ? m.skills : {}, fromPaste, noTower };
+  }
+
+  // ---------- Render ----------
+  // "I check the game N times per hour/day/week" -> how many harvests an hour are possible
+  const CHECK_HOURS = { hour: 1, day: 24, week: 168 };
+  function syncChecks() {
+    if (S.perks.checks == null) { S.perks.checks = S.perks.harvestsPerHour ?? 4; S.perks.checkUnit = "hour"; }
+    S.perks.harvestsPerHour = Math.max(1e-3, S.perks.checks / (CHECK_HOURS[S.perks.checkUnit] || 1));
+  }
+  function render(syncFields = true) {
+    syncChecks();
+    $("welcome").hidden = !!S.mastery;                // first visit: explain what to paste
+    const p = player();
+    VJ_CUT = vjCut(p);
+    renderLoaded(p);
+    renderChanges();
+    if (syncFields) {
+      $("f-level").value = p.level ?? "";
+      $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
+      $("f-mm").value = p.mm ?? "";
+      syncProd();
+    }
+    const ready = S.mastery && p.level != null;
+    $("plan").hidden = !ready;
+    $("next-empty").hidden = !!ready;
+    $("trips").hidden = true;
+    $("quests").hidden = true;
+    $("quests-empty").hidden = !!(ready && S.quests);
+    if (!ready) { $("best-note").textContent = "Paste your Mastery Progress page in the Setup tab first."; $("best-list").innerHTML = ""; return; }
+
+    const tp = towerPlan({ level: p.level, ak: p.ak, items: p.items, mmCount: p.mm }, TOWER, 30);
+    const akTarget = Math.max(tp.akToClearFree, tower100(p.ak));
+    W = where(p);
+    renderPlaces(p);
+    // Anything the farm makes counts as "daily production" (costed in time, not AP)
+    // Only things with a known rate count (a new player with no farm/orchard paste gathers or crafts everything)
+    const passive = [...new Set([...Object.keys(allProd()), ...Object.keys(S.orchard || {}), ...(S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [])])];
+    C = makeCoster(DROPS, RECIPES, S.perks, W, passive);
+    const ap = akPlan(p.items, { akTarget, tower: TOWER, fromLevel: p.level, skills: p.skills, drops: DROPS, coster: C, where: W, hidden: S.hidden,
+      adjust, timeOf, quickHours: 24, slowHours: (S.perks.slowDays ?? 7) * 24 });
+    const inv = S.inventory;
+    O = { recipes: RECIPES, coster: C, adjust, counts: p.items, perks: S.perks, drops: DROPS, where: W,
+      onHand: inv ? Object.fromEntries(Object.entries(inv.items).map(([n, it]) => [n, it.count])) : {},
+      cap: inv && inv.cap ? inv.cap : Infinity, towerUse: window.FRP.towerUses(TOWER, p.level) };
+    LAST = { tp, ap };
+    renderBites(p, tp, ap);
+    renderTower(p, tp);
+    $("d-tower").hidden = !!p.noTower;
+    renderAK(ap, akTarget);
+    renderStock();
+    $("trips").hidden = false;
+    renderTrips(p);
+    renderBest(p);
+    renderPlant(p, ap);
+    renderVJ();
+    renderOverflow(p);
+    renderKitchen(p);
+    $("quests").hidden = !S.quests;
+    if (S.quests) renderQuests(p);
+    renderWW(p);
+  }
+  // Places the player can use this month: auto-detected from the paste, then their own ticks on top
+  let W = null, C = null, O = null;
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthText = ms => ms.map(m => MONTHS[m - 1]).join("–");
+  function where(p) {
+    // Evidence of having been somewhere: mastery counts, plus inventory counts for things without a mastery
+    const seen = { ...p.items };
+    const inv = S.inventory ? S.inventory.items : {};
+    for (const [n, it] of Object.entries(inv)) seen[n] = Math.max(seen[n] || 0, it.count);
+    const auto = placesUnlocked(seen, DROPS, SEASONS, { exploreEvidence: !!S.inventory });
+    // Event places are only open for a few days of their month, so they start unticked: tick one while its event runs
+    for (const loc of Object.keys(SEASONS.locs)) auto[loc] = false;
+    const places = {};
+    for (const loc of Object.keys(DROPS.locs)) places[loc] = S.places[loc] ?? auto[loc];
+    // Trip places cost less: a 50% trip discount makes their costs count at half
+    const discount = {};
+    for (const t of S.trips || []) discount[t.loc] = 1 - (S.perks.tripDiscount ?? 50) / 100;
+    return { month: new Date().getMonth() + 1, seasons: SEASONS, places, auto, discount };
+  }
+  function renderPlaces() {
+    const group = type => Object.keys(DROPS.locs).filter(l => DROPS.locs[l].type === type).sort().map(l => {
+      const season = SEASONS.locs[l];
+      const note = [season ? `${monthText(season)} only` : "", S.places[l] != null ? "changed by you" : ""].filter(Boolean).join(", ");
+      return `<label class="small" style="display:block"><input type="checkbox" data-place="${esc(l)}" ${W.places[l] ? "checked" : ""}> ${esc(l)}${note ? ` <span class="muted">(${note})</span>` : ""}</label>`;
+    }).join("");
+    $("places").innerHTML = `<div class="stock"><div><b>Exploring</b>${group("explore")}</div><div><b>Fishing</b>${group("fishing")}</div></div>`;
+  }
+  $("places").addEventListener("change", e => {
+    const l = e.target.dataset.place;
+    if (!l) return;
+    if (e.target.checked === W.auto[l]) delete S.places[l]; else S.places[l] = e.target.checked;
+    save(); render(false);
+  });
+  const tower100 = ak => Math.max(0, TOWER.akPerLevel - ak);
+
+  // Paste section can be hidden. While hidden, one line says whether the pages that change often are over a week
+  // old (Mastery Progress, My Inventory, Help Needed). Farm, orchard and perk pages don't get reminders.
+  function renderPasteToggle() {
+    const hidden = !!(S.ui && S.ui.pasteHidden);
+    $("paste-body").hidden = hidden;
+    $("paste-summary").hidden = !hidden;
+    $("paste-toggle").textContent = hidden ? "Show" : "Hide";
+    $("paste-toggle").setAttribute("aria-expanded", String(!hidden));
+    const week = 7 * 864e5, now = Date.now();
+    const pages = [["Mastery Progress", S.mastery && S.mastery.at], ["My Inventory", S.inventory && S.inventory.at], ["Help Needed", S.questsAt]];
+    const old = pages.filter(([, at]) => !at || now - at > week)
+      .map(([n, at]) => at ? `${n} is ${Math.floor((now - at) / 864e5)} days old` : `${n} hasn't been pasted`);
+    // Shown under the tabs on every tab (only once there's a Mastery paste, so a brand-new page isn't nagging)
+    $("stale-banner").hidden = !(old.length && S.mastery);
+    $("stale-banner").innerHTML = old.length ? `<div class="note" style="margin:0 0 12px">${old.join("; ")}. Paste a fresh copy in <a href="#" data-go="setup">Setup</a> when you can.</div>` : "";
+    if (!hidden) return;
+    $("paste-summary").innerHTML = old.length
+      ? `<span class="muted">Some pastes are over a week old (see the note above).</span>`
+      : `<span class="muted">Your pastes are up to date.</span>`;
+  }
+  $("paste-toggle").addEventListener("click", () => {
+    S.ui = { ...(S.ui || {}), pasteHidden: !(S.ui && S.ui.pasteHidden) };
+    save(); renderPasteToggle();
+  });
+
+  function renderLoaded(p) {
+    renderPasteToggle();
+    const m = S.mastery, inv = S.inventory;
+    const ago = t => { const h = Math.round((Date.now() - t) / 36e5); return h < 1 ? "just now" : h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`; };
+    const li = [];
+    li.push(m ? `<li>Mastery Progress: ${fmt(Object.keys(m.items).length)} items${m.tower ? `, Tower level ${m.tower.level}, ${fmt(m.tower.ak)} unused AK` : ""} <span class="muted small">(${ago(m.at)})</span></li>`
+              : `<li class="missing">Mastery Progress: not pasted yet (needed)</li>`);
+    li.push(inv ? `<li>My Inventory: ${fmt(Object.keys(inv.items).length)} items${inv.cap ? `, you can hold ${fmt(inv.cap)} of each` : ""} <span class="muted small">(${ago(inv.at)})</span></li>`
+                : `<li class="missing">My Inventory: not pasted yet (optional, shows your supplies)</li>`);
+    const qs = S.quests;
+    li.push(qs ? `<li>Help Needed: ${qs.length} quests (${qs.filter(q => q.ready).length} ready, ${qs.filter(q => q.section === "special").length} specials) <span class="muted small">(${ago(S.questsAt)})</span></li>`
+               : `<li class="missing">Help Needed: not pasted yet (optional, for quest suggestions)</li>`);
+    const pr = S.production;
+    li.push(pr ? `<li>Farm: ${Object.keys(pr).length} things your buildings make <span class="muted small">(${ago(S.productionAt)})</span></li>`
+               : `<li class="missing">Farm page: not pasted yet (optional, turns wood, straw, grapes… into hours or days; or type them under "Daily production")</li>`);
+    const o = S.orchard;
+    li.push(o ? `<li>Orchard: ${Object.entries(o).map(([n, v]) => `${fmt(v.production)} ${n}s`).join(", ")} each midnight <span class="muted small">(${ago(S.orchardAt)})</span></li>`
+              : `<li class="missing">Orchard: not pasted yet (optional, turns fruit into days of production)</li>`);
+    $("loaded").innerHTML = li.join("");
+    if (m && !m.tower && p.level == null) $("status").innerHTML ||= warn("Your Tower level wasn't in that paste. Type it in the box below.");
+  }
+
+  // "Do these next": one list of masteries, tower and quests, quickest first. Each candidate carries its AP cost
+  // and how long it waits on production; ready quests cost nothing. Up to 5 are shown, then a "start early" wall note.
+  function renderBites(p, tp, ap) {
+    const cands = [];
+    const need = tower100(p.ak);
+    const next = tp.levels[0];
+    let fixed = null;                                                  // a note that isn't ranked (blocked / top of tower)
+
+    // The next tower level: its cheapest mastery, or a blocked note
+    if (p.noTower) fixed = { t: "The Tower isn't open yet", d: "It opens with the \u201cA Towering Investment\u201d questline, which starts once Farming, Fishing, Crafting and Exploring all reach 90. Until then, the list below is the quickest masteries and quests." };
+    else if (!next) fixed = { t: "You're at the top of the known Tower", d: "The tower table here ends at level 350." };
+    else if (p.noTower) { /* nothing to climb yet */ }
+    else if (next.unmet.length) fixed = wallBite(next, true);
+    else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
+    else {
+      const k = ap.known.find(x => x.ak >= need);
+      if (k) cands.push({ t: `Finish ${esc(k.item)} ${tierName(k.tier)} to reach Tower level ${next.level}`,
+        d: `${fmt(k.left)} more (+${k.ak} AK, you need ${fmt(need)}): ${effortText(k.effort)}. ${outletText(k.item, k.left, k.effort.amount)}`,
+        cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }) });
+    }
+    // Other quick masteries (AK toward the levels after)
+    for (const c of ap.known.slice(0, 6)) {
+      if (cands.some(x => x.item === c.item)) continue;
+      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, d: `${fmt(c.left)} more (+${c.ak} AK): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
+    }
+    // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
+    const hidden = new Set(S.questHidden || []);
+    for (const q of S.quests || []) {
+      const data = QUESTS.quests[q.name];
+      if (!data || hidden.has(q.name)) continue;
+      const n = questNeeds(data, p), val = questValue(data, p);
+      const main = q.kind === "main";
+      // Main quests always make the list (at the bottom if slow or not fully costable); others only if worthwhile
+      if (!main && (n.uncosted.length || n.levels.length || val.value < 5)) continue;
+      const unknown = n.uncosted.length || n.levels.length;
+      const ready = !n.missing.length && !n.levels.length;
+      const hours = timeOf({ passive: n.passive });
+      const st = stockText(n.stock);
+      const days = q.section === "special" ? daysLeft(q, data) : null;
+      cands.push({
+        t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (ends in ${days} day${days === 1 ? "" : "s"})` : ""}`,
+        d: (ready ? `Ready${st ? `: uses ${st}` : ""}.` : `${n.levels.length ? `Needs ${n.levels.join(", ")}. ` : ""}${n.missing.length ? `Still needs ${n.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : ""}${
+            n.cost || Object.keys(n.passive).length ? `: ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : ""}${
+            n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
+          + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
+        cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
+        done: doneBtn("quest", { name: q.name })
+      });
+    }
+    // Effort in minutes of play: AP at your pace, plus waiting (an hour of it counts as a few minutes, since you can do other
+    // things meanwhile). Both are General settings. Ready quests cost nothing to finish.
+    const apm = Math.max(1, S.perks.apPerMin || 100), wait = (S.perks.waitWorth ?? 20) / 60;
+    for (const c of cands) c.mins = c.ready ? 0 : c.cost === Infinity ? Infinity : c.cost / apm + c.hours * 60 * wait;
+    for (const c of cands) c.kind = c.ready ? "ready" : c.main || /quest/.test(c.t) ? "quest" : /Tower level/.test(c.t) ? "tower" : "mastery";
+    cands.sort((a, b) => a.mins - b.mins);
+    const isLvl = c => /to reach Tower level/.test(c.t) || /^Climb to Tower/.test(c.t);
+    const view = S.nextView || "blend";
+    document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+    const TAG = { ready: "ready", quest: "Quest", mastery: "Mastery", tower: "Tower" };
+    const effortTag = c => c.mins === Infinity ? "can't cost yet" : c.mins < 1 ? "under a minute" : `about ${minText(c.mins)} of play`;
+    const li = b => `<li>${b.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${b.t}</strong>${b.done}</div>` : `<strong>${b.t}</strong>`}${
+      b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}</li>`;
+    const extra = [];
+    if (fixed) extra.push(fixed);
+    // The first real wall, so you can start on it early
+    if (p.noTower) { /* no Tower walls to warn about yet */ }
+    else if (tp.firstWall && tp.firstWall !== next) extra.push(wallBite(tp.firstWall, false));
+    else if (!tp.firstWall && tp.levels.length) extra.push({ t: "No mastery walls in the next 30 levels", d: "Only AK stands in your way. Keep finishing the quickest masteries." });
+    const shown = S.bitesAll ? Infinity : 8;
+    let html = "";
+    if (view === "blend") {
+      // One list, quickest first; the next Tower level and main quests always make it, in their own spot
+      const top = cands.filter((c, i) => i < shown || isLvl(c) || c.main);
+      html = top.map(li).join("");
+      $("bites-more").hidden = cands.length <= top.length && !S.bitesAll;
+    } else {
+      const groups = [["ready", "Ready to turn in"], ["quest", "Quests"], ["mastery", "Masteries"], ["tower", "Tower"]];
+      const per = S.bitesAll ? Infinity : 4;
+      let more = false;
+      for (const [k, name] of groups) {
+        const g = cands.filter(c => (isLvl(c) ? "tower" : c.kind) === k);
+        if (!g.length) continue;
+        const top = g.filter((c, i) => i < per || isLvl(c) || c.main);
+        if (top.length < g.length) more = true;
+        html += `<li class="group-head"><strong>${name}</strong></li>` + top.map(li).join("");
+      }
+      $("bites-more").hidden = !more && !S.bitesAll;
+    }
+    $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
+    $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
+  }
+  document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { S.nextView = b.dataset.view; save(); render(false); }));
+  $("bites-more").addEventListener("click", () => { S.bitesAll = !S.bitesAll; save(); render(false); });
+
+  function wallBite(lv, isNext) {
+    const parts = lv.unmet.map(u => u.kind === "mmCount"
+      ? `${u.left} more Mega Master${u.left === 1 ? "y" : "ies"} of any item (you have ${u.have}, level ${lv.level} needs ${u.need})`
+      : `${esc(u.item)} ${tierName(u.tier)} (${fmt(u.left)} more to gather${u.known ? "" : ", not in your paste"}${itemEffort(u.item, u.left)})`);
+    return {
+      t: isNext ? `Tower level ${lv.level} is blocked` : `Start early: Tower level ${lv.level} needs ${lv.unmet.length === 1 ? "one mastery" : "some masteries"}`,
+      d: `It needs ${parts.join(" and ")}.`
+    };
+  }
+
+  const tierName = t => ({ m: "Mastery", gm: "Grand Mastery", mm: "Mega Mastery" }[t]);
+  const UNIT = { AP: "Arnold Palmers", AC: "Apple Ciders", LN: "Large Nets", explores: "explores" };
+  const short = n => n >= 999.5e9 ? `${(n / 1e12).toFixed(n >= 99.95e12 ? 0 : 1)}T` : n >= 999.5e6 ? `${(n / 1e9).toFixed(n >= 99.95e9 ? 0 : 1)}B` : n >= 999500 ? `${(n / 1e6).toFixed(n >= 99.95e6 ? 0 : 1)}M` : n >= 9500 ? `${(n / 1000).toFixed(n >= 99500 ? 0 : 1)}k` : fmt(Math.ceil(n));
+  // "335 AP at Highland Hills for Fern Leaf + …" (forWhat names what each place is visited for, biggest first)
+  const placeMix = (byPlace, max = 3, forWhat = null) => {
+    const list = Object.entries(byPlace || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]);
+    const shown = list.slice(0, max).map(([k, v]) => {
+      const [u, loc] = k.split("|");
+      const what = forWhat && forWhat[k] ? Object.entries(forWhat[k]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([n]) => esc(n)).join(" and ") : "";
+      return `${short(v)} ${UNIT[u]} at ${esc(loc)}${what ? ` for ${what}` : ""}`;
+    });
+    return shown.join(" + ") + (list.length > max ? ` + ${list.length - max} more place${list.length - max === 1 ? "" : "s"}` : "");
+  };
+  const unitMix = byUnit => Object.entries(byUnit).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([u, v]) => `${short(v)} ${UNIT[u]}`).join(" + ");
+  // Daily-production ingredients, biggest first: "71k Apple + 1,774 Orange"
+  const passiveMix = p => Object.entries(p || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([n, v]) => `${short(v)} ${esc(n)}`).join(" + ");
+  // Daily-production ingredients as time. Orchard fruit arrives in two lumps a day, so it's always days
+  // (plus what gathering the fruit would cost). Everything else with a known rate: hours if under 12, else days,
+  // naming the slowest item. Items with no rate stay as amounts; bought-automatically items are left out.
+  // Crops: how many of each you can grow per hour, from plots, growth time and harvesting habits.
+  // Harvests per hour = the fewer of (60 / growth minutes) and how often you really harvest, plus Grape Juice
+  // (each one is an instant harvest) spread over the day. Mega seeds count only if you have some.
+  // Best seed per crop: { crop: { seed, minutes (growth after perks), perHour } }
+  // Veggie Juice on a planted crop takes 10% off the time left, or 20% once "A Better Juice" is done. It's assigned as soon
+  // as you qualify (Tower 100 and Farming, Fishing, Crafting, Exploring at 99), so qualifying with no part of it in Help
+  // Needed means done, unless the player says otherwise (they might have hidden it).
+  let VJ_CUT = 0.1;
+  function vjCut(p) {
+    const sk = p.skills || {}, qualifies = (p.level ?? 0) >= 100 && ["Farming", "Fishing", "Crafting", "Exploring"].every(k => (sk[k] ?? 0) >= 99);
+    const showing = (S.quests || []).some(q => /^A Better Juice/.test(q.name));
+    const done = qualifies && !showing && !S.perks.abjNotDone;
+    const wrap = $("abj-wrap"); if (wrap) wrap.hidden = !(qualifies && !showing);
+    const note = $("vj-cut-note"); if (note) note.textContent = `Each juice takes ${done ? "20" : "10"}% off the time left${done ? " (A Better Juice done)" : qualifies ? " (20% after A Better Juice)" : ""}.`;
+    const m = S.perks.vjMode || "none";
+    if ($("vj-count-wrap")) $("vj-count-wrap").hidden = m !== "count";
+    if ($("vj-target-wrap")) $("vj-target-wrap").hidden = m !== "target";
+    return done ? 0.2 : 0.1;
+  }
+  // Juices per planting for a crop with `m` minutes to grow, by the Veggie Juice setting (never past the 1-minute floor)
+  function vjFor(m) {
+    const mode = S.perks.vjMode || "none", f = 1 - VJ_CUT;
+    if (mode === "none" || m <= 1) return 0;
+    const useful = Math.ceil(Math.log(1 / m) / Math.log(f));
+    if (mode === "max") return useful;                  // down to the 1-minute floor
+    if (mode === "count") return Math.min(useful, Math.max(0, S.perks.vjCount || 0));
+    const t = Math.max(1, S.perks.vjTarget || 1);
+    return m <= t ? 0 : Math.min(useful, Math.ceil(Math.log(t / m) / Math.log(f)));
+  }
+  function cropInfo() {
+    const k = S.perks, plots = k.plots || 0;
+    const onHand = S.inventory ? S.inventory.items : {};
+    const out = {};
+    for (const [crop, seeds] of Object.entries(SEEDS.crops)) {
+      for (const sd of seeds) {
+        if (sd.seed.startsWith("Mega ") && !(onHand[sd.seed] && onHand[sd.seed].count > 0)) continue;
+        // "X% faster" perks add up and take that share off the growth time (capped at 95%); Corn has its own on top
+        const c = Math.min(0.95, (k.cropGrowthCut || 0) / 100 + (crop === "Corn" ? (k.cornGrowthCut || 0) / 100 : 0));
+        const before = Math.max(0.5, sd.minutes * (1 - c));
+        // Veggie Juice (by the setting) on every planting, except Breakfast Boost crops (official growth 5 min or less)
+        const vj = sd.minutes > 5 ? vjFor(before) : 0;
+        const minutes = vj ? Math.max(1, before * Math.pow(1 - VJ_CUT, vj)) : before;
+        const plantings = Math.min(60 / minutes, k.harvestsPerHour || 1);
+        const perHour = (1 + (k.doublePrizes || 0) / 100) * plots / sd.perCrop * (plantings + (k.grapeJuice || 0) / 24);
+        if (!out[crop] || perHour > out[crop].perHour) out[crop] = { seed: sd.seed, base: sd.minutes, before, minutes, perHour, vj, vjPerHour: vj * plantings,
+          perRound: (1 + (k.doublePrizes || 0) / 100) * plots / sd.perCrop };
+      }
+    }
+    return out;
+  }
+  const cropRates = () => Object.fromEntries(Object.entries(cropInfo()).map(([c, x]) => [c, x.perHour]));
+  // Everything made over time: farm buildings (per hour) plus crops. Buildings win if both know an item.
+  // Crops that can also be gathered at a place you can use (Mushroom) are gathered, not farmed: exploring is
+  // quick with AP while growing is slow. Only crops with no drop anywhere you can go count as farming.
+  const gatherable = crop => { const e = W && window.FRP.bestEffort(crop, 1, DROPS, S.perks, W); return !!(e && e.unit !== "explores"); };
+  const allProd = () => {
+    const crops = cropRates();
+    for (const c of Object.keys(crops)) if (gatherable(c)) delete crops[c];
+    return { ...crops, ...(S.production || {}) };
+  };
+
+  // A Hickory Omelette makes the Sawmill also produce 20% of its hourly amount every 10 minutes, for 1 hour:
+  // 2.2x Wood and Boards while one is active. More omelettes extend the time, not the rate.
+  const SAWMILL = ["Wood", "Board"], HICKORY = 1 + 6 * 0.2;
+  // How long daily production takes to cover `p`: { fruit, fruitDays, slow: {item, hours}, sawHours, otherHours, rest }
+  function prodTime(p) {
+    const orch = S.orchard || {}, prod = allProd();
+    const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
+    const bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    const t = { fruit: {}, fruitDays: 0, slow: null, sawHours: 0, otherHours: 0, rest: {} };
+    for (const [n, v] of Object.entries(p || {})) {
+      if (v < 0.5 || bought.includes(n)) continue;
+      if (orch[n]) { t.fruit[n] = v; t.fruitDays = Math.max(t.fruitDays, v / (orch[n].production * noon)); }
+      else if (prod[n] > 0) {
+        const h = v / prod[n];
+        if (!t.slow || h > t.slow.hours) t.slow = { item: n, hours: h };
+        if (SAWMILL.includes(n)) t.sawHours = Math.max(t.sawHours, h); else t.otherHours = Math.max(t.otherHours, h);
+      } else t.rest[n] = v;
+    }
+    return t;
+  }
+  // Daily production only gets "Too slow after" days to cover a job. Whatever it can't make in that time is
+  // gathered at its cheapest drop instead (Coal at Mount Banon, say), and that AP/AC/nets is added to the cost.
+  // Things with no drop (Grapes) can't be topped up, so the job stays slow.
+  function adjust(e) {
+    if (!e.passive || !Object.keys(e.passive).length) return e;
+    const hrs = (S.perks.slowDays ?? 7) * 24;
+    const orch = S.orchard || {}, prod = allProd();
+    const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
+    const out = { ...e, byUnit: { ...e.byUnit }, byPlace: { ...(e.byPlace || {}) }, forWhat: { ...(e.forWhat || {}) }, passive: { ...e.passive }, gathered: [], alsoGets: [] };
+    // Places you already visit for this job drop other things too: Highland Hills for Fern Leaf also brings Wood.
+    // Those count toward the daily-production items the job needs, so there's less to wait for.
+    for (const [k, amt] of Object.entries(e.byPlace || {})) {
+      const [u, loc] = k.split("|");
+      const got = window.FRP.tripYield(loc, u, amt, DROPS, S.perks);
+      for (const n of Object.keys(out.passive)) {
+        const take = Math.min(out.passive[n], got[n] || 0);
+        if (take >= 1) { out.passive[n] -= take; out.alsoGets.push({ item: n, qty: take, loc }); }
+      }
+    }
+    // Then whatever production can't make in time is gathered or crafted (Coal at Black Rock Canyon, Steel from
+    // Carbon Sphere + Glass Orb), and that AP is added. Things with no other source (Grapes) stay slow.
+    for (const [n, v] of Object.entries(out.passive)) {
+      const cap = orch[n] ? orch[n].production * noon * (hrs / 24) : prod[n] > 0 ? prod[n] * hrs : null;
+      if (cap == null || v <= cap) continue;
+      const g = C.activeEffort(n, v - cap);
+      if (!g || !g.amount) continue;
+      out.amount += g.amount;
+      for (const [x, y] of Object.entries(g.byUnit)) out.byUnit[x] = (out.byUnit[x] || 0) + y;
+      for (const [x, y] of Object.entries(g.byPlace)) out.byPlace[x] = (out.byPlace[x] || 0) + y;
+      for (const [x, its] of Object.entries(g.forWhat || {})) out.forWhat[x] = { ...(out.forWhat[x] || {}), ...its };
+      for (const [x, y] of Object.entries(g.passive || {})) out.passive[x] = (out.passive[x] || 0) + y;
+      out.passive[n] = cap;
+      out.gathered.push({ item: n, qty: v - cap, how: g.how });
+    }
+    return out.gathered.length || out.alsoGets.length ? out : e;
+  }
+  const alsoText = e => (e.alsoGets || []).map(a => `${short(a.qty)} ${esc(a.item)} from ${esc(a.loc)}`).join(", ");
+  const gatheredText = e => (e.gathered || []).map(g => `${short(g.qty)} ${esc(g.item)} ${g.how === "drop" ? "gathered" : g.how === "craft" ? "crafted" : "cooked"}`).join(", ");
+
+  // Hours of production an effort needs (orchard days count as whole days): used to keep slow things off the quick list
+  const timeOf = e => { const t = prodTime(e.passive); return Math.max(Math.ceil(t.fruitDays) * 24, t.slow ? t.slow.hours : 0); };
+  const hoursText = h => h < 12 ? `about ${Math.max(1, Math.ceil(h))} hour${Math.ceil(h) > 1 ? "s" : ""}` : `${fmt(Math.ceil(h / 24))} day${Math.ceil(h / 24) === 1 ? "" : "s"}`;
+  function passiveText(p) {
+    const orch = S.orchard || {};
+    const { fruit, fruitDays, slow, sawHours, otherHours, rest } = prodTime(p);
+    const parts = [];
+    const fruitNames = Object.keys(fruit);
+    if (fruitNames.length) {
+      const days = fruitDays;
+      let gather = 0, where = null;
+      for (const n of fruitNames) {
+        const g = window.FRP.bestEffort(n, fruit[n], DROPS, S.perks, W);
+        if (!g || g.unit === "explores") { gather = null; break; }
+        gather += g.amount;
+        if (!where || g.amount > where.amount) where = g;
+      }
+      parts.push(`${Math.ceil(days)} day${Math.ceil(days) === 1 ? "" : "s"} of orchard production` +
+        (gather ? ` (or about ${short(gather)} ${UNIT[where.unit]} at ${esc(where.loc)})` : ""));
+    }
+    if (slow && slow.hours > Math.ceil(fruitDays) * 24) {
+      // Always say what you're waiting on: "farming Mushrooms" for crops, "your Stone production" for buildings.
+      // If other daily items are involved too, note that they're ready sooner.
+      const what = SEEDS.crops[slow.item] ? `farming ${esc(slow.item)}` : `your ${esc(slow.item)} production`;
+      const others = Object.keys(p || {}).filter(n => n !== slow.item && (allProd()[n] > 0 || (S.orchard || {})[n]) && !(S.perks.autoBuyIronNails && ["Iron", "Nails"].includes(n)));
+      // Notes go in one bracket: "(the slowest part; or about 117 AP at Ember Lagoon to gather it now)"
+      // Skip-the-wait option: gather or craft it now (Stone at Ember Lagoon; Steel from Carbon Sphere + Glass Orb)
+      const g = C.activeEffort(slow.item, p[slow.item]);
+      const now = g && g.amount ? (g.how === "drop" ? `or about ${short(g.amount)} ${UNIT[g.unit]} at ${esc(g.loc)} to gather it now`
+        : `or ${g.how} it now for about ${placeMix(g.byPlace, 2, g.forWhat)}`) : "";
+      const notes = [others.length ? "the slowest part" : "", now].filter(Boolean);
+      let txt = `about ${hoursText(slow.hours).replace(/^about /, "")} of ${what}${notes.length ? ` (${notes.join("; ")})` : ""}`;
+      // Sawmill is the slow part: offer the Hickory Omelette speed-up if it saves at least an hour
+      if (SAWMILL.includes(slow.item)) {
+        const fast = Math.max(sawHours / HICKORY, otherHours);
+        if (slow.hours - fast >= 1) {
+          const n = Math.ceil(sawHours / HICKORY);
+          const have = S.inventory && S.inventory.items["Hickory Omelette"];
+          txt += `, or ${hoursText(fast)} using ${fmt(n)} Hickory Omelette${n === 1 ? "" : "s"}${have ? ` (you have ${fmt(have.count)})` : ""}`;
+        }
+      }
+      parts.push(txt);
+    }
+    const r = passiveMix(rest);
+    if (r) parts.push(`${r} from your daily production`);
+    return parts.join(" and ");
+  }
+  const effortText = e => {
+    if (e.how === "drop") return `about ${short(e.amount)} ${UNIT[e.unit]} at ${esc(e.loc)}`;
+    if (e.how === "passive") return passiveText(e.passive) || "free from your daily production";
+    const mix = placeMix(e.byPlace, 3, e.forWhat);
+    const alt = e.alt && e.alt.how === "drop" ? `; gathering instead: ${short(e.alt.amount)} ${UNIT[e.alt.unit]}` : "";
+    const pas = passiveText(e.passive);
+    const gat = gatheredText(e), also = alsoText(e);
+    const ap = mix ? `about ${mix}${gat ? ` (including ${gat})` : ""}${also ? `, which also brings ${also}` : ""}` : "";
+    // Waiting leads, so a small AP number never hides a week of production
+    const body = pas ? `${pas}${ap ? `, plus ${ap}` : ", no AP, AC or nets needed"}` : ap || "no AP, AC or nets needed";
+    return `${e.how} it: ${body}${alt}`;
+  };
+  // Items with a use outside crafting, so the last step says "keep" instead of "sell". Add to this as you learn more.
+  const OTHER_USES = {
+    "Worms": "as fishing bait", "Gummy Worms": "as fishing bait", "Mealworms": "as fishing bait", "Minnows": "as fishing bait", "Grubs": "as fishing bait",
+    "Veggie Juice": "to speed up crops (each takes 10%, or 20% after A Better Juice, off the time left; use them right after planting)",
+    "Pickaxe": "for mining (pickaxes get used up there)",
+    "Bone Pickaxe": "for mining (pickaxes get used up there)",
+    "Sturdy Pickaxe": "for mining (pickaxes get used up there)",
+    "Steel Pickaxe": "for mining (pickaxes get used up there)",
+    "Crystal Pickaxe": "for mining (pickaxes get used up there)"
+  };
+  // "34k won't fit: turn them into 12k Steel Plate (Tower item; needs …), then 512 Step Ladder; sell the rest"
+  // spanText(share) (optional): how long `share` of the job takes, e.g. "3 days" or "2 Boosts" — used when the leftovers
+  // are more than you can hold, to say how soon the cap fills and how long each cap-full after that takes
+  function outletText(item, qty, jobCost, spanText) {
+    if (!O || O.cap === Infinity) return "";
+    // An outlet shouldn't cost more than the job itself (min 50 so tiny jobs still get cheap outlets)
+    const plan = window.FRP.outletPlan(item, qty, { ...O, maxCost: Math.max(50, jobCost || 0) });
+    if (!plan.over) return "";
+    const steps = [];
+    for (let p = plan; p && p.over; p = p.next) {
+      const o = p.outlet;
+      if (!o) {
+        const keep = OTHER_USES[p.item];
+        if (keep && p.over > O.cap) {
+          const room = Math.max(0, O.cap - (O.onHand[p.item] || 0));
+          steps.push(`keep up to ${fmt(O.cap)} ${keep}` + (spanText
+            ? `: that fills in ${spanText(room / p.qty)} of this job, then each ${fmt(O.cap)} more takes ${spanText(O.cap / p.qty)}, so use or sell them as you go`
+            : `; that's less than this job makes, so use or sell them as you go`));
+          break;
+        }
+        if (keep) { steps.push(`keep the other ${short(p.over)} ${keep}, or sell what you won't use`); break; }
+        const why = p.skipped ? `you could craft them into something else, but that would cost more than making the ${esc(p.item)} did`
+          : `nothing is crafted from ${esc(p.item)}`;
+        const asYouGo = p.over > O.cap ? " as you go" : "";
+        steps.push(p.end === "give" ? `give away or sell the other ${short(p.over)}${asYouGo} (${why})` : `sell the other ${short(p.over)}${asYouGo} (${why})`);
+        break;
+      }
+      const tags = [o.tower ? "a Tower item" : "", o.goal ? "counts toward its mastery" : ""].filter(Boolean).join(", ");
+      const byPlace = {}, passive = {};
+      for (const x of o.extra) {
+        for (const [k, v] of Object.entries(x.effort.byPlace || {})) byPlace[k] = (byPlace[k] || 0) + v;
+        for (const [k, v] of Object.entries(x.effort.passive || {})) passive[k] = (passive[k] || 0) + v;
+      }
+      const cost = [passiveText(passive), placeMix(byPlace)].filter(Boolean).join(" + ");
+      steps.push(`turn ${short(p.over)} into about ${short(o.made)} ${esc(o.product)}${tags ? ` (${tags})` : ""}: ${fmt(o.crafts)} crafts, extra ingredients ${o.extra.slice(0, 4).map(x => `${short(x.qty)} ${esc(x.item)}`).join(", ") || "none"}${o.extra.length > 4 ? ` and ${o.extra.length - 4} more` : ""}${cost ? `, costing ${cost}` : ""}`);
+    }
+    return `Where they go: you can hold ${fmt(O.cap)}, so ${steps.join("; then ")}.`;
+  }
+  const itemEffort = (item, left) => {
+    const ms = seasonNote(item, DROPS, W);
+    if (ms) return `, only in ${monthText(ms)}`;
+    const e0 = C.effort(item, left), e = e0 && adjust(e0);
+    return e ? `, ${effortText(e)}` : "";
+  };
+
+  function renderTower(p, tp) {
+    let akLeft = p.ak;
+    const rows = tp.levels.map(lv => {
+      akLeft -= TOWER.akPerLevel;
+      const needs = lv.unmet.length
+        ? lv.unmet.map(u => u.kind === "mmCount" ? `${u.need} MMs of any item (have ${u.have})` : `${esc(u.item)} ${u.tier.toUpperCase()} <span class="muted">(${fmt(u.left)} left${itemEffort(u.item, u.left)})</span>`).join("<br>")
+        : `<span class="ok">Only AK</span>`;
+      return `<tr><td class="num">${lv.level}</td><td>${needs}</td><td class="num ${akLeft >= 0 ? "ok" : "muted"}">${akLeft >= 0 ? "Have it" : fmt(-akLeft)}</td></tr>`;
+    });
+    $("t-tower").innerHTML = `<thead><tr><th class="num">Level</th><th>Masteries still needed</th><th class="num">AK still needed (total)</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  }
+
+  function renderAK(ap, akTarget) {
+    const row = c => `<tr>
+      <td>${esc(c.item)}${c.tower.length ? ` <span class="tag tower" title="Also needed for the Tower">Tower ${c.tower.map(u => u.level).join(", ")}</span>` : ""}</td>
+      <td>${tierName(c.tier)}${c.waits ? ` <span class="tag" title="Needs more than a day of daily production">waits ${hoursText(c.hours)}</span>` : ""}</td>
+      <td class="num">${fmt(c.left)}</td><td class="num">+${c.ak}</td>
+      <td>${c.months ? `<span class="muted small">only in ${monthText(c.months)}</span>`
+        : c.effort ? effortCell(c.effort) + (c.outlet ? `<br><span class="small muted">${c.outlet}</span>` : "")
+        : `<span class="muted small">${S.hidden.includes(c.item) ? "hidden by you" : "crafted or farmed"}</span>`}</td>
+      <td style="white-space:nowrap">${doneBtn("mastery", { name: c.item, tier: c.tier })} ${S.hidden.includes(c.item) ? `<button type="button" class="small" data-unhide="${esc(c.item)}">Show</button>`
+        : `<button type="button" class="small" data-hide="${esc(c.item)}" title="Stop suggesting this">Hide</button>`}</td></tr>`;
+    const head = t => `<tr><th colspan="6" style="padding-top:12px">${t}</th></tr>`;
+    const group = (t, list, n) => list.length ? head(t) + list.slice(0, n).map(row).join("") : "";
+    $("t-ak").innerHTML = `<thead><tr><th>Item</th><th>Next step</th><th class="num">Left</th><th class="num">AK</th><th>Effort</th><th></th></tr></thead><tbody>` +
+      group("Quick: cheapest by effort, less than a day of waiting", ap.known.filter(c => !c.waits).slice(0, 20).map(c => ({ ...c, outlet: outletText(c.item, c.left, c.effort.amount) })), 20) +
+      group("Also good, but waits more than a day on daily production", ap.known.filter(c => c.waits), 10) +
+      group("Can't be costed yet (farmed, mined or other), closest by count", ap.unknown, 10) +
+      group(`Limited by daily production (more than ${S.perks.slowDays ?? 7} days)`, ap.slow, 10) +
+      group("Out of season right now", ap.seasonal.sort((a, b) => a.left / a.ak - b.left / b.ak), 10) +
+      group("Hidden by you", ap.hidden, 50) + `</tbody>`;
+    $("ak-other").textContent = "Other AK: " + ap.other.map(o => `${o.source} (+${o.ak}, ${o.note})`).join("; ") + ". Merit badges give 300 each.";
+  }
+
+  function effortCell(e) {
+    if (e.how === "drop") return `${short(e.amount)} ${UNIT[e.unit]}<br><span class="muted small">${esc(e.loc)}</span>`;
+    if (e.how === "passive") return `<span class="small">free (daily production)</span>`;
+    const ings = e.parts.map(p => `${p.qty} ${esc(p.item)}`).join(", ");
+    const pas = passiveText(e.passive);
+    const gat = gatheredText(e), also = alsoText(e);
+    const ap = placeMix(e.byPlace, 3, e.forWhat);
+    return `${pas ? `${pas}<br>${ap ? `+ ${ap}` : `<span class="small muted">no AP, AC or nets needed</span>`}` : ap || "no AP, AC or nets needed"}${gat ? `<br><span class="small">incl. ${gat}</span>` : ""}${also ? `<br><span class="small">(also brings ${also})</span>` : ""}<br><span class="muted small">${e.how === "cook" ? "cook" : "craft"} from ${ings}</span>`;
+  }
+
+  $("t-ak").addEventListener("click", e => {
+    const h = e.target.dataset.hide, u = e.target.dataset.unhide;
+    if (h) S.hidden = [...new Set([...S.hidden, h])];
+    else if (u) S.hidden = S.hidden.filter(x => x !== u);
+    else return;
+    save(); render(false);
+  });
+
+  function renderStock() {
+    const inv = S.inventory;
+    if (!inv) { $("stock").innerHTML = `<p class="small muted">Paste your My Inventory page to see your supplies here.</p>`; return; }
+    const show = [["Apple Cider", "Explores fast, uses stamina"], ["Arnold Palmer", "Explores, no stamina"], ["Orange Juice", "+100 stamina"], ["Large Net", "Catches lots of fish"]];
+    $("stock").innerHTML = `<p class="small muted">You can hold up to ${inv.cap ? fmt(inv.cap) : "?"} of each item.</p><div class="stock">` +
+      show.map(([n, d]) => { const it = inv.items[n]; return `<div>${esc(n)}<b>${it ? fmt(it.count) : "—"}</b><span class="small muted">${d}${it && it.atMax ? " · at the limit" : ""}</span></div>`; }).join("") + "</div>";
+  }
+
+  // ---------- Trips: "I'm exploring here anyway" ----------
+  const TIERS = [100, 1000, 10000, 100000, 1000000];
+  const TIER_NAME = { 100: "Tier I", 1000: "Tier II", 10000: "Mastery", 100000: "Grand Mastery", 1000000: "Mega Mastery" };
+  const tripUnits = loc => DROPS.locs[loc] && DROPS.locs[loc].type === "fishing" ? ["LN"] : DROPS.locs[loc] && DROPS.locs[loc].base ? ["AP", "AC"] : [];
+  function fillTripForm() {
+    const locs = Object.keys(DROPS.locs).filter(l => W && W.places[l] && tripUnits(l).length).sort();
+    const cur = $("trip-loc").value;
+    $("trip-loc").innerHTML = locs.map(l => `<option${l === cur ? " selected" : ""}>${esc(l)}</option>`).join("");
+    const loc = $("trip-loc").value;
+    $("trip-unit").innerHTML = tripUnits(loc).map(u => `<option value="${u}">${UNIT[u]}</option>`).join("");
+    const items = Object.keys(DROPS.items).filter(n => DROPS.items[n].drops[loc]).sort();
+    const curItem = $("trip-item").value;
+    $("trip-item").innerHTML = items.map(n => `<option${n === curItem ? " selected" : ""}>${esc(n)}</option>`).join("");
+    const until = $("trip-mode").value === "until";
+    $("trip-amt-wrap").hidden = until; $("trip-item-wrap").hidden = !until; $("trip-qty-wrap").hidden = !until;
+  }
+  ["trip-loc", "trip-mode"].forEach(id => $(id).addEventListener("change", fillTripForm));
+  $("trip-add").addEventListener("click", () => {
+    const loc = $("trip-loc").value, unit = $("trip-unit").value;
+    if (!loc || !unit) return;
+    const t = { loc, unit, mode: $("trip-mode").value };
+    if (t.mode === "until") { t.item = $("trip-item").value; t.qty = Math.max(1, +$("trip-qty").value || 0); }
+    else t.amount = Math.max(1, +$("trip-amt").value || 0);
+    S.trips = [...(S.trips || []).filter(x => x.loc !== loc), t];
+    save(); render(false);
+  });
+  $("trip-list").addEventListener("click", e => {
+    const loc = e.target.dataset.stopTrip;
+    if (loc == null) return;
+    S.trips = (S.trips || []).filter(x => x.loc !== loc);
+    save(); render(false);
+  });
+
+  // What a trip brings home this month (out-of-season drops like Frozen fish left out)
+  function yieldsNow(loc, unit, amount) {
+    const got = window.FRP.tripYield(loc, unit, amount, DROPS, S.perks);
+    for (const n of Object.keys(got)) if (window.FRP.seasonNote(n, DROPS, W)) delete got[n];
+    return got;
+  }
+  // The trip's main item goes into its first outlet (Antler -> Fishing Net). Work out how much of the trip's
+  // other drops that chain eats, following crafted ingredients down (Rope -> Twine -> Wood + Straw).
+  // Returns { product, demand: {item: qty the chain needs from the trip's drops} }.
+  function chainDemand(main, qty, yields) {
+    const r = RECIPES.items[main];
+    const use = r && r.uses && r.uses.map(([prod, per]) => ({ prod, per, pr: RECIPES.items[prod] })).find(u => u.pr && u.pr.recipe);
+    if (!use) return null;
+    const saver = 1 + (S.perks.resourceSaver ?? 0) / 100;
+    const demand = {};
+    const need = (item, q, depth) => {
+      if (yields[item] != null && item !== main) { demand[item] = (demand[item] || 0) + q; return; }
+      const ir = RECIPES.items[item];
+      if (depth > 4 || !ir || !ir.recipe || !ir.craft) return;          // bought, produced or out of reach: not the trip's problem
+      const crafts = q / saver;
+      for (const [ing, n] of ir.recipe) need(ing, n * crafts, depth + 1);
+    };
+    const crafts = qty / use.per;
+    for (const [ing, n] of use.pr.recipe) if (ing !== main) need(ing, n * crafts, 1);
+    return { product: use.prod, demand };
+  }
+
+  // What one trip does for the player: masteries finished or moved closer, Tower needs met, AK, cap overflow
+  function tripEffects(yields, p, main) {
+    const onHand = O ? O.onHand : {}, cap = O ? O.cap : Infinity;
+    const chain = main ? chainDemand(main, yields[main] || 0, yields) : null;
+    const rows = [];
+    for (const [item, q0] of Object.entries(yields)) {
+      if (q0 < 1) continue;
+      // Drops the main chain needs go there first; only the rest looks for an outlet
+      const isMain = chain && item === main;
+      const want = isMain ? q0 : chain && chain.demand[item] || 0, used = Math.min(q0, want), q = q0 - used;
+      const chainNote = !used ? "" : isMain ? `<b>all go into ${esc(chain.product)}</b>`
+        : want > q0 ? `<b>all of it goes into your ${esc(chain.product)} chain</b> (you'd need about ${short(want - q0)} more${
+            S.production && S.production[item] > 0 ? `: ${hoursText((want - q0) / S.production[item])} of your ${esc(item)} production` : ""})`
+        : `${short(used)} go into your ${esc(chain.product)} chain`;
+      // Only items on the Mastery page have tiers (Wood, Straw, Antler… don't). Mastery counts all q0 gathered;
+      // only the overflow check uses what's left after the chain (q).
+      const tracked = item in p.items;
+      const c = p.items[item] || 0, after = c + q0;
+      const crossed = tracked ? TIERS.filter(t => c < t && after >= t) : [];
+      const ak = crossed.reduce((s, t) => s + (t === 10000 ? 10 : t === 100000 ? 100 : 0), 0);
+      const next = tracked ? TIERS.find(t => t > c) : null;
+      const towerNeed = (O ? O.towerUse[item] || [] : []).filter(u => c < TIERS[u.tier === "mm" ? 4 : 3] && after >= TIERS[u.tier === "mm" ? 4 : 3]);
+      const overflow = cap !== Infinity ? Math.max(0, (onHand[item] || 0) + q - cap) : 0;
+      const notes = chainNote ? [chainNote] : [];
+      if (crossed.length) notes.push(`<b>finishes ${crossed.map(t => TIER_NAME[t]).join(" and ")}</b>${ak ? ` (+${ak} AK)` : ""}`);
+      else if (next) notes.push(`${Math.min(100, Math.round(q0 / (next - c) * 100))}% of the way to ${TIER_NAME[next]}`);
+      if (towerNeed.length) notes.push(`meets Tower level ${towerNeed.map(u => u.level).join(", ")}`);
+      let over = "";
+      if (overflow >= 1) { const o = outletText(item, q, 0); over = o ? o.replace(/^Where they go: /, "") : `${short(overflow)} over your cap`; notes.push((used ? "the rest: " : "") + over); }
+      // share = how much of the trip it takes to reach the next tier (for "quickest done first")
+      rows.push({ item, q: q0, chain: isMain ? 2 : used ? 1 : 0, crossed: crossed.length, crossedNames: crossed.map(t => TIER_NAME[t]), ak, towerLevels: towerNeed.map(u => u.level),
+        tower: towerNeed.length, pct: next ? q0 / (next - c) : 0, next, left: next ? next - c : 0, share: next ? (next - c) / q0 : Infinity, over, notes });
+    }
+    return rows.sort((a, b) => b.chain - a.chain || b.tower - a.tower || b.ak - a.ak || b.crossed - a.crossed || b.pct - a.pct);
+  }
+  function renderTrips(p) {
+    fillTripForm();
+    const trips = S.trips || [];
+    if (!trips.length) { $("trip-list").innerHTML = `<p class="small muted">No trips yet.</p>`; return; }
+    $("trip-list").innerHTML = trips.map(t => {
+      const amount = t.mode === "until" ? window.FRP.tripBudgetFor(t.item, t.qty, t.loc, t.unit, DROPS, S.perks) : t.amount;
+      if (!amount) return `<div class="note">${esc(t.loc)}: ${esc(t.item || "")} doesn't drop there with ${UNIT[t.unit]}. <button type="button" data-stop-trip="${esc(t.loc)}">Stop</button></div>`;
+      const rows = tripEffects(yieldsNow(t.loc, t.unit, amount), p, t.mode === "until" ? t.item : null);
+      const ak = rows.reduce((s, r) => s + r.ak, 0), done = rows.reduce((s, r) => s + r.crossed, 0);
+      return `<div class="card" style="background:var(--bg);margin-top:10px">
+        <div class="row" style="justify-content:space-between"><strong>${esc(t.loc)}: about ${short(amount)} ${UNIT[t.unit]}${t.mode === "until" ? ` (to gather ${short(t.qty)} ${esc(t.item)})` : ""}</strong>
+          <button type="button" data-stop-trip="${esc(t.loc)}">Stop this trip</button></div>
+        <p class="small" style="margin:6px 0">This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.</p>
+        <div class="table-wrap"><table><thead><tr><th>Item</th><th class="num">About</th><th>What it does for you</th></tr></thead><tbody>${
+          rows.slice(0, 12).map(r => `<tr><td>${esc(r.item)}</td><td class="num">${short(r.q)}</td><td class="small">${r.notes.join("; ") || "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
+    }).join("");
+  }
+
+  // ---------- Best use: "Spend my…" ----------
+  // Every place you can use with that unit gets two lists: masteries (via tripEffects) and quests (your active ones
+  // and up to 5 ahead in each chain). Finished things first, quickest first; then part-done progress, biggest first.
+  const BEST_ITEM = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
+  $("best-unit").addEventListener("change", () => { S.best = { unit: $("best-unit").value, amount: null }; save(); render(false); });
+  $("best-amt").addEventListener("change", () => { S.best = { ...(S.best || {}), unit: $("best-unit").value, amount: +$("best-amt").value || null }; save(); render(false); });
+  // What spending here does for your quests. Needs add up down a chain (quest 3 needs quest 1 and 2's items too).
+  function questHelp(yields) {
+    const onHand = O ? O.onHand : {}, hidden = new Set(S.questHidden || []), seen = new Set(), out = [];
+    for (const q of S.quests || []) {
+      if (hidden.has(q.name) || q.section === "personal") continue;
+      const tally = {};
+      for (let name = q.name, step = 0; name && step <= 5; step++) {
+        const d = QUESTS.quests[name];
+        if (!d || seen.has(name)) break;
+        seen.add(name);
+        const fracs = [], bits = [];
+        let helps = false, done = true, share = 0;
+        for (const [item, need] of d.need) {
+          tally[item] = (tally[item] || 0) + need;
+          const miss = Math.max(0, tally[item] - (onHand[item] || 0));
+          if (!miss) continue;
+          const got = yields[item] || 0, enough = got >= miss - 0.5, cov = enough ? miss : got;     // drops are averages: half an item short is enough
+          fracs.push(cov / miss);
+          if (got >= 1) { helps = true; bits.push(enough ? `all ${short(miss)} ${esc(item)}` : `${short(cov)} of ${short(miss)} ${esc(item)}`); }
+          if (!enough) done = false; else share = Math.max(share, miss / got);
+        }
+        if (helps) out.push({ name, step, from: q.name, main: q.kind === "main", done, share, bits,
+          pct: fracs.reduce((s, f) => s + f, 0) / fracs.length });
+        name = d.next && d.next[0];
+      }
+    }
+    return out;
+  }
+  function renderBest(p) {
+    const unit = (S.best && S.best.unit) || "LN";
+    $("best-unit").value = unit;
+    const have = O && O.onHand[BEST_ITEM[unit]];
+    const amount = (S.best && S.best.amount) || have || 1000;
+    $("best-amt").value = S.best && S.best.amount ? S.best.amount : "";
+    $("best-amt").placeholder = have ? fmt(have) : "1000";
+    $("best-note").textContent = S.best && S.best.amount ? `Spending ${short(amount)} ${UNIT[unit]}.`
+      : have ? `Spending all ${short(have)} ${UNIT[unit]} you have. Type an amount to change it.`
+      : `Spending ${short(amount)} ${UNIT[unit]}. Paste My Inventory to start from what you have.`;
+    const places = Object.keys(DROPS.locs).filter(l => W && W.places[l] && tripUnits(l).includes(unit)).map(loc => {
+      const yields = yieldsNow(loc, unit, amount);
+      const rows = tripEffects(yields, p, null).filter(r => r.crossed || (r.next && r.pct >= 0.01));
+      const mDone = rows.filter(r => r.crossed).sort((a, b) => a.share - b.share);
+      const mPart = rows.filter(r => !r.crossed).sort((a, b) => b.pct - a.pct);
+      const qs = questHelp(yields);
+      const qDone = qs.filter(q => q.done).sort((a, b) => a.share - b.share);
+      const qPart = qs.filter(q => !q.done).sort((a, b) => b.pct - a.pct);
+      const done = mDone.length + qDone.length;
+      const progress = mPart.reduce((s, r) => s + r.pct, 0) + qPart.reduce((s, q) => s + q.pct, 0);
+      const ak = mDone.reduce((s, r) => s + r.ak, 0);
+      return { loc, mDone, mPart, qDone, qPart, done, progress, ak };
+    }).filter(x => x.done || x.progress).sort((a, b) => b.done - a.done || b.progress - a.progress);
+    if (!places.length) { $("best-list").innerHTML = `<p class="small muted">No place you can use with ${UNIT[unit]} moves anything along.</p>`; return; }
+    const towerItem = item => (O.towerUse[item] || []).some(u => (p.items[item] || 0) < TIERS[u.tier === "mm" ? 4 : 3]);
+    const list = (items, max) => items.length ? `<ul>${items.slice(0, max).join("")}${items.length > max ? `<li class="muted">and ${items.length - max} more</li>` : ""}</ul>` : `<p class="small muted" style="margin:0">Nothing here.</p>`;
+    $("best-list").innerHTML = places.map((x, i) => {
+      const m = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: finishes ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${
+          r.towerLevels.length ? `, meets Tower level ${r.towerLevels.join(", ")}` : ""}${r.over ? `<details class="small muted"><summary>where the extra goes</summary>${r.over}</details>` : ""}</li>`),
+        ...x.mPart.map(r => `<li>${esc(r.item)}: ${pct(r.pct)} closer to ${TIER_NAME[r.next]} <span class="small muted">(about ${short(r.q)} of ${short(r.left)})${
+          towerItem(r.item) ? " · Tower item" : ""}</span></li>`)];
+      const q = [...x.qDone.map(o => `<li><b>finishes ${esc(o.name)}</b>${o.main ? ` <span class="tag">main</span>` : ""}${o.step ? ` <span class="small muted">(${o.step} after ${esc(o.from)})</span>` : ""}</li>`),
+        ...x.qPart.map(o => `<li>${esc(o.name)}: ${pct(o.pct)} of what it still needs${o.main ? ` <span class="tag">main</span>` : ""} <span class="small muted">(${o.bits.join(", ")}${
+          o.step ? `; ${o.step} after ${esc(o.from)}` : ""})</span></li>`)];
+      const head = `${x.done ? `<b>${x.done} finished</b>` : "nothing finished"}${x.ak ? `, <b>+${x.ak} AK</b>` : ""}${
+        x.mPart.length + x.qPart.length ? `, ${x.mPart.length + x.qPart.length} moved closer` : ""}`;
+      return `<details class="best-place"${i < 3 ? " open" : ""}><summary><strong>${esc(x.loc)}</strong> <span class="small">${head}</span></summary>
+        <div class="two-col"><div><h4>Masteries</h4>${list(m, 10)}</div><div><h4>Quests</h4>${S.quests ? list(q, 10) : `<p class="small muted" style="margin:0">Paste Help Needed to see quests.</p>`}</div></div></details>`;
+    }).join("");
+  }
+
+  // ---------- Best use: what to plant now ----------
+  const waitText = h => h < 1 ? `about ${Math.max(1, Math.ceil(h * 60))} minute${Math.ceil(h * 60) > 1 ? "s" : ""}` : hoursText(h);
+  const TIER_LABEL = { m: "Mastery", gm: "Grand Mastery", mm: "Mega Mastery" };
+  function renderPlant(p, ap) {
+    const info = cropInfo(), onHand = O ? O.onHand : {}, hidden = new Set(S.questHidden || []);
+    if (!(S.perks.plots > 0)) { $("plant-list").innerHTML = `<p class="small muted">Set your plots in Setup → Your perks (or paste your farm page).</p>`; return; }
+    // Quest needs per item, adding up down each chain (active quest + up to 5 ahead)
+    const qNeeds = [];
+    for (const q of S.quests || []) {
+      if (hidden.has(q.name) || q.section === "personal") continue;
+      const tally = {};
+      for (let name = q.name, step = 0; name && step <= 5; step++) {
+        const d = QUESTS.quests[name];
+        if (!d) break;
+        for (const [item, need] of d.need) {
+          tally[item] = (tally[item] || 0) + need;
+          const miss = tally[item] - (onHand[item] || 0);
+          if (info[item] && miss >= 1) qNeeds.push({ item, miss, name, step, from: q.name, main: q.kind === "main" });
+        }
+        name = d.next && d.next[0];
+      }
+    }
+    const jobsFromPlan = [...(ap.ranked || []), ...(ap.slow || [])];
+    const crops = Object.entries(info).filter(([crop]) => !gatherable(crop) && !window.FRP.seasonNote(crop, DROPS, W)).map(([crop, x]) => {
+      const jobs = [];
+      // Its own mastery
+      if (crop in p.items) {
+        const c = p.items[crop], next = TIERS.find(t => t > c);
+        // Crops can void (unlike crafts) but no plan should rely on it: past the cap, say where the extra goes
+        const hrs = next ? (next - c) / x.perHour : 0, isBoost = x.base <= 5;
+        const span = share => isBoost ? (b => b < 1 ? "part of a Boost" : `about ${fmt(Math.ceil(b))} Boost${Math.ceil(b) === 1 ? "" : "s"}`)(share * hrs * x.perHour / x.perRound / (S.perks.boostRounds || 250))
+          : waitText(share * hrs);
+        const extra = next && (onHand[crop] || 0) + (next - c) > (O ? O.cap : Infinity) ? outletText(crop, next - c, 0, span).replace(/^Where they go: /, "") : "";
+        if (next) jobs.push({ hours: (next - c) / x.perHour, w: 1, extra, qty: next - c, name: `${esc(crop)} ${TIER_NAME[next]}`, tag: next === 10000 ? "+10 AK" : next === 100000 ? "+100 AK" : "" });
+      }
+      // Quests (the same quest can need it at several steps: keep the nearest step)
+      const seenQ = new Set();
+      for (const n of qNeeds.filter(n => n.item === crop).sort((a, b) => a.step - b.step)) {
+        if (seenQ.has(n.name)) continue;
+        seenQ.add(n.name);
+        jobs.push({ hours: n.miss / x.perHour, w: n.main ? 1.5 : 1, qty: n.miss, name: esc(n.name), tag: [n.main ? "main" : "", n.step ? `${n.step} ahead` : ""].filter(Boolean).join(", ") });
+      }
+      // Masteries in your plan that wait on this crop (cooking, crafts)
+      for (const j of jobsFromPlan) {
+        const need = j.effort && j.effort.passive && j.effort.passive[crop];
+        if (!need || need < 1 || j.item === crop) continue;
+        const tower = j.tower && j.tower.length;
+        jobs.push({ hours: need / x.perHour, w: tower ? 1.5 : 1, qty: need, name: `${esc(j.item)} ${TIER_LABEL[j.tier] || ""}`, tag: tower ? "Tower" : "" });
+      }
+      jobs.sort((a, b) => a.hours - b.hours);
+      const score = jobs.reduce((s, j) => s + j.w / (1 + j.hours / 24), 0);
+      return { crop, ...x, jobs, score };
+    }).filter(c => c.jobs.length).sort((a, b) => b.score - a.score);
+    // Crops that officially grow in 5 minutes or less are done together under Breakfast Boost (instant growth for
+    // 2 minutes): counted in plant-and-harvest rounds, not hours. Boosts are treated as free (players have plenty).
+    const extraHtml = j => j.extra ? `<details class="muted"><summary>where the extra goes (more than you can hold)</summary>${j.extra}</details>` : "";
+    const rounds = S.perks.boostRounds || 250;
+    const boost = crops.filter(c => c.base <= 5), timed = crops.filter(c => c.base > 5);
+    const roundsFor = (c, j) => Math.ceil(j.hours * c.perHour / c.perRound);
+    // What the next Boost can finish: smallest jobs first until its rounds run out
+    const next = [];
+    let left = rounds;
+    for (const x of boost.flatMap(c => c.jobs.map(j => ({ c, j, r: roundsFor(c, j) }))).sort((a, b) => a.r - b.r)) {
+      if (x.r > left) break;
+      left -= x.r; next.push(x);
+    }
+    // Compact rows: crop, ready time, its best job; the rest folds open
+    const tm = h => h < 1 ? `${Math.max(1, Math.ceil(h * 60))} min` : h < 48 ? `${Math.ceil(h)} h` : `${fmt(Math.ceil(h / 24))} d`;
+    const tagHtml = j => j.tag ? ` <span class="tag">${j.tag}</span>` : "";
+    const row = (c, how) => { const top = c.jobs[0];
+      return `<details class="plant-row"><summary><b>${esc(c.crop)}</b> <span class="muted small">${how(c)}</span> — ${top.name}${tagHtml(top)} <span class="muted small">${
+        howJob(c, top)}${c.jobs.length > 1 ? ` · +${c.jobs.length - 1} more` : ""}</span></summary>
+        <ul class="small">${c.jobs.slice(0, 8).map(j => `<li>${j.name}${tagHtml(j)} — ${short(j.qty)}, ${howJob(c, j)}${
+          c.vj ? ` <span class="muted">(about ${short(j.hours * c.vjPerHour)} Veggie Juice)</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul></details>`; };
+    let howJob = (c, j) => tm(j.hours);
+    const timedHtml = timed.length ? timed.slice(0, 6).map(c => row(c, c => `ready in ${tm(c.minutes / 60)}${c.vj ? ` with ${c.vj} Veggie Juice` : ""}`)).join("") : `<p class="small muted">No slower crop feeds anything right now.</p>`;
+    // Boost crops aren't passive, so they go last, unless nothing else needs planting or Veggie Juice is running low
+    const vj = onHand["Veggie Juice"] || 0, vjLow = O && O.cap !== Infinity && vj < O.cap * 0.1;
+    const nextAk = next.reduce((s, x) => s + (x.j.tag === "+10 AK" ? 10 : x.j.tag === "+100 AK" ? 100 : 0), 0);
+    const boostRows = boost.map(c => { howJob = (c, j) => `${fmt(roundsFor(c, j))} harvests`; return row(c, () => "Boost"); }).join("");
+    howJob = (c, j) => tm(j.hours);
+    const promote = boost.length && (!timed.length || vjLow);
+    const boostHtml = !boost.length ? "" : `<details class="boost"${promote ? " open" : ""} style="margin-top:10px"><summary><strong>Breakfast Boost crops</strong> <span class="small muted">${
+        next.length ? `next Boost finishes ${next.length}${nextAk ? ` (+${nextAk} AK)` : ""}` : "each job needs more than one Boost"}${vjLow ? ` · Veggie Juice low (${short(vj)})` : ""}</span></summary>
+      <p class="small muted" style="margin:4px 0">Crops that officially grow in 5 minutes or less, done together under Breakfast Boost; ${fmt(rounds)} harvests per Boost (Setup → Your perks).</p>
+      ${boostRows}</details>`;
+    if (!crops.length) { $("plant-list").innerHTML = `<p class="small muted">No crop feeds anything in your plan or quests right now.</p>`; return; }
+    $("plant-list").innerHTML = promote ? boostHtml + timedHtml : timedHtml + boostHtml;
+  }
+
+  // ---------- Best use: daily overflow ----------
+  // Some daily production has one obvious home: Mega Masteries that take a year or more even at full production, so
+  // every day that isn't turned into them is lost ground. Everything else gets the usual outlet pick.
+  const BUILDING = { Eggs: "Chicken Coop", Feathers: "Chicken Coop", Milk: "Cow Pasture", Antler: "Raptor Pen", "Steak Kabob": "Raptor Pen",
+    Worms: "Worm Habitat", "Gummy Worms": "Worm Habitat", Mealworms: "Worm Habitat", Trout: "Trout / Bait Farm", Grubs: "Trout / Bait Farm",
+    Minnows: "Trout / Bait Farm", Grapes: "Vineyard", Board: "Sawmill", Wood: "Sawmill", Iron: "Ironworks", Nails: "Ironworks", Steel: "Steelworks",
+    "Steel Wire": "Steelworks", Straw: "Hay Field", Stone: "Quarry", Coal: "Quarry", Apple: "Orchard", Orange: "Orchard", Lemon: "Orchard" };
+  const STANDING = { Antler: ["Fishing Net", "Large Net"], Orange: ["Orange Juice"], Lemon: ["Lemonade"], Apple: ["Apple Cider"] };
+  function renderOverflow(p) {
+    if (!O || O.cap === Infinity) { $("overflow-list").innerHTML = `<p class="small muted">Paste My Inventory to see what's filling up.</p>`; return; }
+    const onHand = O.onHand, cap = O.cap, saver = 1 + (S.perks.resourceSaver ?? 0) / 100;
+    const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
+    // Per-day amounts: farm buildings (per hour) and the orchard (per day, plus the noon bonus)
+    const perDay = {};
+    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) perDay[n] = v * 24;
+    for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) perDay[n] = o.production * noon;
+    if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
+    if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
+    const fullIn = n => { const room = cap - (onHand[n] || 0); return room <= 0 ? 0 : room / (perDay[n] / 24); };
+    const fullText = n => { const h = fullIn(n); return h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`; };
+    // The standing ones: follow the chain and say how far the Mega Mastery is at this rate
+    const standing = Object.entries(STANDING).filter(([n]) => perDay[n]).map(([n, chain]) => {
+      let qty = perDay[n], prev = n;
+      const also = {};
+      for (const prod of chain) {
+        const r = RECIPES.items[prod], per = (r.recipe.find(([i]) => i === prev) || [, 1])[1], crafts = qty / per;
+        for (const [i, q] of r.recipe) if (i !== prev) also[i] = (also[i] || 0) + q * crafts;
+        qty = crafts * saver; prev = prod;
+      }
+      const c = p.items[prev] || 0, left = Math.max(0, TIERS[4] - c);
+      return `<li><b>${esc(n)}</b> → ${chain.map(esc).join(" → ")} <span class="small muted">(${fullText(n)})</span><br><span class="small">about ${short(qty)} ${esc(prev)} a day${
+        left ? `; ${esc(prev)} Mega Mastery: ${short(left)} to go, about <b>${fmt(Math.ceil(left / qty))} days</b> if you keep up` : "; Mega Mastery done"}.</span>
+        <span class="small muted">Also uses a day: ${Object.entries(also).map(([i, q]) => `${short(q)} ${esc(i)}`).join(", ")}.</span></li>`;
+    });
+    // Everything else, grouped by building. Each item's best outlet is framed as a goal (its next tier, or the Tower tier
+    // it still needs): how many days of this item it takes, and what the other ingredients cost. Pricey ones show it.
+    const sumEff = (extra, key) => extra.reduce((m, x) => { for (const [k, v] of Object.entries(x.effort[key] || {})) m[k] = (m[k] || 0) + v; return m; }, {});
+    const item = n => {
+      const day = perDay[n], keep = OTHER_USES[n];
+      const plan = window.FRP.outletPlan(n, day, { ...O, onHand: { ...onHand, [n]: cap } });      // pretend it's full: where would it go?
+      const o = plan.outlet;
+      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : "sell (nothing useful is made from it)", detail: `You make about ${short(day)} a day.` };
+      const c = p.items[o.product] || 0, tu = (O.towerUse[o.product] || []).map(u => TIERS[u.tier === "mm" ? 4 : 3]).filter(t => t > c);
+      const target = tu.length ? Math.min(...tu) : TIERS.find(t => t > c);
+      const tag = o.tower ? ` <span class="tag">Tower</span>` : o.goal ? ` <span class="tag">mastery</span>` : "";
+      if (!target) return { n, h: fullIn(n), sum: `${esc(o.product)}${tag}`, detail: `You make about ${short(day)} a day.` };
+      const pr = RECIPES.items[o.product], made = pr.craft ? saver : 1, crafts = Math.ceil((target - c) / made), need = crafts * o.per;
+      // Extras straight from this product's own recipe (asking the outlet picker again at this size can pick a different
+      // product and show its ingredients under this one's name)
+      const extra = pr.recipe.filter(([i]) => i !== n).map(([i, q]) => { let e = C.effort(i, q * crafts); if (e) e = adjust(e); return { item: i, qty: q * crafts, effort: e || { amount: 0 } }; });
+      const g = { extra, cost: extra.reduce((t, x) => t + (x.effort.amount || 0), 0) };
+      const passive = sumEff(g.extra, "passive"), byPlace = sumEff(g.extra, "byPlace");
+      const costTxt = [passiveText(passive), placeMix(byPlace)].filter(Boolean).join(" + ");
+      const days = need / day;
+      // Other ingredients your farm also makes can be slower than this one (Chum from Worms waits on Grubs)
+      const slow = g.extra.filter(x => perDay[x.item]).map(x => ({ item: x.item, days: x.qty / perDay[x.item] })).reduce((m, x) => x.days > m.days ? x : m, { item: n, days });
+      return { n, h: fullIn(n),
+        sum: `${esc(o.product)}${tag} <span class="muted small">· ${TIER_NAME[target]} in ${minText(slow.days * 1440)}${slow.item === n ? ` of ${esc(n)}` : ` (${esc(slow.item)} is the slowest)`}${g.cost >= 1 ? ` · extras ~${short(g.cost)} AP` : ""}</span>`,
+        detail: `${esc(o.product)} ${TIER_NAME[target]}: ${short(target - c)} to go = ${fmt(crafts)} crafts, using ${short(need)} ${esc(n)} (${minText(days * 1440)} of yours)${
+          g.extra.length ? `, plus ${g.extra.slice(0, 4).map(x => `${short(x.qty)} ${esc(x.item)}`).join(", ")}${g.extra.length > 4 ? ` and ${g.extra.length - 4} more` : ""}${costTxt ? `, costing ${costTxt}` : ""}` : ""}.${
+          plan.others && plan.others.length ? ` Other options: ${plan.others.map(x => esc(x.product)).join(", ")}.` : ""}` };
+    };
+    const byB = {};
+    for (const n of Object.keys(perDay).filter(n => !STANDING[n])) (byB[BUILDING[n] || "Other"] ||= []).push(item(n));
+    const blocks = Object.entries(byB).map(([b, its]) => ({ b, its: its.sort((a, c) => a.h - c.h), h: Math.min(...its.map(x => x.h)) })).sort((a, c) => a.h - c.h);
+    const fullShort = h => h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`;
+    const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : minText(x.h * 60)}`).join(" · ")}</span></summary>
+      <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h)})</span> → ${x.sum}<br>${x.detail}</li>`).join("")}</ul></details>`);
+    $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
+        Object.keys(STANDING).filter(n => perDay[n]).map(n => `${esc(n)} → ${esc(STANDING[n][STANDING[n].length - 1])}`).join(" · ")}</span></summary>
+      <p class="small muted" style="margin:2px 0 6px">Year-long Mega Masteries: keep these going every day.</p><ul style="margin:0 0 6px;padding-left:20px">${standing.join("")}</ul></details>` : "");
+  }
+
+  // ---------- Best use: kitchen ----------
+  // Meals ranked by what finishing them does: their own next tier (Tower tier if needed), quest needs down each chain.
+  // Oven time = meals × cook time ÷ ovens; ingredients costed the usual way. Cooking level and missing recipes filter.
+  $("kitchen-missing").addEventListener("change", () => {
+    S.noRecipe = $("kitchen-missing").value.split(",").map(x => x.trim()).filter(Boolean); save(); render(false);
+  });
+  // Cook time (FarmRPG wiki "Cooking"): perks take their % off the base time; the first stir is possible after 1 minute,
+  // then every 15 minutes, and each takes 10% off the time left. Checks out against the wiki's full-perk table
+  // (Onion Soup, 25% faster, stirring every time: 37 min 27 s).
+  function cookMinutes(n, m) {
+    let done = m.minutes * (1 - Math.min(90, S.perks.cookFaster || 0) / 100);
+    for (let k = 0, ts = 1; k < (S.perks.stirs || 0) && ts < done; k++, ts += 15) done = ts + (done - ts) * 0.9;
+    return done;
+  }
+  const effectText = e => e.replace(/<br\s*\/?>/gi, " ").replace(/\s+/g, " ").trim();
+  // Pantry: meals you can cook, quest needs first (with exact targets), then lowest stock first. Mastery isn't chased;
+  // a Tower tag shows when a Tower level needs the meal's mastery.
+  function renderKitchen(p) {
+    const M = window.MEALS && MEALS.meals;
+    if (!M) return;
+    if (document.activeElement !== $("kitchen-missing")) $("kitchen-missing").value = (S.noRecipe || []).join(", ");
+    const lv = p.skills.Cooking ?? 99, ovens = Math.max(1, S.perks.ovens || 1), onHand = O ? O.onHand : {};
+    const no = new Set((S.noRecipe || []).map(x => x.toLowerCase())), hidden = new Set(S.questHidden || []);
+    // Quest needs for meals: each chain adds up down its steps; different chains add together
+    const need = {}, why = {};
+    for (const q of S.quests || []) {
+      if (hidden.has(q.name) || q.section === "personal") continue;
+      const tally = {}, most = {};
+      for (let name = q.name, step = 0; name && step <= 5; step++) {
+        const d = QUESTS.quests[name];
+        if (!d) break;
+        for (const [item, n] of d.need) if (M[item]) { tally[item] = (tally[item] || 0) + n; most[item] = { total: tally[item], name, step }; }
+        name = d.next && d.next[0];
+      }
+      for (const [item, x] of Object.entries(most)) { need[item] = (need[item] || 0) + x.total; (why[item] ||= []).push(x.step ? `${esc(x.name)} (${x.step} ahead)` : esc(x.name)); }
+    }
+    const locked = [], missing = [];
+    const rows = Object.entries(M).filter(([n]) => n !== "Bone Broth").flatMap(([n, m]) => {
+      if (no.has(n.toLowerCase())) { missing.push(n); return []; }
+      if (m.level > lv) { locked.push(`${esc(n)} (cooking ${m.level})`); return []; }
+      const have = onHand[n] || 0, short1 = Math.max(0, (need[n] || 0) - have);
+      const c = p.items[n] || 0, tower = (O ? O.towerUse[n] || [] : []).some(u => c < TIERS[u.tier === "mm" ? 4 : 3]);
+      const make = short1 || ovens, rounds = Math.ceil(make / ovens), mins = rounds * cookMinutes(n, m);
+      const e0 = C.effort(n, make), e = e0 && adjust(e0);
+      const cost = e ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") || "nothing to gather" : "can't cost yet";
+      return [{ n, m, have, short: short1, tower, make, rounds, mins, cost, ap: e ? e.amount : null }];
+    }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
+    const tagT = x => x.tower ? ` <span class="tag">Tower</span>` : "";
+    $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
+        x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}about ${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
+        <div class="small" style="margin:2px 0 6px 18px"><p style="margin:0 0 4px" class="muted">${esc(effectText(x.m.effect))}</p>${
+          x.short ? `<p style="margin:0 0 4px">Needed for ${why[x.n].join(", ")}: ${fmt(need[x.n])} in all, you have ${fmt(x.have)}.</p>` : ""}
+        <p style="margin:0">${fmt(x.make)} ${x.make === 1 ? "takes" : "take"} ${x.rounds > 1 ? `${fmt(x.rounds)} rounds of your ${ovens} oven${ovens === 1 ? "" : "s"}` : `one round of your ${ovens} oven${ovens === 1 ? "" : "s"}`} at ${minText(cookMinutes(x.n, x.m))} each${S.perks.stirs ? ` (with ${S.perks.stirs} stir${S.perks.stirs === 1 ? "" : "s"})` : ""}; ingredients: ${x.cost}.</p></div></details>`).join("")
+      : `<p class="small muted">No meals to cook yet.</p>`) +
+      (locked.length ? `<p class="small muted" style="margin:8px 0 0">Not yet (cooking level ${lv}): ${locked.join(", ")}.</p>` : "") +
+      (missing.length ? `<p class="small muted" style="margin:4px 0 0">Recipes you don't have: ${missing.map(esc).join(", ")}.</p>` : "");
+  }
+
+  // ---------- Wishing well ----------
+  // Quest items you're short of (current quest + up to 5 ahead, adding up down each chain) that the well can give.
+  // Toss options: ones you already have enough of first, then the cheapest expected cost (tosses = needed ÷ chance).
+  function renderWW(p) {
+    const W2 = window.WW && WW.want;
+    $("ww").hidden = !(S.quests && W2);
+    if (!S.quests || !W2) return;
+    const onHand = O ? O.onHand : {}, hidden = new Set(S.questHidden || []);
+    const need = {}, why = {};
+    for (const q of S.quests) {
+      if (hidden.has(q.name) || q.section === "personal") continue;
+      const tally = {}, most = {};
+      for (let name = q.name, step = 0; name && step <= 5; step++) {
+        const d = QUESTS.quests[name];
+        if (!d) break;
+        for (const [item, n] of d.need) if (W2[item]) { tally[item] = (tally[item] || 0) + n; most[item] = { total: tally[item], name, step }; }
+        name = d.next && d.next[0];
+      }
+      for (const [item, x] of Object.entries(most)) { need[item] = (need[item] || 0) + x.total; (why[item] ||= []).push(x.step ? `${esc(x.name)} (${x.step} ahead)` : esc(x.name)); }
+    }
+    const perOf = item => { const u = C.unit(item), t = TRADE.trade[item]; return u && u.per != null ? u.per : t ? t.ap : null; };
+    // Exploring you'll do anyway (for your quests, up to 5 ahead, and your Trips) brings things home too: those don't need tosses
+    // (Spool of Copper comes along while exploring Jundland Desert for Langstaff Crests)
+    const busy = {};
+    for (const q of S.quests) {
+      if (hidden.has(q.name) || q.section === "personal") continue;
+      for (let name = q.name, step = 0; name && step <= 5; step++) {
+        const d = QUESTS.quests[name];
+        if (!d) break;
+        for (const [k, v] of Object.entries(questNeeds(d, p).byPlace || {})) busy[k] = (busy[k] || 0) + v;
+        name = d.next && d.next[0];
+      }
+    }
+    for (const t of S.trips || []) { const amt = t.mode === "until" ? window.FRP.tripBudgetFor(t.item, t.qty, t.loc, t.unit, DROPS, S.perks) : t.amount; if (amt) busy[t.unit + "|" + t.loc] = (busy[t.unit + "|" + t.loc] || 0) + amt; }
+    const anyway = {}, anywayAt = {};
+    for (const [k, amt] of Object.entries(busy)) {
+      const [u, loc] = k.split("|");
+      for (const [item, q] of Object.entries(yieldsNow(loc, u, amt))) if (W2[item] && q >= 1) { anyway[item] = (anyway[item] || 0) + q; (anywayAt[item] ||= new Set()).add(loc); }
+    }
+    // Crafted things too: if the places its usual route visits are ones you're exploring enough anyway, it needs no tosses
+    // (Spool of Copper = Metal Spool + Copper Wire, both from places your quests already send you)
+    const covered = (item, n) => {
+      const e = C.effort(item, n);
+      const ks = e ? Object.entries(e.byPlace || {}).filter(([, v]) => v >= 0.5) : [];
+      if (!ks.length) return 0;
+      const f = Math.min(...ks.map(([k, v]) => Math.min(1, (busy[k] || 0) / v)));
+      if (f > 0) for (const [k] of ks) (anywayAt[item] ||= new Set()).add(k.split("|")[1]);
+      return f * n;
+    };
+    const rows = Object.entries(need).map(([item, total]) => {
+      const s0 = total - (onHand[item] || 0) - (anyway[item] || 0);
+      const c = s0 >= 1 ? covered(item, s0) : 0;
+      if (c >= 1) anyway[item] = (anyway[item] || 0) + c;
+      return { item, total, short: s0 - c };
+    }).filter(x => x.short >= 1).map(x => withOpts(x));
+    function withOpts(x) {
+      const opts = W2[x.item].map(([inp, ch]) => {
+        const tosses = Math.ceil(x.short / (ch / 100)), have = onHand[inp] || 0, per = perOf(inp);
+        // Things made from daily production cost time, not AP (Gold Peas: farming; Wooden Box: Board)
+        const e = !(have >= tosses) && per === 0 ? C.effort(inp, tosses - have) : null, wait = e ? passiveText(e.passive) : "";
+        return { inp, ch, tosses, have, enough: have >= tosses, cost: per == null ? null : per * tosses, wait };
+      }).sort((a, b) => ((a.cost ?? Infinity) - (b.cost ?? Infinity)) || (b.enough - a.enough) || b.ch - a.ch);
+      const own = perOf(x.item), r = RECIPES.items[x.item];
+      // "No other way" means no recipe and no drop anywhere, not just "can't cost it" (Fancy Drum is craftable)
+      return { ...x, opts, gather: own == null ? null : own * x.short, otherWay: !!(r && r.recipe) || !!DROPS.items[x.item] };
+    }
+    // Only worth it when the item has no other way in, or tossing (the tossed items count at their own value) is cheaper.
+    // Strictly today: only today's free tosses are shown, never totals or later days, so nothing nudges anyone to pay gold
+    // for extra tosses. Picks that would need more than 30 days of free tosses are left out.
+    const free = S.perks.wwTosses || 0;
+    if (!free) { $("ww-list").innerHTML = `<p class="small muted">How many free tosses do you get a day? Paste your <b>Farm Supply</b> page (it reads the Extra Wish perks) or set <b>Free wishing well tosses a day</b> in Setup → Your perks (3, up to 29 with perks, +1 for beta testers). Tosses that cost gold are never suggested.</p>`; return; }
+    const worth = x => x.gather == null ? !x.otherWay : x.opts[0].cost != null && x.opts[0].cost < x.gather;
+    const picks = rows.filter(x => worth(x) && x.opts[0].tosses / free <= 30)
+      .sort((a, b) => a.opts[0].tosses - b.opts[0].tosses);                       // quickest to finish first
+    const today = [], gotToday = {};
+    let left = free;
+    for (const x of picks) {
+      if (!left) break;
+      const o = x.opts[0], n = Math.min(left, o.tosses, o.have);                   // only what you already have to toss
+      if (n < 1) continue;
+      left -= n; gotToday[x.item] = n * o.ch / 100;
+      const get = n * o.ch / 100, all = n >= o.tosses;
+      today.push(`<li><b>${fmt(n)} × ${esc(o.inp)}</b> → ${all ? `should cover the ${fmt(x.short)} ${esc(x.item)} you need` : `about ${fmt(Math.floor(get))} ${esc(x.item)} (${o.ch}% a toss)`}
+        <br><span class="small">Why: ${why[x.item].join(", ")} need${why[x.item].length === 1 ? "s" : ""} ${fmt(x.total)} ${esc(x.item)} and you have ${fmt(onHand[x.item] || 0)}${
+          anyway[x.item] ? ` (plus about ${fmt(Math.floor(anyway[x.item]))} from exploring you'll do anyway at ${[...anywayAt[x.item]].map(esc).join(", ")})` : ""}; ${
+          x.gather == null ? "there's no other way to get it" : "tossing is cheaper than getting it the usual way"}. You have ${short(o.have)} ${esc(o.inp)}.</span></li>`);
+    }
+    // Spare tosses: stock up for later in your active chains (past 5 ahead, to the end of each chain). Only chains you're on
+    // count, so finished questlines never come up. Same rules: items you have, not what exploring brings, today only.
+    // Quests take items one step at a time and you keep gathering in between, so the stock to aim for is the biggest single
+    // step's need (never more than your cap), not the whole chain added up (Gold Leaf: 6,000 per step, not 18.8k).
+    if (left) {
+      const far = {}, farWhy = {};
+      for (const q of S.quests) {
+        if (hidden.has(q.name) || q.section === "personal") continue;
+        const tally = {}, first = {}, seen = new Set();
+        for (let name = q.name, step = 0; name && step <= 200 && !seen.has(name); step++) {
+          seen.add(name);
+          const d = QUESTS.quests[name];
+          if (!d) break;
+          if (step > 5) for (const [item, n] of d.need) if (W2[item] && n > (tally[item] || 0)) { tally[item] = n; first[item] = { name, step }; }
+          name = d.next && d.next[0];
+        }
+        for (const [item, f] of Object.entries(first)) {
+          // The "why" names the chain with the biggest single ask (that's what sets the target)
+          if (!farWhy[item] || tally[item] > farWhy[item].total) farWhy[item] = { ...f, total: tally[item] };
+          far[item] = Math.min(O ? O.cap : Infinity, farWhy[item].total);
+        }
+      }
+      const stock = Object.entries(far).map(([item, total]) => {
+        const s0 = total - (onHand[item] || 0) - (anyway[item] || 0) - (gotToday[item] || 0);
+        return { item, total, short: s0 - (s0 >= 1 ? covered(item, s0) : 0) };
+      }).filter(x => x.short >= 1).map(withOpts).filter(worth).sort((a, b) => farWhy[a.item].step - farWhy[b.item].step);
+      for (const x of stock) {
+        if (!left) break;
+        const o = x.opts[0], n = Math.min(left, o.tosses, o.have);
+        if (n < 1) continue;
+        left -= n;
+        const w = farWhy[x.item];
+        today.push(`<li><b>${fmt(n)} × ${esc(o.inp)}</b> → about ${fmt(Math.floor(n * o.ch / 100))} ${esc(x.item)} <span class="tag">stocking up</span>
+          <br><span class="small">Why: ${esc(w.name)} (${w.step} ahead) and later steps ask for up to ${fmt(Math.min(w.total, O ? O.cap : Infinity))} ${esc(x.item)} at a time, you have ${fmt(onHand[x.item] || 0)}; ${
+            x.gather == null ? "only the wishing well gives it" : "tossing is cheaper than getting it the usual way"}. You have ${short(o.have)} ${esc(o.inp)}.</span></li>`);
+      }
+    }
+    $("ww-list").innerHTML = today.length
+      ? `<p style="margin:0 0 4px"><b>Today's free tosses</b> <span class="muted small">(${fmt(free - left)} of your ${fmt(free)})</span></p><ul style="margin:0;padding-left:20px">${today.join("")}</ul>`
+      : `<p class="small muted">Nothing worth tossing today.</p>`;
+  }
+
+  // ---------- Veggie Juice ----------
+  const minText = m => m < 60 ? `${fmt(Math.max(1, Math.round(m)))} min` : m < 48 * 60 ? `${Math.floor(m / 60)} h${Math.round(m % 60) ? ` ${Math.round(m % 60)} min` : ""}` : `${fmt(Math.round(m / 1440 * 10) / 10)} days`;
+  function renderVJ() {
+    const r = RECIPES.items["Veggie Juice"];
+    if (!r || !O) return;
+    const info = cropInfo(), onHand = O.onHand, cap = O.cap, rounds = S.perks.boostRounds || 250;
+    if (cap === Infinity) { $("vj-cycle").innerHTML = `<p class="small muted">Paste My Inventory to see your Veggie Juice cycle.</p>`; return; }
+    const rows = r.recipe.map(([item, per]) => {
+      const have = onHand[item] || 0, need = Math.max(0, cap - have), x = info[item];
+      let refill = "full";
+      if (need >= 1) {
+        if (x && x.base <= 5) refill = `${fmt(Math.ceil(need / x.perRound))} Boost harvests`;
+        else if (item === "Beet" && x) { const gj = Math.ceil(need / x.perRound);
+          refill = `${fmt(gj)} Grape Juices (you have ${short(onHand["Grape Juice"] || 0)}), planting ${fmt(gj * (S.perks.plots || 0))} ${esc(x.seed)} (you have ${short(onHand[x.seed] || 0)})`; }
+        else if (x) refill = `about ${minText(need / x.perHour * 60)} of farming`;
+        else { const e0 = C.effort(item, need), e = e0 && adjust(e0); refill = e ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") || "—" : "can't cost"; }
+      }
+      return { item, per, have, makes: Math.floor(have / per), refill, x };
+    });
+    const now = Math.min(...rows.map(x => x.makes)), limit = rows.filter(x => x.makes === now).map(x => x.item);
+    const tw = rows.filter(x => x.item === "Tomato" || x.item === "Watermelon"), quick = rows.filter(x => x.x && x.x.base <= 5), beet = rows.find(x => x.item === "Beet");
+    const twMakes = Math.min(...tw.map(x => x.makes)), cycle = Math.floor(cap / 2);
+    // Where you are in the loop
+    let step;
+    if (twMakes < 1) step = `<b>Grow Tomato and Watermelon</b> (taking turns) until full: ${tw.map(x => `${esc(x.item)} ${x.refill}`).join(", ")}.`;
+    else if (quick.some(x => x.makes <= now && x.have < cap * 0.95)) {
+      const need = quick.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0);
+      step = `<b>Breakfast Boost</b> the five quick crops until full: about ${fmt(need)} harvests (${need <= rounds ? "1 Boost" : `about ${fmt(Math.ceil(need / rounds))} Boosts`}).`;
+    } else if (beet && beet.makes <= now) step = `<b>Grape Juice the Beets</b> until full: ${beet.refill}.`;
+    else step = `<b>Craft Veggie Juice</b>: you can make ${fmt(now)} now.`;
+    // Non-crop ingredients (Twine, Horn, Glass Bottle) that would run out before the crops do
+    const cropMakes = Math.min(...rows.filter(x => x.x).map(x => Math.max(x.makes, Math.floor(cap / x.per))));
+    const short1 = rows.filter(x => !x.x && x.makes < cropMakes);
+    if (short1.length) step += ` Also top up ${short1.map(x => `<b>${esc(x.item)}</b> (enough for ${fmt(x.makes)}; ${x.refill})`).join(", ")}.`;
+    // A whole cycle: Tomato + Watermelon (2 each) set the size; the rest refill several times along the way
+    const quickRounds = quick.length ? Math.ceil(cycle * 7 / quick[0].x.perRound) * quick.length : 0;
+    const beetGJ = beet && beet.x ? Math.ceil(cycle * 15 / beet.x.perRound) : null, beetSeeds = beetGJ ? beetGJ * (S.perks.plots || 0) : 0;
+    $("vj-cycle").innerHTML = `<p style="margin:0 0 6px">You have <b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice. You can craft <b>${fmt(now)}</b> now${now ? "" : ""} (limited by ${limit.map(esc).join(", ")}).</p>
+      <p style="margin:0 0 6px">Next: ${step}</p>
+      <p class="small muted" style="margin:0 0 8px">A full cycle (full Tomatoes and Watermelons) makes about ${fmt(cycle)} Veggie Juice, taking about ${fmt(quickRounds)} Boost harvests
+        (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${beetGJ ? ` and ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""} along the way.</p>
+      <div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
+        rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
+    // Calculator crop list
+    const sel = $("vj-crop"), cur = sel.value;
+    if (!sel.options.length) {
+      sel.innerHTML = Object.keys(info).sort().map(c => `<option>${esc(c)}</option>`).join("");
+      sel.value = cur || (info.Beet ? "Beet" : sel.options[0].value);
+      $("vj-left").value = Math.round(info[sel.value].before);
+    }
+    vjCalc();
+  }
+  function vjCalc() {
+    const left = +$("vj-left").value || 0, target = Math.max(1, +$("vj-target").value || 1);
+    if (!left) { $("vj-out").innerHTML = ""; return; }
+    const f = 1 - VJ_CUT, after = n => Math.max(1, left * Math.pow(f, n));
+    const useful = left <= 1 ? 0 : Math.ceil(Math.log(1 / left) / Math.log(f));        // past this, the 1-minute floor wastes them
+    const need = left <= target ? 0 : Math.min(useful, Math.ceil(Math.log(target / left) / Math.log(f)));
+    $("vj-cut-text").textContent = `${Math.round(VJ_CUT * 100)}%`;
+    const list = Array.from({ length: Math.min(useful, 12) }, (_, i) => i + 1);
+    $("vj-out").innerHTML = `<p style="margin:0 0 6px">${need ? `Use <b>${need} Veggie Juice</b> right after planting: ready in ${minText(after(need))}.` : `No juice needed: it's ready in ${minText(left)}.`}
+      ${useful ? `<span class="muted">More than ${useful} is wasted (1 minute is the floor).</span>` : ""}</p>
+      ${list.length ? `<p class="muted" style="margin:0">${list.map(n => `${n} → ${minText(after(n))}`).join(" · ")}</p>` : ""}`;
+  }
+  $("vj-crop").addEventListener("change", () => { const x = cropInfo()[$("vj-crop").value]; if (x) $("vj-left").value = Math.round(x.before); vjCalc(); });
+  ["vj-left", "vj-target"].forEach(id => $(id).addEventListener("input", vjCalc));
+
+  // ---------- Quests ----------
+  const SUPPLIES = ["Apple Cider", "Arnold Palmer", "Orange Juice", "Large Net", "Lemonade", "Iced Tea", "Fishing Net", "Grape Juice"];
+  const MON = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+  // Days until a special ends: from the paste ("Sep 21 - Oct 31") or the quest data's end date
+  function daysLeft(q, data) {
+    const now = new Date();
+    let end = null;
+    const m = q.dates && q.dates.match(/- (\w{3}) (\d+)/);
+    if (m && MON[m[1]] != null) { end = new Date(now.getFullYear(), MON[m[1]], +m[2], 23, 59); if (end < now - 864e5 * 180) end.setFullYear(end.getFullYear() + 1); }
+    else if (data && data.end) end = new Date(data.end);
+    return end ? Math.max(0, Math.ceil((end - now) / 864e5)) : null;
+  }
+  // What a quest still needs and what that costs: { missing: [{item, need, have, left, effort}], cost, uncosted, levels }
+  function questNeeds(data, p) {
+    const onHand = O ? O.onHand : {};
+    const missing = [], byPlace = {}, forWhat = {}, passive = {};
+    let cost = 0, uncosted = [];
+    // Items already in stock still get given up: note how much of the stock, and count their cost if known
+    const stock = [];
+    let stockCost = 0;
+    for (const [item, need] of data.need) {
+      const have = onHand[item] || 0, used = Math.min(need, have);
+      if (used) {
+        const u = C.unit(item), t = TRADE.trade[item];
+        const per = u && u.per != null ? u.per : t ? t.ap : null;         // trade-chat price when it can't be made or gathered
+        if (per != null) stockCost += per * used;
+        stock.push({ item, used, have, share: used / have, costed: per != null });
+      }
+    }
+    for (const [item, need] of data.need) {
+      const have = onHand[item] || 0, left = Math.max(0, need - have);
+      if (!left) continue;
+      const e0 = C.effort(item, left), e = e0 && adjust(e0);
+      if (!e) uncosted.push(item);
+      else {
+        cost += e.amount;
+        for (const [k, v] of Object.entries(e.byPlace || {})) byPlace[k] = (byPlace[k] || 0) + v;
+        for (const [k, its] of Object.entries(e.forWhat || {})) forWhat[k] = { ...(forWhat[k] || {}), ...its };
+        for (const [k, v] of Object.entries(e.passive || {})) passive[k] = (passive[k] || 0) + v;
+      }
+      missing.push({ item, need, have, left, effort: e });
+    }
+    const levels = Object.entries(data.lv || {}).filter(([k, v]) => k === "Tower" ? (p.level ?? 0) < v : (p.skills[k] ?? 99) < v).map(([k, v]) => `${k} ${v}`);
+    return { missing, cost, byPlace, forWhat, passive, uncosted, levels, stock, stockCost };
+  }
+  // "uses 13 of your 32 Hearts (41%)" for the stock a quest takes; big shares first
+  const stockText = st => {
+    const list = st.filter(s => s.share >= 0.01).sort((a, b) => b.share - a.share);
+    const shown = list.slice(0, 3).map(s => s.used >= s.have ? `all of your ${esc(s.item)}` : `${fmt(Math.round(s.used))} of your ${fmt(s.have)} ${esc(s.item)} (${Math.round(s.share * 100)}%)`);
+    return shown.join(", ") + (list.length > 3 ? ` and ${list.length - 3} more` : "");
+  };
+  // Reward tags: things that help the plan above
+  function rewardText(data, p) {
+    const out = data.get.map(([item, qty]) => {
+      const tags = [];
+      if (O && (O.towerUse[item] || []).some(u => (p.items[item] || 0) < (u.tier === "mm" ? 1e6 : 1e5))) tags.push("Tower item");
+      else if (item in p.items && p.items[item] < 1e6) tags.push("mastery");
+      if (SUPPLIES.includes(item)) tags.push("supplies");
+      return `${short(qty)} ${esc(item)}${tags.length ? ` <span class="tag${tags[0] === "Tower item" ? " tower" : ""}">${tags.join(", ")}</span>` : ""}`;
+    });
+    if (data.rSilver) out.push(`${short(data.rSilver)} silver`);
+    if (data.rGold) out.push(`${fmt(data.rGold)} gold`);
+    return out.join(", ") || "nothing listed";
+  }
+  // What a quest's rewards are worth to this player, in the same effort units as costs (1 AP = 1 AC = 1 Large Net).
+  // Supplies count in full (500 AP = 500). Items that help the plan (mastery still to earn, Tower needs) count
+  // at what they'd cost to get. Anything else counts at a tenth, since it would mostly be sold.
+  // Items with no cost at all (unique rewards, chests) can't be valued: listed in `special`.
+  // Value of `qty` of one item. Items that help the plan count double (they finish a quest AND feed a mastery or
+  // Tower need); other costed items a tenth. Chests and bags are worth what's inside: fixed chests everything
+  // listed (minus the key they use up), grab bags the average of one pick. Unknown things go in `special`.
+  // Rough value for parts with no cost of their own (Small Gear, Screw…, which only come from chests): look at the
+  // crafts that use them where you still need that mastery or Tower item, and take the costed ingredients that go
+  // in alongside, per part. Averaged over those crafts. It's a proxy, not a price.
+  function roughValue(item, p) {
+    const r = RECIPES.items[item];
+    const vals = [];
+    for (const [prod, per] of (r && r.uses) || []) {
+      const pr = RECIPES.items[prod];
+      const wanted = (prod in p.items && p.items[prod] < 1e6) || (O && (O.towerUse[prod] || []).length);
+      if (!pr || !pr.recipe || !wanted) continue;
+      let other = 0;
+      for (const [ing, n] of pr.recipe) { if (ing === item) continue; const c = C.unit(ing); if (c && c.per) other += c.per * n; }
+      if (other > 0) vals.push(other / per);
+    }
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+  }
+  function itemValue(item, qty, p, special, depth = 0) {
+    if (["Arnold Palmer", "Apple Cider", "Large Net"].includes(item)) return qty;
+    const box = LOOT.loot[item];
+    if (box && depth < 3) {
+      const vals = box.out.map(([n, lo, hi]) => itemValue(n, (lo + hi) / 2, p, special, depth + 1));
+      let per = box.grab ? vals.reduce((a, b) => a + b, 0) / vals.length : vals.reduce((a, b) => a + b, 0);
+      if (box.key) { const k = C.unit(box.key); if (k && k.per) per = Math.max(0, per - k.per); }
+      return qty * per;
+    }
+    const u = C.unit(item);
+    if (!u || u.per == null) {
+      const t = TRADE.trade[item];
+      if (t) { if (!special.traded) special.traded = []; if (!special.traded.includes(item)) special.traded.push(item); return qty * t.ap; }
+      const r = roughValue(item, p);
+      if (r) { if (!special.rough) special.rough = []; if (!special.rough.includes(item)) special.rough.push(item); return qty * r; }
+      if (!special.includes(item)) special.push(item);
+      return 0;
+    }
+    const helps = (item in p.items && p.items[item] < 1e6) || (O && (O.towerUse[item] || []).length) || SUPPLIES.includes(item);
+    // Worth the higher of what it costs you to make/gather and what it fetches in trade chat (Orange Juice is nearly
+    // free to make from orchard fruit, but still sells), then doubled if it helps the plan
+    const t = TRADE.trade[item];
+    return qty * Math.max(u.per, t ? t.ap : 0) * (helps ? 2 : 0.1);
+  }
+  // Quest values are in AP (1 Apple Cider and 1 Large Net count as 1 AP each)
+  const pct = x => x >= 10 ? `${fmt(Math.round(x))}×` : `${Math.round(x * 100)}%`;
+  function questValue(data, p) {
+    const special = [];
+    const value = data.get.reduce((s, [item, qty]) => s + itemValue(item, qty, p, special), 0);
+    return { value, special };
+  }
+
+  function renderQuests(p) {
+    const hidden = new Set(S.questHidden || []);
+    const cards = S.quests.map(q => {
+      const data = QUESTS.quests[q.name];
+      if (!data) return { q, html: `<li><strong>${esc(q.name)}</strong><span class="small muted">Not in the quest data (it may have ended).</span></li>`, rank: 9 };
+      const n = questNeeds(data, p);
+      const ready = !n.missing.length && !n.levels.length;
+      const days = q.section === "special" ? daysLeft(q, data) : null;
+      const st = stockText(n.stock);
+      const costTxt = ready ? `<b class="ok">Ready to turn in</b>` + (S.inventory ? (st ? `: uses ${st}` : "") : " (paste My Inventory to check)")
+        // What's still missing (and its cost) comes first; what it would take from stock only matters after that
+        : [n.levels.length ? `<b class="bad">needs ${n.levels.join(", ")}</b>` : "",
+           n.missing.length ? `still needs ${n.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : "",
+           n.cost || Object.keys(n.passive).length ? `costing ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : "",
+           n.uncosted.length ? `<span class="muted">can't cost ${n.uncosted.map(esc).join(", ")}</span>` : "",
+           st ? `<span class="muted">then uses ${st}</span>` : ""].filter(Boolean).join("; ");
+      // Quests nearly always cost more than they give, so judge them by how much of their cost comes back:
+      // reward value ÷ cost. The next few quests in the chain count too, a bit less for each step away.
+      const val = questValue(data, p);
+      const ahead = [];
+      let chainV = 0, chainC = 0;
+      for (let nx = data.next, i = 0; nx && nx.length && i < 3; i++) {
+        const d = QUESTS.quests[nx[0]];
+        if (!d) break;
+        const nn = questNeeds(d, p), vv = questValue(d, p), w = Math.pow(0.7, i + 1);
+        if (!nn.uncosted.length) { chainV += vv.value * w; chainC += nn.cost * w; }
+        ahead.push(`${esc(nx[0])} (${nn.uncosted.length ? "can't cost yet"
+          : vv.value < 5 ? (vv.special.length ? "reward can't be valued" : "reward worth little")
+          : !nn.missing.length ? `you have what it needs, reward worth about ${short(vv.value)} AP`
+          : `reward worth about ${pct(vv.value / Math.max(1, nn.cost))} of its cost`})`);
+        nx = d.next;
+      }
+      const eff = (val.value + chainV) / Math.max(1, n.cost + n.stockCost + chainC);
+      const little = val.value < 5 && chainV < 5;
+      const unknown = n.uncosted.length || n.levels.length;
+      const verdict = unknown ? "" : little ? `<span class="tag">${val.special.length ? "reward can't be valued" : "reward has little value to your plan"}</span>`
+        : ready && !n.stockCost ? `<span class="tag ok">reward worth about ${short(val.value)} AP${n.stock.length ? " (what it uses has no cost to compare)" : ""}</span>`
+        // A quest that costs (almost) no AP, only waiting on production, would give silly "275x" ratios: say it plainly
+        : n.cost + n.stockCost < 10 ? `<span class="tag ok">costs almost no AP, mostly waiting; reward worth about ${short(val.value)} AP</span>`
+        : `<span class="tag${eff >= 0.5 ? " ok" : ""}">reward worth about ${pct(eff)} of its cost${chainV >= 5 ? ", counting the next quests" : ""}</span>`;
+      const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ends in ${days} day${days === 1 ? "" : "s"}` : ""}</span>` : "";
+      const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: q.name })} ${hidden.has(q.name) ? `<button type="button" class="small" data-qshow="${esc(q.name)}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(q.name)}">Hide</button>`}</span>`;
+      const html = `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
+        <span class="small">${costTxt}</span> ${verdict}<br>
+        <span class="small">Reward${val.value >= 1 ? ` <span class="muted">(all of it together worth about ${short(val.value)} AP to you${data.rSilver || data.rGold ? "; silver and gold not counted" : ""})</span>` : ""}: ${rewardText(data, p)}${val.special.length ? ` <span class="muted">(can't value: ${val.special.slice(0, 3).map(esc).join(", ")}${val.special.length > 3 ? "…" : ""})</span>` : ""}${val.special.traded ? ` <span class="muted">(trade-chat price for ${val.special.traded.slice(0, 3).map(esc).join(", ")}${val.special.traded.length > 3 ? "…" : ""})</span>` : ""}${val.special.rough ? ` <span class="muted">(rough value for ${val.special.rough.slice(0, 3).map(esc).join(", ")}, from what they're used in)</span>` : ""}</span>
+        ${ahead.length ? `<br><span class="small muted">Next in the chain: ${ahead.join(" → ")}</span>` : ""}</li>`;
+      // Order: ready quests (most valuable first), then best share of cost returned; main quests get a 1.5x bump.
+      // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
+      const bump = q.kind === "main" ? 1.5 : 1;
+      const rank = hidden.has(q.name) ? 8 : unknown ? 4 : little ? 3 : ready ? 0 : 2;
+      return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump };
+    }).sort((a, b) => a.rank - b.rank || b.score - a.score);
+    const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
+    $("quest-list").innerHTML = `<ol class="bites">${vis.map(c => c.html).join("")}</ol>` +
+      (hid.length ? `<details><summary>Hidden by you (${hid.length})</summary><ol class="bites">${hid.map(c => c.html).join("")}</ol></details>` : "");
+  }
+  $("quest-list").addEventListener("click", e => {
+    const h = e.target.dataset.qhide, s = e.target.dataset.qshow;
+    if (h) S.questHidden = [...new Set([...(S.questHidden || []), h])];
+    else if (s) S.questHidden = (S.questHidden || []).filter(x => x !== s);
+    else return;
+    save(); render(false);
+  });
+
+  // ---------- Save codes ----------
+  // A save code is everything in S, turned into text: JSON, squeezed with the browser's built-in compression,
+  // then written as letters and numbers. "FRP1." = compressed; "FRP0." = not (for browsers without compression).
+  const b64 = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const unb64 = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+  async function squeeze(bytes, mode) {
+    const s = new Blob([bytes]).stream().pipeThrough(mode === "in" ? new CompressionStream("deflate-raw") : new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(s).arrayBuffer());
+  }
+  async function makeCode() {
+    const json = new TextEncoder().encode(JSON.stringify({ v: 1, at: Date.now(), S }));
+    if (typeof CompressionStream === "undefined") return "FRP0." + b64(json);
+    const z = await squeeze(json, "in");
+    let out = "";                                                       // chunked so big saves don't overflow btoa's arguments
+    for (let i = 0; i < z.length; i += 30000) out += String.fromCharCode(...z.subarray(i, i + 30000));
+    return "FRP1." + btoa(out).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  async function readCode(code) {
+    const m = code.trim().replace(/\s+/g, "").match(/^FRP([01])\.([A-Za-z0-9_-]+)$/);
+    if (!m) throw new Error("That doesn't look like a save code from this page. It should start with FRP1.");
+    let bytes = unb64(m[2]);
+    if (m[1] === "1") bytes = await squeeze(bytes, "out");
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    if (!data || !data.S || typeof data.S !== "object") throw new Error("That save code is damaged or incomplete.");
+    return data;
+  }
+  const saveMsg = (s, ok) => { $("save-status").innerHTML = `<div class="note"${ok ? ' style="border-color:var(--good)"' : ""}>${s}</div>`; };
+  $("save-make").addEventListener("click", async () => {
+    const code = await makeCode();
+    $("save-code").value = code; $("save-code").hidden = false; $("save-copy").hidden = false;
+    $("save-code").select();
+    saveMsg(`Save code made (${fmt(code.length)} characters). Copy it somewhere safe.`, true);
+  });
+  $("save-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("save-code").value); saveMsg("Copied.", true); }
+    catch (e) { $("save-code").select(); saveMsg("Your browser didn't allow copying. The code is selected: press Ctrl+C."); }
+  });
+  $("save-file").addEventListener("click", async () => {
+    const code = await makeCode();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
+    a.download = `farmrpg-next-steps-save-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    saveMsg("Save file downloaded.", true);
+  });
+  async function loadCode(code) {
+    try {
+      const data = await readCode(code);
+      const when = data.at ? new Date(data.at).toLocaleString() : "an unknown date";
+      if (!confirm(`Load the save from ${when}? This replaces what's on this page now.`)) return;
+      S = Object.assign({ mastery: null, inventory: null, manual: {}, places: {}, hidden: [] }, data.S);
+      S.perks = { ...START_PERKS, ...S.perks };
+      fixQuestKinds();
+      save(); render();
+      $("load-code").value = "";
+      saveMsg(`Loaded the save from ${when}.`, true);
+    } catch (e) {
+      // Our own messages explain themselves; anything else (bad compression, bad JSON) means the code got cut or changed
+      const ours = /save code/.test(e.message || "");
+      saveMsg(ours ? esc(e.message) : "That save code is damaged or incomplete. Check you copied all of it.");
+    }
+  }
+  $("load-go").addEventListener("click", () => loadCode($("load-code").value));
+  $("save-upload").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (file) loadCode(await file.text());
+    e.target.value = "";
+  });
+
+  // ---------- "Done" ticks: a stopgap between pastes ----------
+  // Each tick changes the saved state (quest list, inventory, mastery counts, tower level/AK) and keeps a copy of
+  // how things were just before, so any tick can be undone (along with the ticks after it). Any fresh paste clears them.
+  const MAX_TICKS = 20;
+  function tick(kind, label, fn) {
+    const { changes = [], ...rest } = S;
+    const before = JSON.stringify(rest);
+    fn();
+    S.changes = [...changes, { kind, label, at: Date.now(), before }].slice(-MAX_TICKS);
+    save(); render(false);
+  }
+  function undoTick(i) {
+    const list = S.changes || [];
+    if (!list[i]) return;
+    const later = list.length - 1 - i;
+    if (later && !confirm(`Undo this and the ${later} tick${later === 1 ? "" : "s"} after it?`)) return;
+    const restored = JSON.parse(list[i].before);
+    S = { ...restored, changes: list.slice(0, i) };
+    S.perks = { ...START_PERKS, ...S.perks };
+    save(); render();
+  }
+  // Tower AK/level live in the Mastery paste unless typed over; change whichever one the page is using
+  const bump = (key, by) => {
+    if (S.manual[key] != null) S.manual[key] += by;
+    else if (S.mastery && S.mastery.tower) S.mastery.tower[key] += by;
+    else S.manual[key] = by;
+  };
+  function doneMastery(item, tier) {
+    const target = window.FRP.TIER[tier];
+    tick("mastery", `${item} ${tierName(tier)}`, () => {
+      const items = S.mastery.items, before = items[item] || 0;
+      if (before < target) items[item] = target;
+      bump("ak", tier === "gm" ? 100 : tier === "m" ? 10 : 0);
+      if (S.mastery.totals) S.mastery.totals[tier] = (S.mastery.totals[tier] || 0) + 1;
+    });
+  }
+  function doneTower(level) {
+    tick("tower", `Climbed to Tower level ${level}`, () => { bump("level", 1); bump("ak", -TOWER.akPerLevel); });
+  }
+  function doneQuest(name) {
+    const data = QUESTS.quests[name];
+    const q = (S.quests || []).find(x => x.name === name);
+    if (!q) return;
+    tick("quest", `Quest: ${name}`, () => {
+      const inv = S.inventory ? S.inventory.items : null, cap = S.inventory && S.inventory.cap || Infinity;
+      if (data && inv) {
+        for (const [item, n] of data.need) if (inv[item]) inv[item].count = Math.max(0, inv[item].count - n);
+        for (const [item, n] of data.get) inv[item] = { ...(inv[item] || {}), count: Math.min(cap, ((inv[item] || {}).count || 0) + n) };
+      }
+      // Rewards count toward mastery (any gain except mail does)
+      if (data && S.mastery) for (const [item, n] of data.get) if (item in S.mastery.items) S.mastery.items[item] += n;
+      S.quests = S.quests.filter(x => x.name !== name);
+      // The next quest(s) in the chain, if their level, Tower and date requirements are met
+      const p = player(), today = new Date().toISOString().slice(0, 10);
+      for (const nx of (data && data.next) || []) {
+        const d = QUESTS.quests[nx];
+        if (!d || S.quests.some(x => x.name === nx)) continue;
+        const lvOk = Object.entries(d.lv || {}).every(([k, v]) => k === "Tower" ? (p.level ?? 0) >= v : (p.skills[k] ?? 99) >= v);
+        const dateOk = (!d.start || d.start <= today) && (!d.end || d.end >= today);
+        if (lvOk && dateOk) S.quests.push({ name: nx, section: q.section, npc: d.npc || q.npc, kind: q.kind, ready: false, dates: null, fromTick: true });
+      }
+    });
+  }
+  function renderChanges() {
+    const list = S.changes || [];
+    $("changes").hidden = !list.length;
+    if (!list.length) return;
+    $("changes-sum").textContent = `${list.length} thing${list.length === 1 ? "" : "s"} ticked as done since your last paste`;
+    $("changes-list").innerHTML = list.map((c, i) => `<li>${esc(c.label)} <button type="button" class="small" data-undo="${i}">Undo</button></li>`).join("");
+  }
+  $("changes-list").addEventListener("click", e => { const i = e.target.dataset.undo; if (i != null) undoTick(+i); });
+  // One click handler for every Done button on the page
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-done]");
+    if (!b) return;
+    const kind = b.dataset.done;
+    if (kind === "quest") doneQuest(b.dataset.name);
+    else if (kind === "mastery") doneMastery(b.dataset.name, b.dataset.tier);
+    else if (kind === "tower") doneTower(+b.dataset.level);
+  });
+  const doneBtn = (kind, attrs) => `<button type="button" class="small done-btn" data-done="${kind}" ${Object.entries(attrs).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} title="Tick this as done">✓ Done</button>`;
+
+  // ---------- Tap-to-show tips ----------
+  // Hover text doesn't show on phones, so tapping an ⓘ opens its explanation in a small bubble; tapping anywhere closes it.
+  document.addEventListener("click", e => {
+    const t = e.target.closest(".tip"), pop = $("tip-pop");
+    if (!t) { pop.hidden = true; return; }
+    e.preventDefault(); e.stopPropagation();                  // don't tick a checkbox the ⓘ sits in
+    if (!pop.hidden && pop.dataset.for === t.title) { pop.hidden = true; return; }
+    pop.textContent = t.title; pop.dataset.for = t.title; pop.hidden = false;
+    const r = t.getBoundingClientRect(), w = Math.min(320, document.documentElement.clientWidth - 24);
+    pop.style.width = w + "px";
+    pop.style.left = Math.max(12, Math.min(r.left + scrollX - w / 2, scrollX + document.documentElement.clientWidth - w - 12)) + "px";
+    pop.style.top = (r.bottom + scrollY + 6) + "px";
+  }, true);
+
+  // ---------- Tabs ----------
+  // One tab shows at a time. The choice is remembered on this device; with no Mastery paste yet, start on Setup.
+  function showTab(t) {
+    document.querySelector("main").dataset.tab = t;
+    document.querySelectorAll(".tabs [data-go]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.go === t)));
+    try { localStorage.setItem("frp-tab", t); } catch (e) {}
+  }
+  document.addEventListener("click", e => {
+    const go = e.target.closest("[data-go]");
+    if (!go) return;
+    e.preventDefault();
+    showTab(go.dataset.go);
+    window.scrollTo({ top: 0 });
+  });
+  let startTab = "next";
+  try { startTab = localStorage.getItem("frp-tab") || "next"; } catch (e) {}
+  showTab(S.mastery ? startTab : "setup");
+
+  let LAST = null;
+  window.__planner = { state: () => S, render, last: () => LAST };
+  render();
+})();
+</script>
+</body>
+</html>

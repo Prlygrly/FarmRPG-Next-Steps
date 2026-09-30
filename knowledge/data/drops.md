@@ -1,0 +1,22 @@
+---
+type: Dataset
+title: "Drop rates"
+description: "Explore and fishing drop rates per place, with each place's base and type."
+resource: ../../drops.js
+tags: [data]
+sources:
+  - id: origin
+    resource: https://buddy.farm/exploring/
+    title: "buddy.farm exploring and fishing pages"
+generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
+---
+
+# About
+
+Explore and fishing drop rates per place, with each place's base and type. Loaded by the planner page as a plain script (works from file://).[^origin]
+
+# Refresh
+
+Regenerate with `node tools/snapshot-drops.js`.
+
+[^origin]: buddy.farm exploring and fishing pages

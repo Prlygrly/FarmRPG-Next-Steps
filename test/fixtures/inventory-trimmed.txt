@@ -1,0 +1,58 @@
+Favorite Items
+
+* heart_fill
+Apple Cider
+You have 2,745 and can send up to 0
+− + +MAX
+FULL!
+
+Currently, you cannot have more than 9,850 of any single thing. You can increase this at the [Farm Supply](https://farmrpg.com/supply.php).
+
+* [Use a Heart-shaped Gem](https://farmrpg.com/index.php#)
+[Increases Inventory Cap by +50](https://farmrpg.com/index.php#)
+[4](https://farmrpg.com/index.php#)
+
+* Meals chevron_down
+* [Mushroom Stew](https://farmrpg.com/item.php?id=634)
+[+10% Mastery for 5 minutes](https://farmrpg.com/item.php?id=634)
+[111](https://farmrpg.com/item.php?id=634)
+
+* Items chevron_down
+* [Board](https://farmrpg.com/item.php?id=21)
+[The foundation of any good farm](https://farmrpg.com/item.php?id=21)
+[MAX ON HAND](https://farmrpg.com/item.php?id=21)
+[Mega Mastered](https://farmrpg.com/item.php?id=21)
+[9,850](https://farmrpg.com/item.php?id=21)
+* [Large Net](https://farmrpg.com/item.php?id=500)
+[Can catch lots of stuff](https://farmrpg.com/item.php?id=500)
+[MAX ON HAND](https://farmrpg.com/item.php?id=500)
+[Grand Mastered](https://farmrpg.com/item.php?id=500)
+[9,850](https://farmrpg.com/item.php?id=500)
+* [Arnold Palmer](https://farmrpg.com/item.php?id=508)
+[Quicker than regular Lemonade](https://farmrpg.com/item.php?id=508)
+[Mastered](https://farmrpg.com/item.php?id=508)
+[5,015](https://farmrpg.com/item.php?id=508)
+* [Apple Cider](https://farmrpg.com/item.php?id=379)
+[1000+ Stamina Use](https://farmrpg.com/item.php?id=379)
+[Does not give Stamina](https://farmrpg.com/item.php?id=379)
+[Works with Wanderer Perks](https://farmrpg.com/item.php?id=379)
+[Need at least 1000 Stamina to use](https://farmrpg.com/item.php?id=379)
+[Mastered](https://farmrpg.com/item.php?id=379)
+[2,745](https://farmrpg.com/item.php?id=379)
+* [Orange Juice](https://farmrpg.com/item.php?id=84)
+[Adds 100 Stamina](https://farmrpg.com/item.php?id=84)
+[Grand Mastered](https://farmrpg.com/item.php?id=84)
+[7,426](https://farmrpg.com/item.php?id=84)
+* [Shimmer Stone](https://farmrpg.com/item.php?id=77)
+[Polished, can reflect or bend light](https://farmrpg.com/item.php?id=77)
+[Grand Mastered](https://farmrpg.com/item.php?id=77)
+[4](https://farmrpg.com/item.php?id=77)
+
+* Fish & Bait chevron_down
+* [Trout](https://farmrpg.com/item.php?id=63)
+[Gotta catch 'em all!](https://farmrpg.com/item.php?id=63)
+[Mega Mastered](https://farmrpg.com/item.php?id=63)
+[8,971](https://farmrpg.com/item.php?id=63)
+
+Inventory Stats
+Your inventory contains 878 unique items and 2,466,260 items in total.
