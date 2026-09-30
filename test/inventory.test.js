@@ -51,6 +51,12 @@ assert.strictEqual(farm["Gummy Worms"], 800);
 assert.strictEqual(parseFarm(["Harvest All", "CropsPlant All", "Selected", "Leek (36)", "Around Your Farm"].join(String.fromCharCode(10))).plots, 36);
 // Plain-text copy works the same
 assert.deepStrictEqual(parseFarm(farmText.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")), farm);
+// The Steam app copies pages in capitals: farm, orchard and plots still read the same
+assert.strictEqual(detectPage(farmText.toUpperCase()), "farm");
+assert.deepStrictEqual(parseFarm(farmText.toUpperCase()), farm);
+assert.strictEqual(detectPage(orch.toUpperCase()), "orchard");
+assert.deepStrictEqual(parseOrchard(orch.toUpperCase()), parseOrchard(orch));
+assert.strictEqual(parseFarm(["HARVEST ALL", "CROPSPLANT ALL", "SELECTED", "LEEK (36)", "AROUND YOUR FARM"].join(String.fromCharCode(10))).plots, 36);
 
 // Help Needed page
 const { parseQuests } = require("../parse.js");
@@ -100,6 +106,12 @@ assert.strictEqual(parsePerks(supplyText).unlocked.filter(u => u.name === "Grape
 assert.ok(!parsePerks(supplyText).unlocked.some(u => /Upgrades on Sale/.test(u.name)));
 assert.strictEqual(ss.orchardNoon, 10);
 assert.ok(ss.reinforcedNetting && ss.lemonSqueezer && ss.cinnamonSticks && ss.autoBuyIronNails);
+// Steam app: headings in capitals (perk text itself stays as written)
+const capHeads = t => t.split(String.fromCharCode(10)).map(l => /^(Farming Perks|Cap Upgrades|Farming Upgrades|Points Left|Perks Avail|Unlocked)$/.test(l.trim()) ? l.toUpperCase() : l).join(String.fromCharCode(10));
+assert.strictEqual(detectPage(capHeads(perksText)), "perks");
+assert.deepStrictEqual(perkSettings(parsePerks(capHeads(perksText))), ps);
+assert.strictEqual(detectPage(capHeads(supplyText)), "supply");
+assert.deepStrictEqual(perkSettings(parsePerks(capHeads(supplyText))), ss);
 
 assert.strictEqual(perkSettings({ page: "supply", unlocked: [{ name: "Hotter Ovens I", desc: "Cooking is 10% faster" }] }).cookFaster, 10);
 assert.strictEqual(perkSettings({ page: "supply", unlocked: [{ name: "Extra Wish", desc: "An extra toss into the Well daily" },

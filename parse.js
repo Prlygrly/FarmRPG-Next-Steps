@@ -110,9 +110,9 @@
   function parseOrchard(text) {
     const flat = text.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const out = {};
-    const re = /([\d,]+) (Apple|Orange|Lemon) Trees ([\d,]+) Production/g;
+    const re = /([\d,]+) (Apple|Orange|Lemon) Trees ([\d,]+) Production/gi;          // any case (the Steam app copies in capitals)
     let m;
-    while ((m = re.exec(flat))) out[m[2]] = { trees: toInt(m[1]), production: toInt(m[3]) };
+    while ((m = re.exec(flat))) out[m[2][0].toUpperCase() + m[2].slice(1).toLowerCase()] = { trees: toInt(m[1]), production: toInt(m[3]) };
     return out;
   }
 
@@ -134,18 +134,19 @@
   ];
   function parseFarm(text) {
     const flat = text.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
+    const lower = flat.toLowerCase();                                   // match in any case (the Steam app copies in capitals)
     const out = {};
     for (const b of FARM) {
-      const i = flat.indexOf(b.at);
+      const i = lower.indexOf(b.at.toLowerCase());
       if (i < 0) continue;
       const seg = flat.slice(i, i + 220).split(" * ")[0];              // stop at the next building
       for (const [label, item] of b.items) {
-        const m = seg.match(new RegExp("([\\d,]+) " + label + "\\b"));
+        const m = seg.match(new RegExp("([\\d,]+) " + label + "\\b", "i"));
         if (m) out[item] = toInt(m[1]) * 60 / b.per;
       }
     }
     // Planting spots: "Plant All Selected Leek (48)"
-    const pl = flat.match(/Plant All Selected [A-Za-z' ]+ \((\d+)\)/);
+    const pl = flat.match(/Plant All Selected [A-Za-z' ]+ \((\d+)\)/i);
     if (pl) Object.defineProperty(out, "plots", { value: +pl[1], enumerable: false });
     return out;
   }
@@ -181,16 +182,16 @@
   // (or a price: "10 Points", "285 Gold", "Requires …"). Returns { page, unlocked: [{ name, desc }] }.
   function parsePerks(text) {
     const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
-    const page = /Points Left/.test(text) && /Perks Avail/.test(text) ? "perks" : "supply";
-    const startAt = lines.findIndex(l => page === "perks" ? /^Farming Perks$/.test(l) : /^Cap Upgrades$/.test(l));
+    const page = /Points Left/i.test(text) && /Perks Avail/i.test(text) ? "perks" : "supply";
+    const startAt = lines.findIndex(l => page === "perks" ? /^Farming Perks$/i.test(l) : /^Cap Upgrades$/i.test(l));   // headings in any case (Steam app)
     const unlocked = [];
     let block = [];
     for (const l of startAt < 0 ? [] : lines.slice(startAt)) {
-      if (/^Consume a meal$/.test(l)) break;
+      if (/^Consume a meal$/i.test(l)) break;
       // A perk can be listed twice (the weekly "Upgrades on Sale" repeats one): keep the first
-      if (l === "Unlocked") { if (block.length && !unlocked.some(u => u.name === block[0])) unlocked.push({ name: block[0], desc: block.slice(1).join(" ") }); block = []; continue; }
+      if (/^Unlocked$/i.test(l)) { if (block.length && !unlocked.some(u => u.name === block[0])) unlocked.push({ name: block[0], desc: block.slice(1).join(" ") }); block = []; continue; }
       if (/^[\d,]+ (Points|Gold)$/.test(l) || /^SALE!/.test(l)) { block = []; continue; }
-      if (/ (Perks|Upgrades)(\s*\(.*\))?$/.test(l) && !/[.%]/.test(l) || /^Upgrades on Sale/.test(l)) { block = []; continue; }   // section headings
+      if (/ (Perks|Upgrades)(\s*\(.*\))?$/i.test(l) && !/[.%]/.test(l) || /^Upgrades on Sale/i.test(l)) { block = []; continue; }   // section headings
       block.push(l);
     }
     return { page, unlocked };
@@ -225,8 +226,8 @@
 
   // Which page was pasted? Checked most specific first.
   function detectPage(text) {
-    if (/Points Left/.test(text) && /Perks Avail/.test(text)) return "perks";
-    if (/Cap Upgrades/.test(text) && /Farming Upgrades/.test(text)) return "supply";
+    if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
+    if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
     if (/Around Your Farm/i.test(text)) return "farm";
     if (/About the orchard/i.test(text)) return "orchard";
     if (/cannot have more than [\d,]+ of any single thing|Inventory Stats/.test(text)) return "inventory";
