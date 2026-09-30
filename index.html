@@ -357,6 +357,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div id="leveling-list"></div>
   </section>
 
+  <section class="card" data-tab="next" id="silver-card" aria-labelledby="h-silver" hidden>
+    <h2 id="h-silver" style="margin-top:0">Making silver</h2>
+    <p class="small muted" style="margin:0 0 6px">Silver matters most until The Smell of a Fun Guy is done and Truffles take over. Prices are what you'd get, with your sell perks and masteries.</p>
+    <div id="silver-list"></div>
+  </section>
+
   <section class="card" data-tab="next" id="plan" aria-labelledby="h-next" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-next" style="margin:0">Do these next</h2>
@@ -475,6 +481,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="quests.js"></script>
 <script src="loot.js"></script>
 <script src="trade.js"></script>
+<script src="prices.js"></script>
 <script src="engine.js"></script>
 <script>
 (function () {
@@ -777,6 +784,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("d-tower").hidden = !!p.noTower;
     if ($("d-ak")) $("d-ak").hidden = !!p.noTower;
     renderLeveling(p);
+    renderSilver(p);
     renderAK(ap, akTarget);
     renderStock();
     $("trips").hidden = false;
@@ -1496,6 +1504,47 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("leveling-list").innerHTML = `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>`;
   }
 
+  // ---------- Making silver (before Fun Guy) ----------
+  // Sell price = base x (1 + sell perks) x mastery bonus (x1.1 Mastered, x1.2 Grand Mastered; MM adds nothing more)
+  const sellPrice = (item, p) => {
+    const base = PRICES.sell[item];
+    if (base == null) return null;
+    const c = (p.items || {})[item] || 0;
+    return Math.round(base * (1 + (S.perks.sellBonus ?? 0) / 100) * (c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1));
+  };
+  // Fun Guy needs 4x99; once done, Truffles show up in your pastes
+  function funGuyDone(p) {
+    const sk = p.skills || {};
+    if (!MAIN_SKILLS.every(k => sk[k] >= 99)) return false;
+    if ((S.quests || []).some(q => /Smell of a Fun Guy/i.test(q.name))) return false;
+    const inv = S.inventory ? S.inventory.items : {};
+    return ["Black Truffle", "White Truffle"].some(n => (p.items || {})[n] || inv[n]);
+  }
+  const SILVER_HOW = { "Sturdy Shield": "Sawmill Boards → Wooden Planks → Shields; put the silver back into more Boards per hour",
+    "Fancy Pipe": "Sawmill Wood + Quarry Stone; Boards still go to Sturdy Shields", "Lantern": "needs Glass from exploring" };
+  const SILVER_CRAFTS = [[1, "Iron Cup"], [11, "Awl"], [11, "Wooden Button"], [20, "Sturdy Shield"], [46, "Fancy Pipe"], [70, "Lantern"]];
+  function renderSilver(p) {
+    const show = !!S.mastery && !funGuyDone(p);
+    $("silver-card").hidden = !show;
+    if (!show) return;
+    const lv = (p.skills || {}).Crafting ?? 1, rows = [];
+    // Crafting: the best pick at your level, and the next one to aim for
+    const open = SILVER_CRAFTS.filter(([l]) => lv >= l), top = open[open.length - 1], next = SILVER_CRAFTS.find(([l]) => l > lv);
+    if (top) rows.push(`<li><b>Craft ${esc(top[1])}s and sell them</b>: ${fmt(sellPrice(top[1], p))} silver each for you${
+      SILVER_HOW[top[1]] ? ` (${SILVER_HOW[top[1]]})` : ""}.${
+      next ? ` <span class="muted small">At Crafting ${next[0]}: ${esc(next[1])}s, ${fmt(sellPrice(next[1], p))} each.</span>` : ""}</li>`);
+    // Fishing: the best spot you can fish, per Large Net thrown
+    const k = S.perks, perNet = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
+    let spot = null;
+    for (const [loc, L] of Object.entries(DROPS.locs)) {
+      if (L.type !== "fishing" || !L.silver || !W || !W.places[loc]) continue;
+      const each = L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net;
+      if (each && (!spot || each > spot.each)) spot = { loc, each };
+    }
+    if (spot) rows.push(`<li><b>Large Nets at ${esc(spot.loc)}, then sell the fish</b>: about ${short(spot.each * perNet * (1 + (k.sellBonus ?? 0) / 100))} silver a net for you, if you sell the catch <span class="muted small">(less if you keep rare or cooking fish)</span>.</li>`);
+    $("silver-list").innerHTML = rows.length ? `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>` : `<p class="small muted">Paste your Mastery page to see picks for your level.</p>`;
+  }
+
   // ---------- Best use: "Spend my…" ----------
   // Every place you can use with that unit gets two lists: masteries (via tripEffects) and quests (your active ones
   // and up to 5 ahead in each chain). Finished things first, quickest first; then part-done progress, biggest first.
@@ -2037,7 +2086,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (data.silver) {
       const have = S.silver;
       if (have == null) levels.push(`${short(data.silver)} silver (type your silver in Setup)`);
-      else if (have < data.silver) levels.push(`${short(data.silver)} silver (you're ${short(data.silver - have)} short)`);
+      else if (have < data.silver) levels.push(`${short(data.silver)} silver (you're ${short(data.silver - have)} short${funGuyDone(p) ? "" : "; see Making silver"})`);
       else stock.push({ item: "silver", used: data.silver, have, share: data.silver / have, costed: false });
     }
     return { missing, cost, byPlace, forWhat, passive, uncosted, levels, stock, stockCost };
