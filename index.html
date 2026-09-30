@@ -611,6 +611,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
   const warn = s => `<div class="note">${s}</div>`;
 
+  // A mouse wheel over a focused number box changes its value: drop focus instead, so scrolling the page can't edit a number
+  document.addEventListener("wheel", e => { if (e.target instanceof HTMLInputElement && e.target.type === "number" && e.target === document.activeElement) e.target.blur(); }, { passive: true });
   for (const [id, key] of [["f-level", "level"], ["f-ak", "ak"], ["f-mm", "mm"]]) {
     $(id).addEventListener("input", () => {
       const v = $(id).value;
@@ -869,7 +871,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const m = S.mastery, inv = S.inventory;
     const ago = t => { const h = Math.round((Date.now() - t) / 36e5); return h < 1 ? "just now" : h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`; };
     const li = [];
-    li.push(m ? `<li>Mastery Progress: ${fmt(Object.keys(m.items).length)} items${m.tower ? `, Tower level ${m.tower.level}, ${fmt(m.tower.ak)} unused AK` : ""} <span class="muted small">(${ago(m.at)})</span></li>`
+    // Typed numbers win over the paste: say so, so a stray edit in the boxes below is easy to spot
+    const typed = k => S.manual[k] != null && m && m.tower && S.manual[k] !== m.tower[k] ? ` (typed below; your paste said ${fmt(m.tower[k])})` : "";
+    li.push(m ? `<li>Mastery Progress: ${fmt(Object.keys(m.items).length)} items${m.tower ? `, Tower level ${p.level}${typed("level")}, ${fmt(p.ak)} unused AK${typed("ak")}` : ""} <span class="muted small">(${ago(m.at)})</span></li>`
               : `<li class="missing">Mastery Progress: not pasted yet (needed)</li>`);
     li.push(inv ? `<li>My Inventory: ${fmt(Object.keys(inv.items).length)} items${inv.cap ? `, you can hold ${fmt(inv.cap)} of each` : ""} <span class="muted small">(${ago(inv.at)})</span></li>`
                 : `<li class="missing">My Inventory: not pasted yet (optional, shows your supplies)</li>`);
