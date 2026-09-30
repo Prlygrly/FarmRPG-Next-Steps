@@ -130,8 +130,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (quest.php) to read its needs and rewards, and include it like any other quest. Low priority: they're usually quick (about
   20 minutes), but it should be possible for anyone who wants it.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
-  goal is open (mainly before Truffles). Needs sell prices: NOT in buddy.farm item page data — find a source first. Sawmill
-  Silver etc. in knowledge/mechanics/silver.md.
+  goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
+  = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
+- **Small follow-ups:** Tower silver only checks the next level (add up several levels); fishing silver per net can't leave out
+  rare fish yet (needs per-fish prices); Daily overflow "full in X" means little for once-a-day drops (Antlers arrive at midnight).
 - **Parked (player thinking it over) — Veggie Juice rounds:** show Grape Juices in days of the daily limit (the Grape Juice perk, 14);
   Beets in cap-sized chunks per Grape Juice round (+ Craftworks tip). Cookies: NEVER recommend (personal strategy); maybe an optional
   "Cookies I use (0–3)" setting (default 0; ×3 per cookie, applies to every crop incl. Boost crops). Player's own routine: cookies → Grape
