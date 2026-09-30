@@ -72,6 +72,17 @@ const QD = require("../quests.js").quests;
 assert.deepStrictEqual(qs.filter(q => q.section !== "personal" && !QD[q.name]).map(q => q.name), []);
 // Plain-text copy too
 assert.deepStrictEqual(parseQuests(qText.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")), qs);
+// The Steam app copies headings in capitals and includes the whole Home page around them
+const steam = ["WHERE DO YOU WANT TO GO?", "* [Help Needed](https://farmrpg.com/quests.php)", "[2 READY!](https://farmrpg.com/quests.php)",
+  "COMMUNITY CENTER", "* [Green Parchment for Leather](https://farmrpg.com/comm.php)",
+  "SPECIAL REQUESTS (1)", "* [Zap of the Sting VI](https://farmrpg.com/quest.php?id=1)", "[Available Sep 21 - Sep 30](https://farmrpg.com/quest.php?id=1)",
+  "ACTIVE REQUESTS (2)", "* [Look, A Secret Temple](https://farmrpg.com/quest.php?id=2)", "[Request from Lorn - Main Quest](https://farmrpg.com/quest.php?id=2)",
+  "* [Spirit of the Cards I](https://farmrpg.com/quest.php?id=3)", "[Request from George](https://farmrpg.com/quest.php?id=3)", "[READY!](https://farmrpg.com/quest.php?id=3)",
+  "PERSONAL REQUESTS (1)", "* [Items Wanted](https://farmrpg.com/quest.php?id=4)", "[Request from Vincent](https://farmrpg.com/quest.php?id=4)",
+  "REQUEST TOTALS", "* [Requests Completed](https://farmrpg.com/questscomp.php)", "[1,536](https://farmrpg.com/questscomp.php)"].join(String.fromCharCode(10));
+assert.strictEqual(detectPage(steam), "quests");
+assert.deepStrictEqual(parseQuests(steam).map(q => [q.name, q.section, q.kind, q.ready]),
+  [["Zap of the Sting VI", "special", null, false], ["Look, A Secret Temple", "active", "main", false], ["Spirit of the Cards I", "active", null, true], ["Items Wanted", "personal", null, false]]);
 
 // Perks and Farm Supply pages -> settings
 const { parsePerks, perkSettings } = require("../parse.js");

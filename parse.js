@@ -88,12 +88,12 @@
 
     // Plain-text copy (no links): name line, description lines, count line, inside the item sections
     if (!Object.keys(items).length) {
-      const start = lines.findIndex(l => /chevron_down$/.test(l) && /^(?:[*•-]\s+)?(Meals|Items|Fish & Bait|Crops|Seeds)\b/.test(l));
+      const start = lines.findIndex(l => /chevron_down$/.test(l) && /^(?:[*•-]\s+)?(Meals|Items|Fish & Bait|Crops|Seeds)\b/i.test(l));   // any case (Steam app)
       let block = [];
       for (const raw of start < 0 ? [] : lines.slice(start)) {
         const l = raw.replace(/^[*•-]\s+/, "");
         if (/chevron_\w+$/.test(l)) { block = []; continue; }
-        if (/^Inventory Stats/.test(l)) break;
+        if (/^Inventory Stats/i.test(l)) break;
         if (/^[\d,]+$/.test(l) && block.length) {
           const mid = block.slice(1);
           items[block[0]] = { count: toInt(l), id: null, atMax: mid.includes("MAX ON HAND"), mastery: mid.map(p => MASTERY_TAGS[p]).find(Boolean) || null };
@@ -158,10 +158,10 @@
     const out = [];
     let section = null, name = [], last = null;
     for (const l of lines) {
-      const h = l.match(/^(Special|Active|Personal) Requests\s*\(\d+\)/);
+      const h = l.match(/^(Special|Active|Personal) Requests\s*\(\d+\)/i);   // any case: the Steam app copies headings in capitals
       if (h) { section = h[1].toLowerCase(); name = []; last = null; continue; }
       if (!section) continue;
-      if (/^(Request Totals|Use a PHR Voucher|Community Center)\b/.test(l)) { section = null; continue; }
+      if (/^(Request Totals|Use a PHR Voucher|Community Center)\b/i.test(l)) { section = null; continue; }
       if (l === "READY!") { if (last) last.ready = true; continue; }
       // Any dash (-, –, —) and any spacing before "Main Quest" / "Side Request", since copies differ
       const req = l.match(/^Request from (.+?)(?:\s*[-–—]\s*(Main Quest|Side Request))?\s*$/i);
@@ -227,11 +227,11 @@
   function detectPage(text) {
     if (/Points Left/.test(text) && /Perks Avail/.test(text)) return "perks";
     if (/Cap Upgrades/.test(text) && /Farming Upgrades/.test(text)) return "supply";
-    if (/Around Your Farm/.test(text)) return "farm";
-    if (/About the orchard/.test(text)) return "orchard";
+    if (/Around Your Farm/i.test(text)) return "farm";
+    if (/About the orchard/i.test(text)) return "orchard";
     if (/cannot have more than [\d,]+ of any single thing|Inventory Stats/.test(text)) return "inventory";
     if (/[\d,]+\s*\/\s*([\d,]+|∞)\s*Progress/.test(text)) return "mastery";
-    if (/Active Requests|Special Requests/.test(text)) return "quests";
+    if (/Active Requests|Special Requests/i.test(text)) return "quests";
     return null;
   }
 
