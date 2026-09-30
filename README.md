@@ -124,6 +124,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - Under the tabs on every tab: week-old paste reminder (Mastery/Inventory/Help Needed) and the "ticked since your last paste" list.
 
 ## Roadmap (next batches, in order; numbers go to whatever is done next)
+- **To do: paste a special request.** Special requests (the "Special Requests" section of Help Needed) are unique and often not
+  in buddy.farm's quest data, so the planner can't see what they need. Let a player optionally paste a single quest's own page
+  (quest.php) to read its needs and rewards, and include it like any other quest. Low priority: they're usually quick (about
+  20 minutes), but it should be possible for anyone who wants it.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Needs sell prices: NOT in buddy.farm item page data — find a source first. Sawmill
   Silver etc. in knowledge/mechanics/silver.md.
