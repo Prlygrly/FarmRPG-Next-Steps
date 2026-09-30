@@ -119,4 +119,23 @@ assert.strictEqual(perkSettings({ page: "supply", unlocked: [{ name: "Extra Wish
   { name: "Extra Wishes III", desc: "+10 tosses into the Well daily" }] }).wwTosses, 29);
 assert.strictEqual(ss.wwTosses >= 3, true);
 
+// Chat is cut out before anything reads the page (made-up messages that mention page headings)
+const { stripChat } = require("../parse.js");
+const NL = String.fromCharCode(10);
+const chat = ["Help", "Global", "Spoilers", "Trivia", "Giveaways", "Trade", "Say something...",
+  "03:56:17 PM", "[Someone](https://farmrpg.com/profile.php?user_name=Someone)", "flag_fill", "Active Requests (5) Chicken Coop 5,000 Eggs",
+  "03:56:12 PM", "[Another One](https://farmrpg.com/profile.php?user_name=Another+One)", "About the orchard: 9,999 Apple Trees 9,999 Production",
+  "", "[View Chat Log](https://farmrpg.com/chatlog.php?channel=giveaways)", "Navigation"].join(NL);
+assert.strictEqual(detectPage(chat), null);                               // chat alone isn't a page
+assert.ok(!/Someone|Another One|Chicken Coop/.test(stripChat(chat)));
+assert.deepStrictEqual(parseOrchard(chat), {});
+// A real page with chat on top reads exactly the same as without it
+assert.deepStrictEqual(parseFarm(chat + NL + farmText), farm);
+assert.deepStrictEqual(parseQuests(chat + NL + qText), qs);
+assert.strictEqual(detectPage(chat + NL + qText), "quests");
+// Steam-style chat (tabs on one line, flag_fill) and a stray message with no panel markers
+const steamChat = "[HELPGLOBALSPOILERSTRIVIAGIVEAWAYSTRADE](https://farmrpg.com/index.php#)" + NL + "03:55:49 PM" + NL + "[MrX](https://farmrpg.com/profile.php?user_name=MrX)" + NL + "flag_fill" + NL + "Special Requests (2)" + NL + "[View Chat Log](https://farmrpg.com/chatlog.php?channel=giveaways)";
+assert.strictEqual(detectPage(steamChat), null);
+assert.strictEqual(stripChat("12:01:02 AM" + NL + "Plain Name" + NL + "Active Requests (3)" + NL + "Keep this line").trim(), "Keep this line");
+
 console.log("inventory tests passed");

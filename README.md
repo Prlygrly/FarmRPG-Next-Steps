@@ -157,6 +157,9 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - Only items with a known production rate count as daily production; new visitors start with no paid perks (START_PERKS in the page;
   the engine's DEFAULT_PERKS still assume all perks, for the tests).
 - Stock wording: "uses all of your X" when a quest takes everything you have.
+- Chat is stripped before any page reading (parse.js `stripChat`, wrapped around detectPage and every parser): the panel from
+  the channel tabs to "View Chat Log", plus any stray "HH:MM:SS AM" + sender + message block. Headings match in any case (the
+  Steam app copies in capitals): Help Needed, farm, orchard, plots, inventory sections, Perks, Farm Supply.
 - Mastery counts an item the moment it's gained. Using, tossing, selling or crafting away what you have NEVER costs mastery —
   never cite "keep it for its mastery" as a reason (only other uses or value matter).
 - Tower: 100 AK/level; L101–200 need ceil((L−100)/4) MMs of any kind; L201–300 named MMs; L301–350 named GMs + MMs.

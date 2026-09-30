@@ -236,7 +236,33 @@
     return null;
   }
 
-  const api = { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, toInt };
+  // Chat: every copied page carries the chat panel. Cut it out before anything else looks at the text, so a message like
+  // "Active Requests (5)" or "Chicken Coop" can't fool page detection or a parser (and other players' names go nowhere).
+  // 1. The whole panel: from the channel tabs ("HELP GLOBAL SPOILERS…" or "Help / Global / Spoilers") or the first
+  //    message time to the "View Chat Log" link.
+  // 2. Any message left over: a "03:56:17 PM" line, the sender's line (a profile link, or a plain name when links are
+  //    stripped), an optional "flag_fill", then the message line.
+  function stripChat(text) {
+    let t = String(text || "");
+    const end = t.search(/\[?View Chat Log\]?/i);
+    if (end >= 0) {
+      const head = t.slice(0, end);
+      const tabs = head.search(/HELP\s*GLOBAL\s*SPOILERS|^\s*Help\s*\r?\n\s*Global\s*\r?\n/im);
+      const firstMsg = head.search(/^\s*\d{1,2}:\d{2}:\d{2}\s?[AP]M\s*$/m);
+      const start = tabs >= 0 ? tabs : firstMsg;
+      if (start >= 0) {
+        const after = t.indexOf("\n", end);
+        t = t.slice(0, start) + (after >= 0 ? t.slice(after + 1) : "");
+      }
+    }
+    return t.replace(/^[ \t]*\d{1,2}:\d{2}:\d{2}\s?[AP]M[ \t]*\r?\n[^\n]*\r?\n(?:[ \t]*flag_fill[ \t]*\r?\n)?[^\n]*(?:\r?\n|$)/gm, "");
+  }
+  // Every page reader strips chat first
+  const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
+
+  const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), perkSettings,
+    detectPage: noChat(detectPage), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
