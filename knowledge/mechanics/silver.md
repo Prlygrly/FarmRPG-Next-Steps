@@ -44,10 +44,10 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 | Lemon Quartz Ring | 1,500 | Barbed Wire | 20,000 |
 | Emerald Ring | 2,500 | Linked Lantern | 100,000 |
 | Shimmer Ring | 5,000 | Blue Purse | 110,000 |
-| MIAB | 2,000 (likely) | Crossbow | 125,000 |
+| MIAB | 2,000 | Crossbow | 125,000 |
 | Wooden Bow | 2,500 | | |
 
-From the player's Market page (whole-stack values) divided by inventory counts; "likely" = the count had changed since the Inventory paste, so the round number that fits is given.[^player]
+From the player's Market page (whole-stack values) divided by inventory counts; MIAB and Wooden Bow confirmed by the player.[^player]
 
 # Sawmill Silver (from Crafting 20)
 
