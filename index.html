@@ -237,22 +237,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <div id="stale-banner" class="small" hidden></div>
   <details id="changes" class="card" hidden style="padding:10px 14px">
     <summary id="changes-sum"></summary>
-    <p class="small muted" style="margin:6px 0">Things you've ticked as done since your last paste. The next Mastery Progress, My Inventory or Help Needed paste replaces them with the real numbers.
-      Undo puts things back as they were before that tick (and any ticks after it).</p>
+    <p class="small muted" style="margin:6px 0">Marked done since your last paste. Your next paste replaces them with real numbers. <span class="tip" data-tip="Undo puts things back as they were before that tick, and undoes any ticks after it." aria-label="Undo puts things back as they were before that tick, and undoes any ticks after it." tabindex="0">ⓘ</span></p>
     <ol id="changes-list" class="small" style="margin:0;padding-left:20px"></ol>
   </details>
 
   <section class="card" data-tab="next" id="next-empty" hidden>
-    <p style="margin:0"><b>Welcome!</b> Start in the <a href="#" data-go="setup">Setup</a> tab: paste (or upload) your <b>Mastery Progress</b>
-      page, and your next steps will show up here.</p>
+    <p style="margin:0"><b>Welcome!</b> Paste your <b>Mastery Progress</b> page in <a href="#" data-go="setup">Setup</a> to see your next steps.</p>
   </section>
   <section class="card" data-tab="quests" id="quests-empty" hidden>
     <p style="margin:0">Paste your <b>Help Needed</b> page in the <a href="#" data-go="setup">Setup</a> tab to see your quests here.</p>
   </section>
   <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
     <h2 id="h-best">Spend my…</h2>
-    <p class="small muted">Where would a pile of Large Nets, Arnold Palmers or Apple Ciders do the most? Each place lists the masteries and
-      quests it would finish, then the long goals it moves closer (every bit counts). Places that finish the most come first.</p>
+    <p class="small muted">Where a pile of Large Nets, Arnold Palmers or Apple Ciders does the most. Places that finish the most come first.</p>
     <div class="row">
       <label class="field">Using <select id="best-unit" style="width:auto"><option value="LN">Large Nets</option><option value="AP">Arnold Palmers</option><option value="AC">Apple Ciders</option></select></label>
       <label class="field">Amount <input id="best-amt" type="number" min="1" inputmode="numeric"></label>
@@ -262,33 +259,30 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="best" id="plant" aria-labelledby="h-plant">
     <h2 id="h-plant">What to plant now</h2>
-    <p class="small muted">Best crop for your plots, by the quests and masteries it feeds. Tap one for the rest.</p>
+    <p class="small muted">The best crop for your plots right now. Tap one for more.</p>
     <div id="plant-list"></div>
   </section>
   <section class="card" data-tab="best" id="overflow" aria-labelledby="h-overflow">
     <h2 id="h-overflow">Daily overflow</h2>
-    <p class="small muted">What your farm makes every day, soonest to fill up first, and the best thing to turn it into. Tap one for more.</p>
+    <p class="small muted">What your farm makes, what fills up first, and what to turn it into. Tap one for more.</p>
     <div id="overflow-list"></div>
   </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
-    <p class="small muted">Refill your pantry: meals your quests need come first (up to 5 ahead), then whatever you're lowest on. One meal
-      per oven; times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks). Tap one for more.</p>
+    <p class="small muted">Refill your pantry: meals your quests need first, then what you're lowest on. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
     <label class="field">Recipes I don't have <input id="kitchen-missing" type="text" placeholder="e.g. Cabbage Stew, Acorn Pie" style="min-width:240px"></label>
     <div id="kitchen-list" style="margin-top:8px"></div>
   </section>
 
   <section class="card" data-tab="setup" id="welcome" aria-labelledby="h-welcome" hidden>
     <h2 id="h-welcome" style="margin-top:0">Welcome! Let's find your next steps</h2>
-    <p style="margin:0 0 8px">This planner reads pages from FarmRPG and tells you what to do next: the quickest masteries, quests and Tower
-      levels to finish, and the best use of your Arnold Palmers, Apple Ciders and Large Nets.</p>
+    <p style="margin:0 0 8px">Paste pages from FarmRPG to see your quickest masteries, quests and Tower levels, and where your Arnold Palmers, Apple Ciders and Large Nets do the most.</p>
     <ol style="margin:0 0 8px;padding-left:20px">
-      <li><b>Mastery Progress</b> (Home → Perks, Mastery &amp; More → Mastery Progress; open every tier first). This one's needed.</li>
-      <li><b>My Inventory</b> and <b>Help Needed</b>, for what you have and your quests.</li>
-      <li>Optional: your <b>Perks</b>, <b>Farm Supply</b>, <b>farm page</b> and <b>Orchard</b>, so the numbers match your farm.</li>
+      <li><b>Mastery Progress</b> (needed) <span class="tip" data-tip="Home → Perks, Mastery & More → Mastery Progress. Open every tier before copying." aria-label="Home → Perks, Mastery & More → Mastery Progress. Open every tier before copying." tabindex="0">ⓘ</span></li>
+      <li><b>My Inventory</b> and <b>Help Needed</b></li>
+      <li>Optional: <b>Perks</b>, <b>Farm Supply</b>, your <b>farm page</b> and the <b>Orchard</b></li>
     </ol>
-    <p class="small muted" style="margin:0">On a computer, open each page, press Ctrl+A then Ctrl+C, and paste it in the box below. On a phone,
-      save the page and use <b>Upload a saved page</b>. Everything stays in this browser; nothing is sent anywhere.</p>
+    <p class="small muted" style="margin:0">Computer: Ctrl+A, Ctrl+C, paste below. Phone: save the page, then <b>Upload a saved page</b>. Nothing leaves this browser.</p>
   </section>
 
   <section class="card" data-tab="setup" aria-labelledby="h-paste">
@@ -298,15 +292,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </div>
     <div id="paste-summary" class="small" hidden></div>
     <div id="paste-body">
-    <p class="small muted">On farmrpg.com, open a page, press <b>Ctrl+A</b> (select all), then <b>Ctrl+C</b> (copy), and paste it here.
-      Pages that work: <b>Mastery Progress</b> (Home → Perks, Mastery &amp; More → Mastery Progress; open every tier first), <b>My Inventory</b>, <b>Help Needed</b>, the <b>Orchard</b>, your <b>farm page</b>, <b>Perks</b> and <b>Farm Supply</b> (these two set Your perks).
-      Paste one at a time. Each one is remembered on this device.</p>
+    <p class="small muted">Open a game page, press <b>Ctrl+A</b> then <b>Ctrl+C</b>, and paste it here, one page at a time. <span class="tip" data-tip="Pages that work:&#10;• Mastery Progress (open every tier first)&#10;• My Inventory&#10;• Help Needed&#10;• the Orchard&#10;• your farm page&#10;• Perks and Farm Supply (fill in Your perks)&#10;Each is remembered on this device." aria-label="Pages that work: • Mastery Progress (open every tier first) • My Inventory • Help Needed • the Orchard • your farm page • Perks and Farm Supply (fill in Your perks) Each is remembered on this device." tabindex="0">ⓘ</span></p>
     <textarea id="paste" placeholder="Paste here…" aria-label="Paste a game page"></textarea>
     <div class="row" style="margin:6px 0 0;align-items:center">
       <button id="file-btn" type="button">Upload a saved page</button>
       <input type="file" id="file-in" accept=".mht,.mhtml,.webarchive,.html,.htm,multipart/related,message/rfc822,application/x-webarchive,text/html" hidden>
-      <span class="small muted">On a phone, where copying doesn't work: save the game page instead (in Chrome: ⋮ → Download), then upload it here.
-        It's read on this device only; nothing is sent anywhere.</span>
+      <span class="small muted">Phone: save the game page (Chrome: ⋮ → Download), then upload it.</span>
     </div>
     <div id="status" aria-live="polite"></div>
     <ul class="loaded" id="loaded"></ul>
@@ -317,49 +308,44 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <label class="field">Silver <input id="f-silver" type="number" min="0" inputmode="numeric"></label>
       <button id="clear" type="button">Forget my pastes</button>
     </div>
-    <p class="small muted" style="margin:6px 0 0">The first three fill in from your Mastery paste, Silver from any page copied in the Steam app. You can also type them.
-      AK (Ascension Knowledge) is what the Tower costs: 100 AK per level.</p>
+    <p class="small muted" style="margin:6px 0 0">Filled in from your pastes; type to change. <span class="tip" data-tip="Tower level, AK and Mega Masteries come from your Mastery paste. Silver comes from any page copied in the Steam app (Chrome copies don't include it).&#10;AK (Ascension Knowledge): each Tower level costs 100." aria-label="Tower level, AK and Mega Masteries come from your Mastery paste. Silver comes from any page copied in the Steam app (Chrome copies don't include it). AK (Ascension Knowledge): each Tower level costs 100." tabindex="0">ⓘ</span></p>
     </div>
   </section>
 
   <section class="card" data-tab="setup" id="settings" aria-labelledby="h-settings">
     <h2 id="h-settings">Your settings</h2>
-    <p class="small muted" style="margin:0">Pastes fill most of these in; change anything that's wrong or missing.</p>
+    <p class="small muted" style="margin:0">Pastes fill most of these in. Fix anything that's wrong.</p>
     <details id="d-perks">
       <summary>Your perks</summary>
-      <p class="small muted">These change how many Arnold Palmers, Apple Ciders and Large Nets things take. Resource Saver is the chance a craft gives double. Untick any you don't have yet.
-        <b>Or fill them in automatically:</b> paste your <b>Perks</b> page and your <b>Farm Supply</b> page in the paste box above.</p>
+      <p class="small muted">Paste your <b>Perks</b> and <b>Farm Supply</b> pages to fill these in. Hover or tap ⓘ to see where each comes from.</p>
       <div class="row" id="perks"></div>
     </details>
     <details id="d-general">
       <summary>General settings</summary>
-      <p class="small muted">How you play, rather than what the game gives you. Hover the ⓘ for what each one does.</p>
+      <p class="small muted">How you play. Hover or tap ⓘ for details.</p>
       <div class="row" id="general"></div>
     </details>
     <details id="d-places">
       <summary>Places I can use</summary>
-      <p class="small muted">Ticked places count when working out effort. They tick themselves from your Mastery paste: a place counts as open
-        once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked because they're only open for a few days. Tick one while its event is on.</p>
+      <p class="small muted">Ticked places are used for effort. They tick themselves from your Mastery paste. <span class="tip" data-tip="A place counts as open once you've gathered at least half of the things found only there. Change any you like.&#10;Event places (like Apple Bobbing) start unticked: tick one while its event is on." aria-label="A place counts as open once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked: tick one while its event is on." tabindex="0">ⓘ</span></p>
       <div id="places"></div>
     </details>
     <details id="d-prod">
       <summary>Daily production</summary>
-      <p class="small muted">What your farm buildings make. These fill in from your farm page (if you can copy it) or the Orchard page.
-        Type any that are missing. Leave a box empty if you don't have that building.</p>
+      <p class="small muted">Filled in from your farm and Orchard pages. Leave a box empty if you don't have that building.</p>
       <div class="row" id="prod"></div>
     </details>
   </section>
 
   <section class="card" data-tab="next" id="leveling" aria-labelledby="h-leveling" hidden>
     <h2 id="h-leveling" style="margin-top:0">Leveling up</h2>
-    <p class="small muted" style="margin:0 0 6px">Farming, Fishing, Crafting and Exploring at 90 open big questlines, and 99 in all four ("4x99") is needed for the major ones.
-      Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level.</p>
+    <p class="small muted" style="margin:0 0 6px">90 in Farming, Fishing, Crafting and Exploring opens big questlines; 99 in all four (4x99) opens the major ones. <span class="tip" data-tip="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." aria-label="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." tabindex="0">ⓘ</span></p>
     <div id="leveling-list"></div>
   </section>
 
   <section class="card" data-tab="next" id="silver-card" aria-labelledby="h-silver" hidden>
     <h2 id="h-silver" style="margin-top:0">Making silver</h2>
-    <p class="small muted" style="margin:0 0 6px">Silver matters most until The Smell of a Fun Guy is done and Truffles take over. Prices are what you'd get, with your sell perks and masteries.</p>
+    <p class="small muted" style="margin:0 0 6px">Silver matters most until Truffles (after The Smell of a Fun Guy). Prices include your sell perks and masteries.</p>
     <div id="silver-list"></div>
   </section>
 
@@ -376,16 +362,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
     <details id="d-tower">
       <summary>Tower: what the next levels need</summary>
-      <p class="small muted">A Mega Mastery (MM) means 1,000,000 of an item gathered in total. A Grand Mastery (GM) means 100,000.</p>
+      <p class="small muted">Mega Mastery (MM) = 1,000,000 gathered. Grand Mastery (GM) = 100,000.</p>
       <div class="table-wrap"><table id="t-tower"></table></div>
     </details>
 
     <details id="d-ak">
       <summary>AK: the quickest masteries to finish</summary>
-      <p class="small muted">Each Mastery (10,000 gathered) gives 10 AK. Each Grand Mastery (100,000) gives 100 AK.
-        "Left" is how many more you need to gather. "Effort" is the cheaper of gathering them or crafting them from ingredients,
-        using drop rates and recipes from buddy.farm and your perks. Things you make every day (wood, boards, fruit, feathers…)
-        count as free for now. For now 1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same.</p>
+      <p class="small muted">Mastery (10,000) = 10 AK. Grand Mastery (100,000) = 100 AK. <span class="tip" data-tip="Left: how many more to gather.&#10;Effort: the cheaper of gathering or crafting, from buddy.farm's drop rates and recipes and your perks.&#10;1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same." aria-label="Left: how many more to gather. Effort: the cheaper of gathering or crafting, from buddy.farm's drop rates and recipes and your perks. 1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same." tabindex="0">ⓘ</span></p>
       <div class="table-wrap"><table id="t-ak"></table></div>
       <p class="small muted" id="ak-other"></p>
     </details>
