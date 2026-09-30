@@ -45,9 +45,11 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 | Emerald Ring | 2,500 | Linked Lantern | 100,000 |
 | Shimmer Ring | 5,000 | Blue Purse | 110,000 |
 | MIAB | 2,000 | Crossbow | 125,000 |
-| Wooden Bow | 2,500 | | |
+| Wooden Bow | 2,500 | Sturdy Shield | 4,000 |
+| Awl | 500 | Lantern | 40,000 |
+| Wooden Button | 550 | | |
 
-From the player's Market page (whole-stack values) divided by inventory counts; MIAB and Wooden Bow confirmed by the player.[^player]
+From the player's Market page (whole-stack values) divided by inventory counts; MIAB and Wooden Bow confirmed, and Sturdy Shield, Lantern, Awl and Wooden Button given, by the player. Raw materials (Wood, Boards, Planks, Stone) are never sold: always craft them into something first.[^player]
 
 # Sawmill Silver (from Crafting 20)
 
