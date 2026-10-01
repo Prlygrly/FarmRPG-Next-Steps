@@ -260,7 +260,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <p style="margin:0">Paste your <b>Help Needed</b> page in the <a href="#" data-go="setup">Setup</a> tab to see your quests here.</p>
   </section>
   <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
-    <h2 id="h-best">Spend my…</h2>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 id="h-best" style="margin:0">Spend my…</h2>
+      <div class="row" role="group" aria-label="Detail" style="gap:4px">
+        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
+      </div>
+    </div>
     <p class="small muted">Where a pile of Large Nets, Arnold Palmers or Apple Ciders does the most. Places that finish the most come first.</p>
     <div class="row">
       <label class="field">Using <select id="best-unit" style="width:auto"><option value="LN">Large Nets</option><option value="AP">Arnold Palmers</option><option value="AC">Apple Ciders</option></select></label>
@@ -1166,7 +1172,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const dropText = (n, w) => {
     if (w.gap < 1) return minText(w.hours * 60);
     const unit = w.gap >= 24 ? "daily" : "hourly";
-    const t = w.drops === 1 ? `next ${unit} drop` : `${fmt(w.drops)} ${unit} drops`;
+    // Count drops while that's useful; past a couple of days just say how long
+    const t = w.drops === 1 ? `next ${unit} drop` : w.gap >= 24 ? `${fmt(w.drops)} days` : w.drops <= 48 ? `${fmt(w.drops)} hourly drops` : minText(w.hours * 60);
     // A Hickory Omelette adds 20% of an hour's Sawmill output every 10 minutes for an hour (~1.2 extra drops): worth it for 1-2 drops
     return SAWMILL.includes(n) && w.gap < 24 && w.drops <= 2 ? `${t}, or a Hickory Omelette` : t;
   };
@@ -1757,6 +1764,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const towerItem = item => (O.towerUse[item] || []).some(u => (p.items[item] || 0) < TIERS[u.tier === "mm" ? 4 : 3]);
     const list = (items, max) => items.length ? `<ul>${items.slice(0, max).join("")}${items.length > max ? `<li class="muted">and ${items.length - max} more</li>` : ""}</ul>` : `<p class="small muted" style="margin:0">Nothing here.</p>`;
     $("best-list").innerHTML = places.map((x, i) => {
+      const wb = S.nextDetail === "expanded", bitsC = o => o.bits.map(b => b.replace(/^all /, "")).join(", ");
+      if (!wb) {
+        const mC = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: ✓ ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${r.towerLevels.length ? ` <span class="tag tower">Tower ${r.towerLevels.join(", ")}</span>` : ""}${r.over ? `<details class="small muted"><summary>extras</summary>${r.over}</details>` : ""}</li>`),
+          ...x.mPart.map(r => `<li>${esc(r.item)}: +${pct(r.pct)} to ${TIER_NAME[r.next]} <span class="small muted">(~${short(r.q)} of ${short(r.left)})</span>${towerItem(r.item) ? ` <span class="tag tower">Tower</span>` : ""}</li>`)];
+        const qC = [...x.qDone.map(o => `<li><b>✓ ${esc(o.name)}</b>${o.main ? ` <span class="tag">main</span>` : ""}${o.step ? ` <span class="small muted">(${o.step} ahead)</span>` : ""}</li>`),
+          ...x.qPart.map(o => `<li>${esc(o.name)}: ${pct(o.pct)} <span class="small muted">(${bitsC(o)})${o.step ? ` · ${o.step} ahead` : ""}</span>${o.main ? ` <span class="tag">main</span>` : ""}</li>`)];
+        const headC = `${x.done ? `<b>${x.done} finished</b>` : "none finished"}${x.ak ? ` · <b>+${x.ak} AK</b>` : ""}${x.mPart.length + x.qPart.length ? ` · ${x.mPart.length + x.qPart.length} closer` : ""}`;
+        return `<details class="best-place"${i < 3 ? " open" : ""}><summary><strong>${esc(x.loc)}</strong> <span class="small">${headC}</span></summary>
+          <div class="two-col small"><div><h4>Masteries</h4>${list(mC, 8)}</div><div><h4>Quests</h4>${S.quests ? list(qC, 8) : `<p class="small muted" style="margin:0">Paste Help Needed to see quests.</p>`}</div></div></details>`;
+      }
       const m = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: finishes ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${
           r.towerLevels.length ? `, meets Tower level ${r.towerLevels.join(", ")}` : ""}${r.over ? `<details class="small muted"><summary>where the extra goes</summary>${r.over}</details>` : ""}</li>`),
         ...x.mPart.map(r => `<li>${esc(r.item)}: ${pct(r.pct)} closer to ${TIER_NAME[r.next]} <span class="small muted">(about ${short(r.q)} of ${short(r.left)})${
@@ -1843,8 +1860,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const row = (c, how) => { const top = c.jobs[0];
       return `<details class="plant-row"><summary><b>${esc(c.crop)}</b> <span class="muted small">${how(c)}</span> — ${top.name}${tagHtml(top)} <span class="muted small">${
         howJob(c, top)}${c.jobs.length > 1 ? ` · +${c.jobs.length - 1} more` : ""}</span></summary>
-        <ul class="small">${c.jobs.slice(0, 8).map(j => `<li>${j.name}${tagHtml(j)} — ${short(j.qty)}, ${howJob(c, j)}${
-          c.vj ? ` <span class="muted">(about ${short(j.hours * c.vjPerHour)} Veggie Juice)</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul></details>`; };
+        <ul class="small">${c.jobs.slice(0, 8).map(j => S.nextDetail === "expanded"
+          ? `<li>${j.name}${tagHtml(j)} — ${short(j.qty)}, ${howJob(c, j)}${c.vj ? ` <span class="muted">(about ${short(j.hours * c.vjPerHour)} Veggie Juice)</span>` : ""}${extraHtml(j)}</li>`
+          : `<li>${j.name}${tagHtml(j)} — ${short(j.qty)} · ${howJob(c, j)}${c.vj ? ` · <span class="muted">~${short(j.hours * c.vjPerHour)} Veggie Juice</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul></details>`; };
     let howJob = (c, j) => tm(j.hours);
     const timedHtml = timed.length ? timed.slice(0, 6).map(c => row(c, c => `ready in ${tm(c.minutes / 60)}${c.vj ? ` with ${c.vj} Veggie Juice` : ""}`)).join("") : `<p class="small muted">No slower crop feeds anything right now.</p>`;
     // Boost crops aren't passive, so they go last, unless nothing else needs planting or Veggie Juice is running low
@@ -1903,11 +1921,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const day = perDay[n], keep = OTHER_USES[n];
       const plan = window.FRP.outletPlan(n, day, { ...O, onHand: { ...onHand, [n]: cap } });      // pretend it's full: where would it go?
       const o = plan.outlet;
-      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : "sell (nothing useful is made from it)", detail: `You make about ${short(day)} a day.` };
+      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : "sell (nothing useful is made from it)", detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const c = p.items[o.product] || 0, tu = (O.towerUse[o.product] || []).map(u => TIERS[u.tier === "mm" ? 4 : 3]).filter(t => t > c);
       const target = tu.length ? Math.min(...tu) : TIERS.find(t => t > c);
       const tag = o.tower ? ` <span class="tag">Tower</span>` : o.goal ? ` <span class="tag">mastery</span>` : "";
-      if (!target) return { n, h: fullIn(n), sum: `${esc(o.product)}${tag}`, detail: `You make about ${short(day)} a day.` };
+      if (!target) return { n, h: fullIn(n), sum: `${esc(o.product)}${tag}`, detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const pr = RECIPES.items[o.product], made = pr.craft ? saver : 1, crafts = Math.ceil((target - c) / made), need = crafts * o.per;
       // Extras straight from this product's own recipe (asking the outlet picker again at this size can pick a different
       // product and show its ingredients under this one's name)
@@ -1922,14 +1940,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         sum: `${esc(o.product)}${tag} <span class="muted small">· ${TIER_NAME[target]} in ${minText(slow.days * 1440)}${slow.item === n ? ` of ${esc(n)}` : ` (${esc(slow.item)} is the slowest)`}${g.cost >= 1 ? ` · extras ~${short(g.cost)} AP` : ""}</span>`,
         detail: `${esc(o.product)} ${TIER_NAME[target]}: ${short(target - c)} to go = ${fmt(crafts)} crafts, using ${short(need)} ${esc(n)} (${minText(days * 1440)} of yours)${
           g.extra.length ? `, plus ${g.extra.slice(0, 4).map(x => `${short(x.qty)} ${esc(x.item)}`).join(", ")}${g.extra.length > 4 ? ` and ${g.extra.length - 4} more` : ""}${costTxt ? `, costing ${costTxt}` : ""}` : ""}.${
-          plan.others && plan.others.length ? ` Other options: ${plan.others.map(x => esc(x.product)).join(", ")}.` : ""}` };
+          plan.others && plan.others.length ? ` Other options: ${plan.others.map(x => esc(x.product)).join(", ")}.` : ""}`,
+        lines: [`${short(target - c)} to go: ${fmt(crafts)} crafts, using ${short(need)} ${esc(n)} <span class="muted">(${minText(days * 1440)})</span>`,
+          ...todoLines({ how: "craft", byPlace, passive }, Object.fromEntries(g.extra.map(x => [x.item, x.qty]))),
+          ...(plan.others && plan.others.length ? [`<span class="muted">Or: ${plan.others.map(x => esc(x.product)).join(", ")}</span>`] : [])] };
     };
     const byB = {};
     for (const n of Object.keys(perDay).filter(n => !STANDING[n])) (byB[BUILDING[n] || "Other"] ||= []).push(item(n));
     const blocks = Object.entries(byB).map(([b, its]) => ({ b, its: its.sort((a, c) => a.h - c.h), h: Math.min(...its.map(x => x.h)) })).sort((a, c) => a.h - c.h);
     const fullShort = h => h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`;
     const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : minText(x.h * 60)}`).join(" · ")}</span></summary>
-      <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h)})</span> → ${x.sum}<br>${x.detail}</li>`).join("")}</ul></details>`);
+      <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h)})</span> → ${x.sum}${
+        S.nextDetail === "expanded" ? `<br>${x.detail}` : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
     $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
         Object.keys(STANDING).filter(n => perDay[n]).map(n => `${esc(n)} → ${esc(STANDING[n][STANDING[n].length - 1])}`).join(" · ")}</span></summary>
       <p class="small muted" style="margin:2px 0 6px">Year-long Mega Masteries: keep these going every day.</p><ul style="margin:0 0 6px;padding-left:20px">${standing.join("")}</ul></details>` : "");
@@ -1980,14 +2002,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const make = short1 || ovens, rounds = Math.ceil(make / ovens), mins = rounds * cookMinutes(n, m);
       const e0 = C.effort(n, make), e = e0 && adjust(e0);
       const cost = e ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") || "nothing to gather" : "can't cost yet";
-      return [{ n, m, have, short: short1, tower, make, rounds, mins, cost, ap: e ? e.amount : null }];
+      return [{ n, m, have, short: short1, tower, make, rounds, mins, cost, e, ap: e ? e.amount : null }];
     }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
     const tagT = x => x.tower ? ` <span class="tag">Tower</span>` : "";
     $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
-        x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}about ${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
-        <div class="small" style="margin:2px 0 6px 18px"><p style="margin:0 0 4px" class="muted">${esc(effectText(x.m.effect))}</p>${
+        x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${S.nextDetail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
+        ${S.nextDetail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
+          ${x.short ? `<span style="display:block">For ${why[x.n].join(", ")}</span>` : ""}
+          <span style="display:block">${fmt(x.make)} meal${x.make === 1 ? "" : "s"} · ${x.rounds > 1 ? `${fmt(x.rounds)} rounds` : "1 round"} of ${minText(cookMinutes(x.n, x.m))}${S.perks.stirs ? ` (${S.perks.stirs} stir${S.perks.stirs === 1 ? "" : "s"})` : ""}</span>
+          ${x.e ? `<ul class="bite-parts">${todoLines(x.e).map(l => `<li>${l}</li>`).join("")}</ul>` : `<span class="muted">Ingredients can't be costed yet.</span>`}</div></details>` : `<div class="small" style="margin:2px 0 6px 18px"><p style="margin:0 0 4px" class="muted">${esc(effectText(x.m.effect))}</p>${
           x.short ? `<p style="margin:0 0 4px">Needed for ${why[x.n].join(", ")}: ${fmt(need[x.n])} in all, you have ${fmt(x.have)}.</p>` : ""}
-        <p style="margin:0">${fmt(x.make)} ${x.make === 1 ? "takes" : "take"} ${x.rounds > 1 ? `${fmt(x.rounds)} rounds of your ${ovens} oven${ovens === 1 ? "" : "s"}` : `one round of your ${ovens} oven${ovens === 1 ? "" : "s"}`} at ${minText(cookMinutes(x.n, x.m))} each${S.perks.stirs ? ` (with ${S.perks.stirs} stir${S.perks.stirs === 1 ? "" : "s"})` : ""}; ingredients: ${x.cost}.</p></div></details>`).join("")
+        <p style="margin:0">${fmt(x.make)} ${x.make === 1 ? "takes" : "take"} ${x.rounds > 1 ? `${fmt(x.rounds)} rounds of your ${ovens} oven${ovens === 1 ? "" : "s"}` : `one round of your ${ovens} oven${ovens === 1 ? "" : "s"}`} at ${minText(cookMinutes(x.n, x.m))} each${S.perks.stirs ? ` (with ${S.perks.stirs} stir${S.perks.stirs === 1 ? "" : "s"})` : ""}; ingredients: ${x.cost}.</p></div></details>`}`).join("")
       : `<p class="small muted">No meals to cook yet.</p>`) +
       (locked.length ? `<p class="small muted" style="margin:8px 0 0">Not yet (cooking level ${lv}): ${locked.join(", ")}.</p>` : "") +
       (missing.length ? `<p class="small muted" style="margin:4px 0 0">Recipes you don't have: ${missing.map(esc).join(", ")}.</p>` : "");
