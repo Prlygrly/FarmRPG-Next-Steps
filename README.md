@@ -220,3 +220,9 @@ Steel crafting, outlets always offered, pickaxes keep, quest wording, AP units, 
 10%/20%), settings split (General settings, hover/tap tips, "I check the game N times per…"), Blended by effort / By type, knowledge/
 (OKF), public release on GitHub Pages (fresh history), welcome card, made-up fixtures, new-player batch (no Tower talk, mastery
 rewards, Leveling up card, place skill levels, starting perks), saved-page upload, Steam app copies + chat stripping.
+2026-09-30/10-01: production capped at one inventory per drop (noon bonuses: Tree Shaker, Antler Snare), waits in whole drops,
+crafting uses ingredients in stock; silver (read from Steam top bar or typed; quests and Tower levels check it; Making silver card;
+prices.js; sell bonus/crafting silver cut from perks); data/perks.md (every perk, Chrome+Steam formats); ovens from Cooking level;
+perk tips (page › section › perk); shorter text everywhere with Condensed/Expanded views and a card grid on Next steps; quests one
+column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
+quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
