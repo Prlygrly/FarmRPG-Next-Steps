@@ -137,7 +137,8 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .bites details { border: 0; padding: 0; margin: 4px 0 0; }
 .bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
-@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy) { max-width: 1320px; } }
+@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy), main[data-tab="quests"]:not(.wordy) { max-width: 1320px; } }
+#quest-list .bites { margin-top: 8px; }
 .bites.wordy { grid-template-columns: 1fr; }
 #bites { margin-top: 12px; }   /* room under the view buttons */
 [data-detail][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
@@ -428,15 +429,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
 
   <section class="card" data-tab="quests" id="quests" aria-labelledby="h-quests" hidden>
-    <h2 id="h-quests">Quests</h2>
-    <p class="small muted">From your Help Needed paste. "Still needed" compares each quest with your inventory (paste My Inventory for this),
-      and the cost uses the same rules as above. Hide quests you've decided to skip; they move to the bottom.</p>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 id="h-quests" style="margin:0">Quests</h2>
+      <div class="row" role="group" aria-label="Detail" style="gap:4px">
+        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
+      </div>
+    </div>
+    <p class="small muted">From your Help Needed paste. Hide quests you're skipping; they move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
     <div id="quest-list"></div>
   </section>
   <section class="card" data-tab="quests" id="ww" aria-labelledby="h-ww" hidden>
     <h2 id="h-ww">Wishing well</h2>
-    <p class="small muted">Things your quests need (the current one and up to 5 ahead) that you're short of and the wishing well can give,
-      with the best thing to toss in. Only today's free tosses are planned.</p>
+    <p class="small muted">What your quests need that the well can give, using today's free tosses. <span class="tip" data-tip="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." aria-label="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." tabindex="0">ⓘ</span></p>
     <div id="ww-list"></div>
   </section>
 
@@ -978,15 +983,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (${endsText(days)})` : ""}`,
         // Lists as lists: what's still needed, then how to get it
         d: ready ? `Ready${st ? `: uses ${st}` : ""}.` : null,
-        blocks: ready ? null : [
-          n.levels.length ? { label: `Needs ${n.levels.join(", ")}`, items: [] } : null,
-          { label: "", items: [
-            // What to craft or cook for it first, then where its ingredients come from
-            ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
-            ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive },
-              Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
-            ...n.missing.filter(m => !m.effort).map(m => `${short(m.left)} ${esc(m.item)} <span class="muted">(can't cost yet)</span>`)] }
-        ].filter(b => b && (b.label || b.items.length)),
+        blocks: ready ? null : [{ label: "", items: questTodo(n) }],
         tail: val.value >= 1 ? `<span class="muted">Reward ~${short(val.value)} AP</span>` : "",
         wordy: (ready ? `Ready${st ? `: uses ${st}` : ""}.` : `${n.levels.length ? `Needs ${n.levels.join(", ")}. ` : ""}${n.missing.length ? `Still needs ${n.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : ""}${
             n.cost || Object.keys(n.passive).length ? `: ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : ""}${
@@ -1336,6 +1333,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     waits.sort((a, b) => b.h - a.h);
     return [...lines, ...waits.map(w => w.t)];
+  }
+
+  // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on
+  function questTodo(n) {
+    return [
+      ...n.levels.map(l => `<b class="bad">Needs ${l}</b>`),
+      ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
+      ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive }, Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
+      ...n.missing.filter(m => !m.effort).map(m => `${short(m.left)} ${esc(m.item)} <span class="muted">(can't cost yet)</span>`)
+    ];
   }
 
   // Items with a use outside crafting, so the last step says "keep" instead of "sell". Add to this as you learn more.
@@ -2211,6 +2218,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const shown = list.slice(0, 3).map(s => s.used >= s.have ? `all of your ${esc(s.item)}` : `${fmt(Math.round(s.used))} of your ${fmt(s.have)} ${esc(s.item)} (${Math.round(s.share * 100)}%)`);
     return shown.join(", ") + (list.length > 3 ? ` and ${list.length - 3} more` : "");
   };
+  // Condensed rewards: the items, with only Tower items marked
+  const rewardShort = (data, p) => [...data.get.map(([item, qty]) => {
+    const tower = O && (O.towerUse[item] || []).some(u => (p.items[item] || 0) < (u.tier === "mm" ? 1e6 : 1e5));
+    return `${short(qty)} ${esc(item)}${tower ? ` <span class="tag tower">Tower</span>` : ""}`;
+  }), data.rSilver ? `${short(data.rSilver)} silver` : "", data.rGold ? `${short(data.rGold)} gold` : ""].filter(Boolean).join(", ");
   // Reward tags: things that help the plan above
   function rewardText(data, p) {
     const out = data.get.map(([item, qty]) => {
@@ -2321,10 +2333,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         : `<span class="tag${eff >= 0.5 ? " ok" : ""}">reward worth about ${pct(eff)} of its cost${chainV >= 5 ? ", counting the next quests" : ""}</span>`;
       const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ${endsText(days)}` : ""}</span>` : "";
       const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: q.name })} ${hidden.has(q.name) ? `<button type="button" class="small" data-qshow="${esc(q.name)}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(q.name)}">Hide</button>`}</span>`;
-      const html = `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
+      // Condensed: a short verdict, the to-do lines, the reward items, and the next quest names
+      const shortVerdict = unknown ? "" : little ? (val.special.length ? "reward can't be valued" : "little value")
+        : ready && !n.stockCost ? `reward ~${short(val.value)} AP`
+        : n.cost + n.stockCost < 10 ? `mostly waiting · reward ~${short(val.value)} AP`
+        : `reward ~${pct(eff)} of cost${chainV >= 5 ? " (with next quests)" : ""}`;
+      const nextNames = [];
+      for (let nx = data.next, i = 0; nx && nx.length && i < 3; i++) { nextNames.push(esc(nx[0])); const d = QUESTS.quests[nx[0]]; if (!d) break; nx = d.next; }
+      const condensed = `<li><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
+        ${shortVerdict ? `<span class="small muted" style="display:block;margin:2px 0"><span class="tag${eff >= 0.5 || ready ? " ok" : ""}">${shortVerdict}</span></span>` : ""}
+        ${ready ? `<span class="small"><b class="ok">Ready to turn in</b>${S.inventory ? (st ? `: uses ${st}` : "") : " (paste My Inventory to check)"}</span>`
+          : `<ul class="bite-parts small">${questTodo(n).map(x => `<li>${x}</li>`).join("")}</ul>${st ? `<span class="small muted" style="display:block">Also uses ${st}</span>` : ""}`}
+        <span class="small muted" style="display:block">Reward: ${rewardShort(data, p)}</span>
+        ${nextNames.length ? `<span class="small muted" style="display:block">Next: ${nextNames[0]}</span>` : ""}</li>`;
+      const html = S.nextDetail === "expanded" ? `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
         <span class="small">${costTxt}</span> ${verdict}<br>
         <span class="small">Reward${val.value >= 1 ? ` <span class="muted">(all of it together worth about ${short(val.value)} AP to you${data.rSilver || data.rGold ? "; silver and gold not counted" : ""})</span>` : ""}: ${rewardText(data, p)}${val.special.length ? ` <span class="muted">(can't value: ${val.special.slice(0, 3).map(esc).join(", ")}${val.special.length > 3 ? "…" : ""})</span>` : ""}${val.special.traded ? ` <span class="muted">(trade-chat price for ${val.special.traded.slice(0, 3).map(esc).join(", ")}${val.special.traded.length > 3 ? "…" : ""})</span>` : ""}${val.special.rough ? ` <span class="muted">(rough value for ${val.special.rough.slice(0, 3).map(esc).join(", ")}, from what they're used in)</span>` : ""}</span>
-        ${ahead.length ? `<br><span class="small muted">Next in the chain: ${ahead.join(" → ")}</span>` : ""}</li>`;
+        ${ahead.length ? `<br><span class="small muted">Next in the chain: ${ahead.join(" → ")}</span>` : ""}</li>` : condensed;
       // Order: ready quests (most valuable first), then best share of cost returned; main quests get a 1.5x bump.
       // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
       const bump = q.kind === "main" ? 1.5 : 1;
@@ -2332,8 +2357,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump };
     }).sort((a, b) => a.rank - b.rank || b.score - a.score);
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
-    $("quest-list").innerHTML = `<ol class="bites">${vis.map(c => c.html).join("")}</ol>` +
-      (hid.length ? `<details><summary>Hidden by you (${hid.length})</summary><ol class="bites">${hid.map(c => c.html).join("")}</ol></details>` : "");
+    const cls = `bites${S.nextDetail === "expanded" ? " wordy" : ""}`;
+    $("quest-list").innerHTML = `<ol class="${cls}">${vis.map(c => c.html).join("")}</ol>` +
+      (hid.length ? `<details><summary>Hidden by you (${hid.length})</summary><ol class="${cls}">${hid.map(c => c.html).join("")}</ol></details>` : "");
   }
   $("quest-list").addEventListener("click", e => {
     const h = e.target.dataset.qhide, s = e.target.dataset.qshow;
