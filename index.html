@@ -129,7 +129,13 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .two-col ul { margin: 0; padding-left: 18px; }
 .best-place > summary { cursor: pointer; padding: 6px 0; }
 .tip { cursor: help; color: var(--muted); font-size: .85em; }
-.bites li.group-head { list-style: none; margin: 10px 0 2px -18px; }
+.bites > li.group-head { list-style: none; grid-column: 1 / -1; margin: 8px 0 0; padding: 0; border: 0; background: none; counter-increment: none; }
+.bites > li.group-head::before { content: none; }
+.bite-parts { margin: 2px 0 4px; padding-left: 18px; }
+.bite-parts li { margin: 1px 0; }
+.bite-label { display: block; margin-top: 2px; }
+/* Do these next: one column on phones, two or three side by side on wider screens */
+@media (min-width: 1100px) { main[data-tab="next"] { max-width: 1320px; } }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 #tip-pop { position: absolute; z-index: 20; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
   border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); white-space: pre-line; line-height: 1.45; }
@@ -176,17 +182,17 @@ label.field input, label.field select, span.field input, span.field select {
   width: 8.5em; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
 }
 label.field select, span.field select { width: auto; min-width: 8.5em; max-width: 100%; }   /* fit the longest option ("Arnold Palmers") */
-.bites { list-style: none; padding: 0; margin: 0; counter-reset: bite; }
-.bites li {
+.bites { list-style: none; padding: 0; margin: 0; counter-reset: bite; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; align-items: start; }
+.bites > li {
   counter-increment: bite; position: relative; padding: 10px 12px 10px 48px;
-  border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
 }
-.bites li::before {
+.bites > li::before {
   content: counter(bite); position: absolute; left: 12px; top: 10px; width: 26px; height: 26px;
   border-radius: 50%; background: var(--stone); color: var(--surface); font-weight: 700;
   display: grid; place-items: center; font-size: .9rem;
 }
-.bites strong { display: block; }
+.bites > li > strong, .bites > li > .row strong { display: block; }
 .tag { display: inline-block; font-size: .78rem; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin-left: 4px; white-space: nowrap; }
 .tag.tower { color: var(--stone); border-color: var(--stone); }
 details { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
@@ -932,8 +938,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs${silverNote(next.level)}.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
     else {
       const k = ap.known.find(x => x.ak >= need);
+      const ef = k && effortParts(k.effort);
       if (k) cands.push({ t: `Finish ${esc(k.item)} ${tierName(k.tier)} to reach Tower level ${next.level}`,
-        d: `${fmt(k.left)} more (+${k.ak} AK, you need ${fmt(need)}): ${effortText(k.effort)}. ${outletText(k.item, k.left, k.effort.amount)}`,
+        blocks: [{ label: `${fmt(k.left)} more (+${k.ak} AK; you need ${fmt(need)}). ${ef.lead}`, items: ef.parts }], tail: outletText(k.item, k.left, k.effort.amount),
         cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }) });
     }
     // Other quick masteries (AK toward the levels after)
@@ -941,7 +948,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const gain = c => p.noTower ? MASTERY_REWARD[c.tier] : `+${c.ak} AK`;
     for (const c of ap.known.slice(0, 6)) {
       if (cands.some(x => x.item === c.item)) continue;
-      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, d: `${fmt(c.left)} more (${gain(c)}): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
+      const ef = effortParts(c.effort);
+      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more (${gain(c)}). ${ef.lead}`, items: ef.parts }], cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
     const hidden = new Set(S.questHidden || []);
@@ -959,10 +967,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const days = q.section === "special" ? daysLeft(q, data) : null;
       cands.push({
         t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (ends in ${days} day${days === 1 ? "" : "s"})` : ""}`,
-        d: (ready ? `Ready${st ? `: uses ${st}` : ""}.` : `${n.levels.length ? `Needs ${n.levels.join(", ")}. ` : ""}${n.missing.length ? `Still needs ${n.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : ""}${
-            n.cost || Object.keys(n.passive).length ? `: ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : ""}${
-            n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
-          + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
+        // Lists as lists: what's still needed, then how to get it
+        d: ready ? `Ready${st ? `: uses ${st}` : ""}.${val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""}` : null,
+        blocks: ready ? null : [
+          n.levels.length ? { label: `Needs ${n.levels.join(", ")}.`, items: [] } : null,
+          n.missing.length ? { label: "Still needs:", items: n.missing.map(m => `${short(m.left)} ${esc(m.item)}`) } : null,
+          n.cost || Object.keys(n.passive).length ? { label: "Getting it:", items: [...passiveParts(n.passive), ...placeList(n.byPlace, 3, n.forWhat).map(x => /^\d+ more place/.test(x) ? x : `about ${x}`)] } : null
+        ].filter(Boolean),
+        tail: ready ? "" : [n.uncosted.length ? `Can't cost ${n.uncosted.map(esc).join(", ")} yet.` : "", val.value >= 1 ? `Reward worth about ${short(val.value)} AP.` : ""].filter(Boolean).join(" "),
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
         done: doneBtn("quest", { name: q.name })
       });
@@ -985,7 +997,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return waitM >= 1 ? `${playTxt} + ${minText(waitM)} of waiting` : playTxt;
     };
     const li = b => `<li>${b.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${b.t}</strong>${b.done}</div>` : `<strong>${b.t}</strong>`}${
-      b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}</li>`;
+      b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}${
+      (b.blocks || []).map(k => `<span class="small bite-label">${k.label}</span>${k.items.length ? `<ul class="bite-parts small">${k.items.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}`).join("")}${
+      b.tail ? `<span class="small">${b.tail}</span>` : ""}</li>`;
     const extra = [];
     if (fixed) extra.push(fixed);
     // The first real wall, so you can start on it early
@@ -1034,15 +1048,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const UNIT = { AP: "Arnold Palmers", AC: "Apple Ciders", LN: "Large Nets", explores: "explores" };
   const short = n => n >= 999.5e9 ? `${(n / 1e12).toFixed(n >= 99.95e12 ? 0 : 1)}T` : n >= 999.5e6 ? `${(n / 1e9).toFixed(n >= 99.95e9 ? 0 : 1)}B` : n >= 999500 ? `${(n / 1e6).toFixed(n >= 99.95e6 ? 0 : 1)}M` : n >= 9500 ? `${(n / 1000).toFixed(n >= 99500 ? 0 : 1)}k` : fmt(Math.ceil(n));
   // "335 AP at Highland Hills for Fern Leaf + …" (forWhat names what each place is visited for, biggest first)
-  const placeMix = (byPlace, max = 3, forWhat = null) => {
+  // Places and what each one is for: ["3,664 Arnold Palmers at Jundland Desert for Langstaff Crest", …, "2 more places"]
+  const placeList = (byPlace, max = 3, forWhat = null) => {
     const list = Object.entries(byPlace || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]);
     const shown = list.slice(0, max).map(([k, v]) => {
       const [u, loc] = k.split("|");
       const what = forWhat && forWhat[k] ? Object.entries(forWhat[k]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([n]) => esc(n)).join(" and ") : "";
       return `${short(v)} ${UNIT[u]} at ${esc(loc)}${what ? ` for ${what}` : ""}`;
     });
-    return shown.join(" + ") + (list.length > max ? ` + ${list.length - max} more place${list.length - max === 1 ? "" : "s"}` : "");
+    if (list.length > max) shown.push(`${list.length - max} more place${list.length - max === 1 ? "" : "s"}`);
+    return shown;
   };
+  const placeMix = (byPlace, max = 3, forWhat = null) => placeList(byPlace, max, forWhat).join(" + ");
   const unitMix = byUnit => Object.entries(byUnit).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([u, v]) => `${short(v)} ${UNIT[u]}`).join(" + ");
   // Daily-production ingredients, biggest first: "71k Apple + 1,774 Orange"
   const passiveMix = p => Object.entries(p || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([n, v]) => `${short(v)} ${esc(n)}`).join(" + ");
@@ -1200,7 +1217,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // Hours of production an effort needs (orchard days count as whole days): used to keep slow things off the quick list
   const timeOf = e => { const t = prodTime(e.passive); return Math.max(Math.ceil(t.fruitDays) * 24, t.slow ? t.slow.hours : 0); };
   const hoursText = h => h < 12 ? `about ${minText(h * 60)}` : `${fmt(Math.ceil(h / 24))} day${Math.ceil(h / 24) === 1 ? "" : "s"}`;
-  function passiveText(p) {
+  const passiveText = p => passiveParts(p).join(" and ");
+  function passiveParts(p) {
     const orch = S.orchard || {};
     const { fruit, fruitDays, slow, sawHours, otherHours, rest } = prodTime(p);
     const parts = [];
@@ -1242,8 +1260,20 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     const r = passiveMix(rest);
     if (r) parts.push(`${r} from your daily production`);
-    return parts.join(" and ");
+    return parts;
   }
+  // The same as effortText, as a lead-in and a list, for cards: { lead: "Craft it:", parts: ["about 3 h of your Board production", …] }
+  const effortParts = e => {
+    if (e.how === "drop") return { lead: "", parts: [`about ${short(e.amount)} ${UNIT[e.unit]} at ${esc(e.loc)}`] };
+    if (e.how === "passive") { const pp = passiveParts(e.passive); return { lead: "", parts: pp.length ? pp : ["free from your daily production"] }; }
+    const parts = [...passiveParts(e.passive), ...placeList(e.byPlace, 3, e.forWhat).map(x => /^\d+ more place/.test(x) ? x : `about ${x}`)];
+    const gat = gatheredText(e), also = alsoText(e);
+    if (gat) parts.push(`includes ${gat}`);
+    if (also) parts.push(`also brings ${also}`);
+    if (e.alt && e.alt.how === "drop") parts.push(`or gather instead: ${short(e.alt.amount)} ${UNIT[e.alt.unit]}`);
+    if (!parts.length) parts.push("no AP, AC or nets needed");
+    return { lead: `${e.how[0].toUpperCase()}${e.how.slice(1)} it:`, parts };
+  };
   const effortText = e => {
     if (e.how === "drop") return `about ${short(e.amount)} ${UNIT[e.unit]} at ${esc(e.loc)}`;
     if (e.how === "passive") return passiveText(e.passive) || "free from your daily production";
