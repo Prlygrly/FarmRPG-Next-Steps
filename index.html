@@ -1420,9 +1420,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     return out.sort((a, b) => a.per - b.per || b.xp - a.xp).slice(0, max);
   }
+  // Cheap things come many to an AP: "~94 per AP" (short() would round 0.01 AP up to 1)
+  const apEach = ap => ap < 1 ? ` (~${fmt(Math.floor(1 / ap))} per AP)` : ` (~${short(ap)} AP each)`;
   // ❤️ loved, 👍 liked
   const heart = how => how === "loves" ? `<span title="loved" aria-label="loved">❤️</span>` : `<span title="liked" aria-label="liked">👍</span>`;
-  const giftText = g => `${esc(g.item)} ${heart(g.how)}<span class="muted">${g.per === 0 ? " (free from your farm)" : g.grow ? " (grow it)" : ` (~${short(g.per * g.xp)} AP each)`}</span>`;
+  const giftText = g => `${esc(g.item)} ${heart(g.how)}<span class="muted">${g.per === 0 ? " (free from your farm)" : g.grow ? " (grow it)" : apEach(g.per * g.xp)}</span>`;
   const giftWho = g => `${g.npcs.slice(0, 2).map(esc).join(" or ")} ${heart(g.how)}`;
   // Who'd like a pile of this as a gift (loves first)
   const giftTo = item => {
