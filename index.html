@@ -420,8 +420,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <p class="small muted">Each Veggie Juice takes <span id="vj-cut-text">10%</span> off the time <b>left</b>, never below 1 minute: use them all right after planting. <span class="tip" data-tip="20% once the questline "A Better Juice" is done." aria-label="20% once the questline "A Better Juice" is done." tabindex="0">ⓘ</span></p>
     <div class="row">
       <label class="field">Crop <select id="vj-crop"></select></label>
-      <label class="field">Minutes left <input id="vj-left" type="number" min="1" inputmode="numeric"></label>
-      <label class="field">Want it ready within (minutes) <input id="vj-target" type="number" min="1" inputmode="numeric" value="60"></label>
+      <span class="field"><span>Time left</span><span class="row" style="gap:6px;flex-wrap:nowrap">
+        <input id="vj-left-h" type="number" min="0" inputmode="numeric" style="width:4.5em" aria-label="Hours left"> h
+        <input id="vj-left-m" type="number" min="0" max="59" inputmode="numeric" style="width:4.5em" aria-label="Minutes left"> min</span></span>
+      <span class="field"><span>Want it ready within</span><span class="row" style="gap:6px;flex-wrap:nowrap">
+        <input id="vj-target-h" type="number" min="0" inputmode="numeric" style="width:4.5em" value="1" aria-label="Hours"> h
+        <input id="vj-target-m" type="number" min="0" max="59" inputmode="numeric" style="width:4.5em" value="0" aria-label="Minutes"> min</span></span>
     </div>
     <div id="vj-out" class="small" style="margin-top:8px"></div>
   </section>
@@ -2222,12 +2226,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (!sel.options.length) {
       sel.innerHTML = Object.keys(info).sort().map(c => `<option>${esc(c)}</option>`).join("");
       sel.value = cur || (info.Beet ? "Beet" : sel.options[0].value);
-      $("vj-left").value = Math.round(info[sel.value].before);
+      setHM("vj-left", info[sel.value].before);
     }
     vjCalc();
   }
   function vjCalc() {
-    const left = +$("vj-left").value || 0, target = Math.max(1, +$("vj-target").value || 1);
+    const left = getHM("vj-left"), target = Math.max(1, getHM("vj-target") || 1);
     if (!left) { $("vj-out").innerHTML = ""; return; }
     const f = 1 - VJ_CUT, after = n => Math.max(1, left * Math.pow(f, n));
     const useful = left <= 1 ? 0 : Math.ceil(Math.log(1 / left) / Math.log(f));        // past this, the 1-minute floor wastes them
@@ -2238,8 +2242,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       ${useful ? `<span class="muted">More than ${useful} is wasted (1 minute is the floor).</span>` : ""}</p>
       ${list.length ? `<p class="muted" style="margin:0">${list.map(n => `${n} → ${minText(after(n))}`).join(" · ")}</p>` : ""}`;
   }
-  $("vj-crop").addEventListener("change", () => { const x = cropInfo()[$("vj-crop").value]; if (x) $("vj-left").value = Math.round(x.before); vjCalc(); });
-  ["vj-left", "vj-target"].forEach(id => $(id).addEventListener("input", vjCalc));
+  // Hours + minutes boxes, read and written as total minutes (the calculator does the arithmetic, not the player)
+  function getHM(id) { return (+$(id + "-h").value || 0) * 60 + (+$(id + "-m").value || 0); }
+  function setHM(id, mins) { const t = Math.round(mins); $(id + "-h").value = Math.floor(t / 60); $(id + "-m").value = t % 60; }
+  $("vj-crop").addEventListener("change", () => { const x = cropInfo()[$("vj-crop").value]; if (x) setHM("vj-left", x.before); vjCalc(); });
+  ["vj-left-h", "vj-left-m", "vj-target-h", "vj-target-m"].forEach(id => $(id).addEventListener("input", vjCalc));
 
   // ---------- Quests ----------
   const SUPPLIES = ["Apple Cider", "Arnold Palmer", "Orange Juice", "Large Net", "Lemonade", "Iced Tea", "Fishing Net", "Grape Juice"];
