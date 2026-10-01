@@ -159,4 +159,14 @@ const { parseSilver } = require("../parse.js");
 assert.deepStrictEqual(parseSilver("x" + NL + "[1,234,567](https://farmrpg.com/bank.php)   [89](https://farmrpg.com/gold.php)   [2,000](https://farmrpg.com/town.php)" + NL + "Consume a meal"), { silver: 1234567, gold: 89 });
 assert.strictEqual(parseSilver(qText), null);
 
+// Friendship levels: the Friendship Levels page and a profile page (made-up levels, short profile names mapped)
+const { parseFriends } = require("../parse.js");
+const fPage = ["Friendship Levels", "Current Levels", "Thomas is the Townsfolk of the Day! Any items you give to Thomas today will be 2x Friendship XP.",
+  "Rosalie", "Level 12", "Buddy", "Level 34", "Next Help Request at Level 90", "Star Meerif", "Level 5", "Drink Baba Cola", "Consume a meal"].join(NL);
+assert.strictEqual(detectPage(fPage), "friends");
+assert.deepStrictEqual(parseFriends(fPage), { levels: { Rosalie: 12, Buddy: 34, "Star Meerif": 5 }, totd: "Thomas" });
+const prof = ["Skill Progress", "Friendship Levels", "Star", "Level 7", "CptThomas", "Level 3", "Gary", "Level 9", "Game Stats", "Net Worth"].join(NL);
+assert.strictEqual(detectPage(prof), "friends");
+assert.deepStrictEqual(parseFriends(prof).levels, { "Star Meerif": 7, "Captain Thomas": 3, "Gary Bearson V": 9 });
+
 console.log("inventory tests passed");

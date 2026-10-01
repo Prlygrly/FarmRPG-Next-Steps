@@ -228,9 +228,28 @@
     return out;
   }
 
+  // Friendship levels, from the Friendship Levels page or a profile page: "Name / Level N" pairs. The profile uses short
+  // names (Star, Charles, CptThomas, Gary), mapped to the full ones. Also reads the Townsfolk of the Day (2x friendship XP).
+  const FRIEND_ALIAS = { "Star": "Star Meerif", "Charles": "Charles Horsington III", "CptThomas": "Captain Thomas", "Cpt Thomas": "Captain Thomas", "Gary": "Gary Bearson V" };
+  function parseFriends(text) {
+    const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
+    let at = lines.findIndex(l => /^Current Levels$/i.test(l));
+    if (at < 0) { const i = lines.map(l => /^Friendship Levels$/i.test(l)).lastIndexOf(true); at = i; }
+    const levels = {};
+    if (at >= 0) for (let i = at + 1; i < lines.length - 1; i++) {
+      if (/^(Game Stats|Drink Baba Cola|Consume a meal)$/i.test(lines[i])) break;
+      const m = lines[i + 1].match(/^Level (\d+)$/i);
+      if (m && !/^Level /i.test(lines[i])) levels[FRIEND_ALIAS[lines[i]] || lines[i]] = +m[1];
+    }
+    const t = text.match(/(.+?) is the Townsfolk of the Day/i);
+    return { levels, totd: t ? (FRIEND_ALIAS[clean(t[1])] || clean(t[1])) : null };
+  }
+
   // Which page was pasted? Checked most specific first.
   function detectPage(text) {
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
+    if (/^\s*Current Levels\s*$/im.test(text) && /Townsfolk/i.test(text)) return "friends";
+    if (/^\s*Friendship Levels\s*$/im.test(text) && /^\s*Game Stats\s*$/im.test(text)) return "friends";      // a profile page
     if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
     // The orchard first: in the Steam app the Orchard page also lists the whole farm ("Around Your Farm")
     if (/About the orchard/i.test(text)) return "orchard";
@@ -275,7 +294,7 @@
   const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
-    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), perkSettings,
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseFriends: noChat(parseFriends), perkSettings,
     detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);

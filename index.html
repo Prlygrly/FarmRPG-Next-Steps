@@ -512,7 +512,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -614,6 +614,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       $("paste").value = "";
       const other = kind === "perks" ? "supply" : "perks";
       msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
+    } else if (kind === "friends") {
+      // Optional: friendship levels make gift suggestions say how far each townsperson is from a level a quest needs
+      const f = parseFriends(text);
+      if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
+      else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
+        $("paste").value = ""; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
     } else if (kind === "orchard") {
       const r = parseOrchard(text);
       if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
@@ -945,6 +951,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
               : `<li class="missing">Orchard: not pasted yet (optional, turns fruit into days of production)</li>`);
     li.push(S.silver != null ? `<li>Silver: ${fmt(S.silver)}${S.gold != null ? `, ${fmt(S.gold)} gold` : ""} <span class="muted small">(${ago(S.silverAt)})</span></li>`
                              : `<li class="missing">Silver: not seen yet (pasted from the Steam app, or type it below)</li>`);
+    if (S.friends) li.push(`<li>Friendship: ${Object.keys(S.friends).length} townsfolk <span class="muted small">(${ago(S.friendsAt)})</span></li>`);
     // Older saves only kept one time for both perk pages
     const pp = S.perkPages || {}, pat = k => (S.perkAt || {})[k] || S.perkPagesAt;
     li.push(pp.perks ? `<li>Perks: read <span class="muted small">(${ago(pat("perks"))})</span></li>`
@@ -1436,7 +1443,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const q = QUESTS.quests[src], f = q.friend;
     const npc = f && (f[0].name || f[0]), lvl = f && f[1];
     const gifts = npc ? cheapGifts(npc, 2) : [];
-    return `from the quest <b>${esc(src)}</b>${npc ? ` <span class="muted">(needs ${esc(npc)} friendship ${lvl}${gifts.length ? `; gift ${gifts.map(giftText).join(", ")}` : ""})</span>` : ""}`;
+    const have = S.friends && npc ? S.friends[npc] : null;
+    if (have != null && have >= lvl) return `from the quest <b>${esc(src)}</b> <span class="muted">(${esc(npc)} friendship ${lvl}: you're there)</span>`;
+    return `from the quest <b>${esc(src)}</b>${npc ? ` <span class="muted">(needs ${esc(npc)} friendship ${lvl}${have != null ? `, you're ${have}: ${friendGap(npc, have, lvl, gifts.find(g => g.how === "loves") || gifts[0])}` : ""}${gifts.length ? `; gift ${gifts.map(giftText).join(", ")}` : ""})</span>` : ""}`;
+  }
+
+  // Friendship uses the skill XP table; counted from the start of your current level. ~N of your best gift to get there
+  // (2x on the Townsfolk of the Day).
+  function friendGap(npc, have, want, g) {
+    const xp = Math.max(0, lvTotal(want) - lvTotal(have));
+    if (!g) return `~${short(xp)} friendship XP`;
+    const today = S.totd && S.totd.npc === npc && S.totd.day === new Date().toDateString();
+    return `~${short(Math.ceil(xp / (g.xp * (today ? 2 : 1))))} ${esc(g.item)}${today ? " (2x today)" : ""}`;
   }
 
   // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on

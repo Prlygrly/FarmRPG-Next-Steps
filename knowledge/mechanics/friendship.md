@@ -24,6 +24,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T20:00:00Z }
 
 Every townsperson's loved, liked and hated items come from buddy.farm (`/page-data/t/<name>/`, `npcItems`; snapshot in npcs.js). Super-loved items (Heart Container 10M XP, Bouquet of Flowers 1,000) are listed with their own XP and left out of "cheap gift" suggestions.
 
+# Reading levels (optional)
+
+Friendship levels can be pasted from the Friendship Levels page (Home -> Perks, Mastery & More) or a profile page ("Friendship Levels" section; short names Star, Charles, CptThomas, Gary). The Friendship Levels page also names the Townsfolk of the Day (2x XP) and "Next Help Request at Level N". The planner never asks for it; with it, gift suggestions show how many gifts reach a needed level (counted from the start of the current level, skill XP table assumed).
+
 # Free gifts from daily production (player guide)
 
 | Item | Townsfolk |
