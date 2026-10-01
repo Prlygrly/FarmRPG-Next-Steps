@@ -45,7 +45,7 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - `engine.js` — `towerPlan`, `akPlan`, `makeCoster` (gather vs craft, passive items, `forWhat`, `activeEffort`), effort/perk math,
   seasons/places, trips (`tripYield`), outlets (`outletPlan`).
 - Data snapshots (regenerate with `tools/snapshot-*.js`): `tower.js` (wiki Tower Masteries), `drops.js` (buddy.farm explore/fish rates),
-  `recipes.js` (craft/cook recipes + uses), `seeds.js` (crop growth), `meals.js` (cooking level, cook time, effect), `levels.js` (XP per level), `ww.js` (wishing well, hand-kept from the wiki), `prices.js` (base sell prices, hand-kept from the player), `npcs.js` (townsfolk loves/likes/hates, tools/snapshot-npcs.js), `quests.js` (1,235 open quests, chains both ways),
+  `recipes.js` (craft/cook recipes + uses), `recipes-extra.js` (hand-kept recipes buddy.farm lacks, e.g. seasonal Spooky Scarecrow), `seeds.js` (crop growth), `meals.js` (cooking level, cook time, effect), `levels.js` (XP per level), `ww.js` (wishing well, hand-kept from the wiki), `prices.js` (base sell prices, hand-kept from the player), `npcs.js` (townsfolk loves/likes/hates, tools/snapshot-npcs.js), `quests.js` (1,235 open quests, chains both ways),
   `loot.js` (chest/bag contents), `trade.js` (farmrpg-trade.live median AP prices), `seasons.js` (hand-kept month rules).
 
 ## Tabs (current)
