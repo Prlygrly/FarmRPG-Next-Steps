@@ -133,6 +133,9 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
+- **To do: tools menu.** A small, unobtrusive menu (three dots or lines, in a corner) linking the player's other FarmRPG tools:
+  this planner, the Large Net / fishing mastery planner (prlygrly.github.io/buddys-net-planner) and the pig calculator (URL to
+  confirm). Same menu in each tool, so the list should live in one place that's easy to copy or share.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
