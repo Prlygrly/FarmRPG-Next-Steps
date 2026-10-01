@@ -102,7 +102,7 @@ const supplyText = fs.readFileSync(path.join(__dirname, "fixtures", "supply-trim
 assert.strictEqual(detectPage(perksText), "perks");
 assert.strictEqual(detectPage(supplyText), "supply");
 const ps = perkSettings(parsePerks(perksText));
-assert.deepStrictEqual(ps, { cropGrowthCut: 60, cornGrowthCut: 20, resourceSaver: 10, cookFaster: 0, sellBonus: 0, craftSilverCut: 0, doublePrizes: 40, wanderer: 33, fishingTrawl: true });
+assert.deepStrictEqual(ps, { cropGrowthCut: 60, cornGrowthCut: 20, resourceSaver: 10, cookFaster: 0, sellBonus: 0, craftSilverCut: 0, friendPrimer: 0, omg: 0, doublePrizes: 40, wanderer: 33, fishingTrawl: true });
 // Sell and crafting-silver perks stack (Negotiator I-IV + Gift of Persuasion; Artisan I-II + Steady Hands)
 const sellPage = ['52', 'Points Left', '19', 'Perks Avail', 'Farming Perks',
   '* Artisan I', 'Crafting costs 5% less Silver', 'Unlocked', '* Artisan II', 'Crafting costs 10% less Silver', 'Unlocked', '* Artisan III', 'Crafting costs 15% less Silver', '30 Points',
@@ -113,6 +113,11 @@ const sellPage = ['52', 'Points Left', '19', 'Perks Avail', 'Farming Perks',
 const sp = perkSettings(parsePerks(sellPage));
 assert.strictEqual(sp.sellBonus, 60);
 assert.strictEqual(sp.craftSilverCut, 25);
+// Friendship perks: Primer and O.M.G
+const fp = perkSettings(parsePerks(['52', 'Points Left', '19', 'Perks Avail', 'Farming Perks', 'Miscellaneous Perks',
+  '* Friendship Primer', 'Earn 10% more XP making friendships', 'Unlocked', '* O.M.G I', '5% chance liked or loved items', 'given to townsfolk have huge XP bonus', 'Unlocked', 'Consume a meal'].join(String.fromCharCode(10))));
+assert.strictEqual(fp.friendPrimer, 10);
+assert.strictEqual(fp.omg, 1);
 const ss = perkSettings(parsePerks(supplyText));
 assert.strictEqual(ss.cropGrowthCut, 30);
 assert.strictEqual(ss.resourceSaver, 35);

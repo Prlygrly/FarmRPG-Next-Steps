@@ -515,7 +515,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
-    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, autoBuyIronNails: false, grapeJuice: 2 };
+    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n).toLocaleString("en-US");
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -609,6 +609,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       S.perkPages = { ...(S.perkPages || {}), [kind]: got };
       const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
       Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster"), sellBonus: add("sellBonus"), craftSilverCut: add("craftSilverCut") });
+      // Friendship gift bonus: Primer x1.1, then O.M.G (one perk ~x1.37, both ~x1.75 on average)
+      { const omg = add("omg"), mult = (1 + add("friendPrimer") / 100) * (omg >= 2 ? 1.75 : omg === 1 ? 1.37 : 1); S.perks.friendBonus = Math.round((mult - 1) * 100); }
       S.perkPagesAt = Date.now();
       S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
       $("paste").value = "";
@@ -702,7 +704,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     cropGrowthCut: tipLines("Perks › Farming Perks", "• Quicker Farming I-IV: 5 + 10 + 15 + 20", "Farm Supply › Farming Upgrades", "• Irrigation System I-II: 10 + 20",
       "Perks › Artifact Perks", "• Enriched Soil: 10 (Tower 10)"),
     cornGrowthCut: tipLines("Perks › Farming Perks", "• Quicker Corn I-II: 10 + 10", "On top of the crop growth cut."),
-    doublePrizes: tipLines("Perks › Farming Perks", "• Double Prizes I-II: 15 + 25")
+    doublePrizes: tipLines("Perks › Farming Perks", "• Double Prizes I-II: 15 + 25"),
+    friendBonus: tipLines("Perks › Miscellaneous Perks", "• Friendship Primer: +10%", "• O.M.G I: 5% chance of a huge bonus", "Farm Supply › Miscellaneous Upgrades", "• O.M.G II: another 5%",
+      "On average: Primer x1.1; one O.M.G ~x1.37, both ~x1.75 (liked/loved gifts). All together ~93%.")
   };
   const perkField = (label, k, max, min = 0) => `<label class="field"><span>${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</span> <input type="number" min="${min}" max="${max}" data-perk="${k}"></label>`;
   $("perks").innerHTML = PERKS.map(([k, label]) => `<label class="small"><input type="checkbox" data-perk="${k}"> ${label}${PERK_SRC[k] ? tip(PERK_SRC[k]) : ""}</label>`).join("") +
@@ -712,7 +716,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     perkField("Crop plots", "plots", 10000) + perkField("Grape Juice per day", "grapeJuice", 1000) +
     perkField("Free wishing well tosses a day", "wwTosses", 100) + perkField("Ovens", "ovens", 100, 1) +
     perkField("Cooking faster %", "cookFaster", 90) + perkField("Crop growth cut %", "cropGrowthCut", 99) +
-    perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100);
+    perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100) +
+    perkField("Friendship gift bonus %", "friendBonus", 500);
   // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
   $("general").innerHTML =
     `<label class="field"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
@@ -1456,7 +1461,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const xp = Math.max(0, lvTotal(want) - lvTotal(have));
     if (!g) return `~${short(xp)} friendship XP`;
     const today = S.totd && S.totd.npc === npc && S.totd.day === new Date().toDateString();
-    return `~${short(Math.ceil(xp / (g.xp * (today ? 2 : 1))))} ${esc(g.item)}${today ? " (2x today)" : ""}`;
+    const each = g.xp * (today ? 2 : 1) * (1 + (S.perks.friendBonus || 0) / 100);        // your friendship perks (Setup → Your perks)
+    return `~${short(Math.ceil(xp / each))} ${esc(g.item)}${today ? " (2x today)" : ""}`;
   }
 
   // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on

@@ -208,7 +208,10 @@
       cookFaster: sum(/Cooking is (\d+)% faster/i),
       // Negotiator I-IV, Fertilizer I, Gift of Persuasion; Artisan I-IV, Toolbox I, Steady Hands (both pages add up)
       sellBonus: sum(/Items sold earn (\d+)% more Silver/i),
-      craftSilverCut: sum(/Crafting costs (\d+)% less Silver/i)
+      craftSilverCut: sum(/Crafting costs (\d+)% less Silver/i),
+      // Friendship: Friendship Primer (+10%) and O.M.G I/II (each a 5% chance of x7-x10 on liked/loved gifts, about +37% on average)
+      friendPrimer: sum(/Earn (\d+)% more XP making friendships/i),
+      omg: unlocked.filter(u => /^O\.M\.G/i.test(u.name)).length
     };
     if (page === "perks") {
       out.doublePrizes = sum(/^(\d+)% chance a crop will yield 2/);
