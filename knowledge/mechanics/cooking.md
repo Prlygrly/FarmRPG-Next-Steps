@@ -17,6 +17,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 
 - Unlock: Farming 75 and Crafting 75; Kitchen costs 500M silver. Most recipes need Cooking Pots (Ember Lagoon ingredients).[^wiki-cooking]
 - One meal per oven. Ovens unlock with cooking level, 1B silver each.[^wiki-cooking]
+- Cooking can't soak up a pile of an ingredient: one meal per oven per round, and rounds take hours. The planner only offers a meal as a "where the extras go" outlet when one round of ovens covers it; otherwise it picks a craft (Mushroom -> Mushroom Paste, not Mushroom Stew).[^player]
 - Oven unlocks: the first comes with the Kitchen; then Cooking 2, 5, 10, 20, 35, 50, 70, 90 and 99 (ten in all). The planner assumes a player has every oven their level allows unless they type their own number.[^player]
 - Speed perks: Hotter Ovens I 10% (Farm Supply), Quicker Cooking I 5% and II 10% (perk points); up to 25% faster.[^wiki-cooking]
 - **Stir**: first after 1 minute, then every 15 minutes; each takes 10% off the time left. A stir can push time left below the taste/season timers and lose them.[^wiki-cooking]

@@ -248,6 +248,8 @@
       if (!pr || !pr.recipe) continue;
       if (ctx.where && ctx.drops && seasonNote(p, ctx.drops, ctx.where)) continue;     // event-only recipe
       const crafts = Math.ceil(over / per);
+      // Cooking is one meal per oven per round (hours each), so it can't soak up a pile: only when one round of ovens does it
+      if (!pr.craft && crafts > (perks.ovens || 1)) continue;
       const extra = [];
       let ok = true;
       for (const [n, q] of pr.recipe) {
