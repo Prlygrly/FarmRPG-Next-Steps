@@ -132,6 +132,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
+- **Later: friendship gates.** Snapshot townsfolk loves/likes from buddy.farm (/page-data/t/<npc>/, npcItems) into npcs.js; quests with
+  a friendship need show the 2-3 cheapest loved/liked gifts (daily production first, no Hearts); items only given by another quest
+  point to it (Cursed Effigy Hair: "Effigy of Friendship", Buddy 90; Gem: "Archeology Requires Knowhow XVII", Lorn 60). Head and
+  Body sources unknown. Optional: read the Friendship Levels page for current levels.
 - **Small follow-ups:** Tower silver only checks the next level (add up several levels); fishing silver per net can't leave out
   rare fish yet (needs per-fish prices); Daily overflow "full in X" means little for once-a-day drops (Antlers arrive at midnight).
 - **Parked (player thinking it over) — Veggie Juice rounds:** show Grape Juices in days of the daily limit (the Grape Juice perk, 14);
