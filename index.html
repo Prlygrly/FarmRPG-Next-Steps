@@ -134,6 +134,8 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .bite-parts { margin: 2px 0 4px; padding-left: 18px; }
 .bite-parts li { margin: 1px 0; }
 .bite-label { display: block; margin-top: 2px; }
+.bites details { border: 0; padding: 0; margin: 4px 0 0; }
+.bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
 @media (min-width: 1100px) { main[data-tab="next"] { max-width: 1320px; } }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
@@ -182,7 +184,7 @@ label.field input, label.field select, span.field input, span.field select {
   width: 8.5em; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
 }
 label.field select, span.field select { width: auto; min-width: 8.5em; max-width: 100%; }   /* fit the longest option ("Arnold Palmers") */
-.bites { list-style: none; padding: 0; margin: 0; counter-reset: bite; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; align-items: start; }
+.bites { list-style: none; padding: 0; margin: 0; counter-reset: bite; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; align-items: stretch; }
 .bites > li {
   counter-increment: bite; position: relative; padding: 10px 12px 10px 48px;
   border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
@@ -938,9 +940,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs${silverNote(next.level)}.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
     else {
       const k = ap.known.find(x => x.ak >= need);
-      const ef = k && effortParts(k.effort);
       if (k) cands.push({ t: `Finish ${esc(k.item)} ${tierName(k.tier)} to reach Tower level ${next.level}`,
-        blocks: [{ label: `${fmt(k.left)} more (+${k.ak} AK; you need ${fmt(need)}). ${ef.lead}`, items: ef.parts }], tail: outletText(k.item, k.left, k.effort.amount),
+        blocks: [{ label: `${fmt(k.left)} more · +${k.ak} AK (you need ${fmt(need)})${k.effort.how === "craft" || k.effort.how === "cook" ? ` · ${k.effort.how}` : ""}`, items: todoLines(k.effort) }],
+        more: outletText(k.item, k.left, k.effort.amount),
         cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }) });
     }
     // Other quick masteries (AK toward the levels after)
@@ -948,8 +950,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const gain = c => p.noTower ? MASTERY_REWARD[c.tier] : `+${c.ak} AK`;
     for (const c of ap.known.slice(0, 6)) {
       if (cands.some(x => x.item === c.item)) continue;
-      const ef = effortParts(c.effort);
-      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more (${gain(c)}). ${ef.lead}`, items: ef.parts }], cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
+      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more · ${gain(c)}${c.effort.how === "craft" || c.effort.how === "cook" ? ` · ${c.effort.how}` : ""}`, items: todoLines(c.effort) }], cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
     const hidden = new Set(S.questHidden || []);
@@ -966,15 +967,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const st = stockText(n.stock);
       const days = q.section === "special" ? daysLeft(q, data) : null;
       cands.push({
-        t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (ends in ${days} day${days === 1 ? "" : "s"})` : ""}`,
+        t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (${endsText(days)})` : ""}`,
         // Lists as lists: what's still needed, then how to get it
-        d: ready ? `Ready${st ? `: uses ${st}` : ""}.${val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""}` : null,
+        d: ready ? `Ready${st ? `: uses ${st}` : ""}.` : null,
         blocks: ready ? null : [
-          n.levels.length ? { label: `Needs ${n.levels.join(", ")}.`, items: [] } : null,
-          n.missing.length ? { label: "Still needs:", items: n.missing.map(m => `${short(m.left)} ${esc(m.item)}`) } : null,
-          n.cost || Object.keys(n.passive).length ? { label: "Getting it:", items: [...passiveParts(n.passive), ...placeList(n.byPlace, 3, n.forWhat).map(x => /^\d+ more place/.test(x) ? x : `about ${x}`)] } : null
-        ].filter(Boolean),
-        tail: ready ? "" : [n.uncosted.length ? `Can't cost ${n.uncosted.map(esc).join(", ")} yet.` : "", val.value >= 1 ? `Reward worth about ${short(val.value)} AP.` : ""].filter(Boolean).join(" "),
+          n.levels.length ? { label: `Needs ${n.levels.join(", ")}`, items: [] } : null,
+          { label: "", items: [
+            // What to craft or cook for it first, then where its ingredients come from
+            ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
+            ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive },
+              Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
+            ...n.missing.filter(m => !m.effort).map(m => `${short(m.left)} ${esc(m.item)} <span class="muted">(can't cost yet)</span>`)] }
+        ].filter(b => b && (b.label || b.items.length)),
+        tail: val.value >= 1 ? `<span class="muted">Reward ~${short(val.value)} AP</span>` : "",
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
         done: doneBtn("quest", { name: q.name })
       });
@@ -993,13 +998,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const effortTag = c => {
       if (c.mins === Infinity) return "can't cost yet";
       const play = c.ready ? 0 : c.cost / apm, waitM = c.ready ? 0 : c.hours * 60;
-      const playTxt = play < 1 ? "under a minute of play" : `about ${minText(play)} of play`;
-      return waitM >= 1 ? `${playTxt} + ${minText(waitM)} of waiting` : playTxt;
+      const playTxt = play < 1 ? "under a minute of play" : `~${minText(play)} of play`;
+      return waitM >= 1 ? `${playTxt} + ${minText(waitM)} waiting` : playTxt;
     };
     const li = b => `<li>${b.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${b.t}</strong>${b.done}</div>` : `<strong>${b.t}</strong>`}${
       b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}${
-      (b.blocks || []).map(k => `<span class="small bite-label">${k.label}</span>${k.items.length ? `<ul class="bite-parts small">${k.items.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}`).join("")}${
-      b.tail ? `<span class="small">${b.tail}</span>` : ""}</li>`;
+      (b.blocks || []).map(k => `${k.label ? `<span class="small bite-label">${k.label}</span>` : ""}${k.items.length ? `<ul class="bite-parts small">${k.items.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}`).join("")}${
+      b.tail ? `<span class="small">${b.tail}</span>` : ""}${b.more ? `<details class="small"><summary>Where the extras go</summary>${b.more}</details>` : ""}</li>`;
     const extra = [];
     if (fixed) extra.push(fixed);
     // The first real wall, so you can start on it early
@@ -1286,6 +1291,34 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const body = pas ? `${pas}${ap ? `, plus ${ap}` : ", no AP, AC or nets needed"}` : ap || "no AP, AC or nets needed";
     return `${e.how} it: ${body}${alt}`;
   };
+  // Cards in Do these next read as a to-do list: one line per place ("Whispering Creek: ~39 AP (400 Striped Feather)"),
+  // then what to grow or wait for ("Grow 438 Cabbage: ~10 harvests × 18 Veggie Juice"). counts: item -> how many still needed.
+  const endsText = d => d <= 0 ? "ends today" : d === 1 ? "ends tomorrow" : `ends in ${d} days`;
+  const UNIT_SHORT = { AP: "AP", AC: "AC", LN: "LN", explores: "explores" };
+  function todoLines(e, counts = {}) {
+    const lines = [], crops = cropInfo(), orch = S.orchard || {}, prod = allProd();
+    const named = n => counts[n] ? `${short(counts[n])} ${esc(n)}` : esc(n);
+    const byPlace = e.how === "drop" ? { [e.unit + "|" + e.loc]: e.amount } : e.byPlace || {};
+    for (const [k, v] of Object.entries(byPlace).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1])) {
+      const [u, loc] = k.split("|");
+      const what = e.forWhat && e.forWhat[k] ? Object.keys(e.forWhat[k]).map(named).join(", ") : "";
+      lines.push(`<b>${esc(loc)}</b>: ~${short(v)} ${UNIT_SHORT[u]}${what ? ` <span class="muted">(${what})</span>` : ""}`);
+    }
+    const bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    const waits = [];
+    for (const [n, v] of Object.entries(e.passive || {})) {
+      if (v < 0.5 || bought.includes(n)) continue;
+      if (orch[n]) { const d = Math.ceil(v / fruitPerDay(n)); waits.push({ h: d * 24, t: `<b>Orchard</b>: ${short(v)} ${esc(n)}, ${d} day${d === 1 ? "" : "s"}` }); }
+      else if (crops[n] && prod[n] > 0) {
+        const c = crops[n], rounds = Math.ceil(v / c.perRound), h = v / prod[n];
+        waits.push({ h, t: `<b>Grow</b> ${short(v)} ${esc(n)}: ~${fmt(rounds)} harvest${rounds === 1 ? "" : "s"}${c.vj ? ` × ${c.vj} Veggie Juice` : ""} <span class="muted">(${minText(h * 60)})</span>` });
+      } else if (prod[n] > 0) { const h = v / prod[n]; waits.push({ h, t: `<b>${esc(n)}</b>: ${short(v)} from production <span class="muted">(${minText(h * 60)})</span>` }); }
+      else waits.push({ h: 0, t: `${short(v)} ${esc(n)} from production` });
+    }
+    waits.sort((a, b) => b.h - a.h);
+    return [...lines, ...waits.map(w => w.t)];
+  }
+
   // Items with a use outside crafting, so the last step says "keep" instead of "sell". Add to this as you learn more.
   const OTHER_USES = {
     "Worms": "as fishing bait", "Gummy Worms": "as fishing bait", "Mealworms": "as fishing bait", "Minnows": "as fishing bait", "Grubs": "as fishing bait",
@@ -2267,7 +2300,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         // A quest that costs (almost) no AP, only waiting on production, would give silly "275x" ratios: say it plainly
         : n.cost + n.stockCost < 10 ? `<span class="tag ok">costs almost no AP, mostly waiting; reward worth about ${short(val.value)} AP</span>`
         : `<span class="tag${eff >= 0.5 ? " ok" : ""}">reward worth about ${pct(eff)} of its cost${chainV >= 5 ? ", counting the next quests" : ""}</span>`;
-      const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ends in ${days} day${days === 1 ? "" : "s"}` : ""}</span>` : "";
+      const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ${endsText(days)}` : ""}</span>` : "";
       const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: q.name })} ${hidden.has(q.name) ? `<button type="button" class="small" data-qshow="${esc(q.name)}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(q.name)}">Hide</button>`}</span>`;
       const html = `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
         <span class="small">${costTxt}</span> ${verdict}<br>
