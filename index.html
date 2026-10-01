@@ -1155,6 +1155,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const gap = Math.max(DROP_HOURS[n] || 1, checkGap());
     return Math.min(perHour * gap, invCap()) / gap;
   };
+  // Waiting on a building is counted in whole drops: 886 Boards still means waiting for the next hourly drop, not 5 minutes.
+  // Returns { hours, drops, gap } (gap = hours between the drops you can use).
+  const prodWait = (n, v) => {
+    const rate = S.production && S.production[n];
+    if (!(rate > 0)) return null;
+    const gap = Math.max(DROP_HOURS[n] || 1, checkGap()), per = usableRate(n, rate) * gap, drops = Math.max(1, Math.ceil(v / per));
+    return { hours: drops * gap, drops, gap };
+  };
+  const dropText = (n, w) => {
+    if (w.gap < 1) return minText(w.hours * 60);
+    const unit = w.gap >= 24 ? "daily" : "hourly";
+    const t = w.drops === 1 ? `next ${unit} drop` : `${fmt(w.drops)} ${unit} drops`;
+    // A Hickory Omelette adds 20% of an hour's Sawmill output every 10 minutes for an hour (~1.2 extra drops): worth it for 1-2 drops
+    return SAWMILL.includes(n) && w.gap < 24 && w.drops <= 2 ? `${t}, or a Hickory Omelette` : t;
+  };
   // A daily drop plus a noon bonus (Tree Shaker, Antler Snare): the bonus is a % of the full production, not of what
   // fit. Each is capped on its own when you check between them; one cap for both if you don't.
   const noonDay = (P, pct) => {
@@ -1189,7 +1204,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (v < 0.5 || bought.includes(n)) continue;
       if (orch[n]) { t.fruit[n] = v; t.fruitDays = Math.max(t.fruitDays, v / fruitPerDay(n)); }
       else if (prod[n] > 0) {
-        const h = v / prod[n];
+        const h = prodWait(n, v)?.hours ?? v / prod[n];
         if (!t.slow || h > t.slow.hours) t.slow = { item: n, hours: h };
         if (SAWMILL.includes(n)) t.sawHours = Math.max(t.sawHours, h); else t.otherHours = Math.max(t.otherHours, h);
       } else t.rest[n] = v;
@@ -1328,7 +1343,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       else if (crops[n] && prod[n] > 0) {
         const c = crops[n], rounds = Math.ceil(v / c.perRound), h = v / prod[n];
         waits.push({ h, t: `<b>Grow</b> ${short(v)} ${esc(n)}: ~${fmt(rounds)} harvest${rounds === 1 ? "" : "s"}${c.vj ? ` × ${c.vj} Veggie Juice` : ""} <span class="muted">(${minText(h * 60)})</span>` });
-      } else if (prod[n] > 0) { const h = v / prod[n]; waits.push({ h, t: `<b>${esc(n)}</b>: ${short(v)} from production <span class="muted">(${minText(h * 60)})</span>` }); }
+      } else if (prod[n] > 0) {
+        const w = prodWait(n, v), h = w ? w.hours : v / prod[n];
+        waits.push({ h, t: `<b>${esc(n)}</b>: ${short(v)} from production <span class="muted">(${w ? dropText(n, w) : minText(h * 60)})</span>` });
+      }
       else waits.push({ h: 0, t: `${short(v)} ${esc(n)} from production` });
     }
     waits.sort((a, b) => b.h - a.h);
