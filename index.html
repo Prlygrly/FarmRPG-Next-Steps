@@ -1219,7 +1219,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const hrs = (S.perks.slowDays ?? 7) * 24;
     const orch = S.orchard || {}, prod = allProd();
     const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
-    const out = { ...e, byUnit: { ...e.byUnit }, byPlace: { ...(e.byPlace || {}) }, forWhat: { ...(e.forWhat || {}) }, passive: { ...e.passive }, gathered: [], alsoGets: [] };
+    const out = { ...e, byUnit: { ...e.byUnit }, byPlace: { ...(e.byPlace || {}) }, forWhat: { ...(e.forWhat || {}) }, passive: { ...e.passive }, gathered: [], alsoGets: [], fromStock: [] };
+    // Ingredients already in your inventory don't need waiting for: 886 Boards on hand means no Sawmill wait at all.
+    // Only for crafting and cooking: gathering an item for its own mastery needs new ones (stock doesn't count).
+    // (Each job counts your whole stock; two jobs sharing the same Boards aren't split yet.)
+    if (e.how === "craft" || e.how === "cook") {
+      const inv = S.inventory ? S.inventory.items : {};
+      for (const [n, v] of Object.entries(out.passive)) {
+        const have = inv[n] ? inv[n].count : 0, used = Math.min(v, have);
+        if (used >= 1) { out.passive[n] = v - used; out.fromStock.push({ item: n, used, have }); }
+        if (out.passive[n] < 0.5) delete out.passive[n];
+      }
+    }
     // Places you already visit for this job drop other things too: Highland Hills for Fern Leaf also brings Wood.
     // Those count toward the daily-production items the job needs, so there's less to wait for.
     for (const [k, amt] of Object.entries(e.byPlace || {})) {
@@ -1245,7 +1256,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       out.passive[n] = cap;
       out.gathered.push({ item: n, qty: v - cap, how: g.how });
     }
-    return out.gathered.length || out.alsoGets.length ? out : e;
+    return out.gathered.length || out.alsoGets.length || out.fromStock.length ? out : e;
   }
   const alsoText = e => (e.alsoGets || []).map(a => `${short(a.qty)} ${esc(a.item)} from ${esc(a.loc)}`).join(", ");
   const gatheredText = e => (e.gathered || []).map(g => `${short(g.qty)} ${esc(g.item)} ${g.how === "drop" ? "gathered" : g.how === "craft" ? "crafted" : "cooked"}`).join(", ");
@@ -1350,7 +1361,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       else waits.push({ h: 0, t: `${short(v)} ${esc(n)} from production` });
     }
     waits.sort((a, b) => b.h - a.h);
-    return [...lines, ...waits.map(w => w.t)];
+    const stock = (e.fromStock || []).filter(x => !bought.includes(x.item)).map(x => `${short(x.used)} ${esc(x.item)}`);
+    return [...lines, ...waits.map(w => w.t), ...(stock.length ? [`<span class="muted">From your stock: ${stock.join(", ")}</span>`] : [])];
   }
 
   // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on
