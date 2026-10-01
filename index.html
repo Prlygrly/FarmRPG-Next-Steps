@@ -508,6 +508,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="loot.js"></script>
 <script src="trade.js"></script>
 <script src="prices.js"></script>
+<script src="npcs.js"></script>
 <script src="engine.js"></script>
 <script>
 (function () {
@@ -1390,13 +1391,58 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return [...lines, ...waits.map(w => w.t), ...(stock.length ? [`<span class="muted">From your stock: ${stock.join(", ")}</span>`] : [])];
   }
 
+  // ---------- Townsfolk ----------
+  // Gift XP: loved 150, liked 25 (super-loved items like Heart Container have their own big XP, but cost far too much).
+  // Cheap gifts: things your farm makes count as free; the rest by AP per friendship XP. Supplies (Apple Cider…) and
+  // super-loved items are left out.
+  const NPC = (window.NPCS && NPCS.npcs) || {};
+  function cheapGifts(npc, max = 3) {
+    const n = NPC[npc];
+    if (!n || !C) return [];
+    // Free: what your buildings and orchard make. Crops cost farming time, so they come after those.
+    const free = new Set([...Object.keys(S.production || {}).filter(k => S.production[k] > 0), ...Object.keys(S.orchard || {})]);
+    const out = [];
+    for (const [items, xp, how] of [[n.loves, 150, "loves"], [n.likes, 25, "likes"]]) {
+      for (const item of items) {
+        if ((n.special || {})[item] || SUPPLIES.includes(item)) continue;
+        if (free.has(item)) { out.push({ item, xp, how, per: 0 }); continue; }
+        const e = C.effort(item, 1);
+        if (e && e.amount > 0 && e.unit !== "explores") out.push({ item, xp, how, per: e.amount / xp });
+        else if (e && e.how === "passive") out.push({ item, xp, how, per: 0.01, grow: true });
+      }
+    }
+    return out.sort((a, b) => a.per - b.per || b.xp - a.xp).slice(0, max);
+  }
+  const giftText = g => `${esc(g.item)} <span class="muted">(${g.how}${g.per === 0 ? ", free from your farm" : g.grow ? ", grow it" : `, ~${short(g.per * g.xp)} AP each`})</span>`;
+  // Who'd like a pile of this as a gift (loves first)
+  const giftTo = item => {
+    const loves = Object.keys(NPC).filter(k => NPC[k].loves.includes(item) && !(NPC[k].special || {})[item]);
+    const likes = Object.keys(NPC).filter(k => NPC[k].likes.includes(item));
+    return loves.length ? { npcs: loves, how: "loves", xp: 150 } : likes.length ? { npcs: likes, how: "likes", xp: 25 } : null;
+  };
+  // Items only another quest gives (Cursed Effigy Hair from "Effigy of Friendship")
+  let QUEST_GIVES = null;
+  const questSource = item => {
+    if (!QUEST_GIVES) { QUEST_GIVES = {}; for (const [name, q] of Object.entries(QUESTS.quests)) for (const [i] of q.get) (QUEST_GIVES[i] ||= []).push(name); }
+    return (QUEST_GIVES[item] || [])[0] || null;
+  };
+  // "from the quest Effigy of Friendship (needs Buddy friendship 90: gift Gummy Worms, Mushroom…)"
+  function questSourceText(item) {
+    const src = questSource(item);
+    if (!src) return null;
+    const q = QUESTS.quests[src], f = q.friend;
+    const npc = f && (f[0].name || f[0]), lvl = f && f[1];
+    const gifts = npc ? cheapGifts(npc, 2) : [];
+    return `from the quest <b>${esc(src)}</b>${npc ? ` <span class="muted">(needs ${esc(npc)} friendship ${lvl}${gifts.length ? `; gift ${gifts.map(giftText).join(", ")}` : ""})</span>` : ""}`;
+  }
+
   // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on
   function questTodo(n) {
     return [
       ...n.levels.map(l => `<b class="bad">Needs ${l}</b>`),
       ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
       ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive }, Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
-      ...n.missing.filter(m => !m.effort).map(m => `${short(m.left)} ${esc(m.item)} <span class="muted">(can't cost yet)</span>`)
+      ...n.missing.filter(m => !m.effort).map(m => { const src = questSourceText(m.item); return `${short(m.left)} ${esc(m.item)} ${src || `<span class="muted">(can't cost yet)</span>`}`; })
     ];
   }
 
@@ -1434,7 +1480,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         const why = p.skipped ? `you could craft them into something else, but that would cost more than making the ${esc(p.item)} did`
           : `nothing is crafted from ${esc(p.item)}`;
         const asYouGo = p.over > O.cap ? " as you go" : "";
-        steps.push(p.end === "give" ? `give away or sell the other ${short(p.over)}${asYouGo} (${why})` : `sell the other ${short(p.over)}${asYouGo} (${why})`);
+        const g = giftTo(p.item);
+        steps.push(g ? `gift the other ${short(p.over)}${asYouGo} to ${g.npcs.slice(0, 2).map(esc).join(" or ")} (${g.how} it: ${g.xp} friendship XP each), or sell them (${why})`
+          : p.end === "give" ? `give away or sell the other ${short(p.over)}${asYouGo} (${why})` : `sell the other ${short(p.over)}${asYouGo} (${why})`);
         break;
       }
       const tags = [o.tower ? "a Tower item" : "", o.goal ? "counts toward its mastery" : ""].filter(Boolean).join(", ");
@@ -1943,7 +1991,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const day = perDay[n], keep = OTHER_USES[n];
       const plan = window.FRP.outletPlan(n, day, { ...O, onHand: { ...onHand, [n]: cap } });      // pretend it's full: where would it go?
       const o = plan.outlet;
-      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : "sell (nothing useful is made from it)", detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
+      const gt = giftTo(n);
+      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : gt ? `gift to ${gt.npcs.slice(0, 2).map(esc).join(" or ")} <span class="muted small">(${gt.how} it: ${gt.xp} friendship XP each)</span>` : "sell (nothing useful is made from it)",
+        detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const c = p.items[o.product] || 0, tu = (O.towerUse[o.product] || []).map(u => TIERS[u.tier === "mm" ? 4 : 3]).filter(t => t > c);
       const target = tu.length ? Math.min(...tu) : TIERS.find(t => t > c);
       const tag = o.tower ? ` <span class="tag">Tower</span>` : o.goal ? ` <span class="tag">mastery</span>` : "";

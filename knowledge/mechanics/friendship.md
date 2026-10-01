@@ -20,6 +20,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T20:00:00Z }
 - Multipliers: Over The Moon x1.1, Friendship Primer perk x1.1, Townsfolk Of The Day x2. O.M.G perks: a 5% (one perk) or 10% (both) chance per gift batch of x7-x10, only on liked/loved gifts (about x1.37 / x1.75 over many batches).[^wiki-xp]
 - Higher friendship is often needed later for quests or meals, so leveling townsfolk steadily is worthwhile.[^rii]
 
+# Gift data
+
+Every townsperson's loved, liked and hated items come from buddy.farm (`/page-data/t/<name>/`, `npcItems`; snapshot in npcs.js). Super-loved items (Heart Container 10M XP, Bouquet of Flowers 1,000) are listed with their own XP and left out of "cheap gift" suggestions.
+
 # Free gifts from daily production (player guide)
 
 | Item | Townsfolk |
