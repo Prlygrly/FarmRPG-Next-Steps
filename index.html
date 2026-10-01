@@ -1413,7 +1413,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     return out.sort((a, b) => a.per - b.per || b.xp - a.xp).slice(0, max);
   }
-  const giftText = g => `${esc(g.item)} <span class="muted">(${g.how}${g.per === 0 ? ", free from your farm" : g.grow ? ", grow it" : `, ~${short(g.per * g.xp)} AP each`})</span>`;
+  // ❤️ loved, 👍 liked
+  const heart = how => how === "loves" ? `<span title="loved" aria-label="loved">❤️</span>` : `<span title="liked" aria-label="liked">👍</span>`;
+  const giftText = g => `${esc(g.item)} ${heart(g.how)}<span class="muted">${g.per === 0 ? " (free from your farm)" : g.grow ? " (grow it)" : ` (~${short(g.per * g.xp)} AP each)`}</span>`;
+  const giftWho = g => `${g.npcs.slice(0, 2).map(esc).join(" or ")} ${heart(g.how)}`;
   // Who'd like a pile of this as a gift (loves first)
   const giftTo = item => {
     const loves = Object.keys(NPC).filter(k => NPC[k].loves.includes(item) && !(NPC[k].special || {})[item]);
@@ -1481,7 +1484,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
           : `nothing is crafted from ${esc(p.item)}`;
         const asYouGo = p.over > O.cap ? " as you go" : "";
         const g = giftTo(p.item);
-        steps.push(g ? `gift the other ${short(p.over)}${asYouGo} to ${g.npcs.slice(0, 2).map(esc).join(" or ")} (${g.how} it: ${g.xp} friendship XP each), or sell them (${why})`
+        steps.push(g ? `gift the other ${short(p.over)}${asYouGo} to ${giftWho(g)}, or sell them (${why})`
           : p.end === "give" ? `give away or sell the other ${short(p.over)}${asYouGo} (${why})` : `sell the other ${short(p.over)}${asYouGo} (${why})`);
         break;
       }
@@ -1492,7 +1495,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         for (const [k, v] of Object.entries(x.effort.passive || {})) passive[k] = (passive[k] || 0) + v;
       }
       const cost = [passiveText(passive), placeMix(byPlace)].filter(Boolean).join(" + ");
-      steps.push(`turn ${short(p.over)} into about ${short(o.made)} ${esc(o.product)}${tags ? ` (${tags})` : ""}: ${fmt(o.crafts)} crafts, extra ingredients ${o.extra.slice(0, 4).map(x => `${short(x.qty)} ${esc(x.item)}`).join(", ") || "none"}${o.extra.length > 4 ? ` and ${o.extra.length - 4} more` : ""}${cost ? `, costing ${cost}` : ""}`);
+      const ga = !o.tower && giftTo(p.item);
+      steps.push(`turn ${short(p.over)} into about ${short(o.made)} ${esc(o.product)}${tags ? ` (${tags})` : ""}${ga ? ` (or gift them to ${giftWho(ga)})` : ""}: ${fmt(o.crafts)} crafts, extra ingredients ${o.extra.slice(0, 4).map(x => `${short(x.qty)} ${esc(x.item)}`).join(", ") || "none"}${o.extra.length > 4 ? ` and ${o.extra.length - 4} more` : ""}${cost ? `, costing ${cost}` : ""}`);
     }
     return `Where they go: you can hold ${fmt(O.cap)}, so ${steps.join("; then ")}.`;
   }
@@ -1992,7 +1996,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const plan = window.FRP.outletPlan(n, day, { ...O, onHand: { ...onHand, [n]: cap } });      // pretend it's full: where would it go?
       const o = plan.outlet;
       const gt = giftTo(n);
-      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : gt ? `gift to ${gt.npcs.slice(0, 2).map(esc).join(" or ")} <span class="muted small">(${gt.how} it: ${gt.xp} friendship XP each)</span>` : "sell (nothing useful is made from it)",
+      if (!o) return { n, h: fullIn(n), sum: keep ? `keep ${keep}` : gt ? `gift to ${giftWho(gt)}` : "sell (nothing useful is made from it)",
         detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const c = p.items[o.product] || 0, tu = (O.towerUse[o.product] || []).map(u => TIERS[u.tier === "mm" ? 4 : 3]).filter(t => t > c);
       const target = tu.length ? Math.min(...tu) : TIERS.find(t => t > c);
@@ -2015,7 +2019,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
           plan.others && plan.others.length ? ` Other options: ${plan.others.map(x => esc(x.product)).join(", ")}.` : ""}`,
         lines: [`${short(target - c)} to go: ${fmt(crafts)} crafts, using ${short(need)} ${esc(n)} <span class="muted">(${minText(days * 1440)})</span>`,
           ...todoLines({ how: "craft", byPlace, passive }, Object.fromEntries(g.extra.map(x => [x.item, x.qty]))),
-          ...(plan.others && plan.others.length ? [`<span class="muted">Or: ${plan.others.map(x => esc(x.product)).join(", ")}</span>`] : [])] };
+          ...(plan.others && plan.others.length || (gt && !o.tower) ? [`<span class="muted">Or: ${[...(plan.others || []).map(x => esc(x.product)), gt && !o.tower ? `gift to ${giftWho(gt)}` : ""].filter(Boolean).join(", ")}</span>`] : [])] };
     };
     const byB = {};
     for (const n of Object.keys(perDay).filter(n => !STANDING[n])) (byB[BUILDING[n] || "Other"] ||= []).push(item(n));
