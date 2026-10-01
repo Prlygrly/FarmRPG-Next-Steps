@@ -137,8 +137,8 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .bites details { border: 0; padding: 0; margin: 4px 0 0; }
 .bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
-@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy), main[data-tab="quests"]:not(.wordy) { max-width: 1320px; } }
-#quest-list .bites { margin-top: 8px; }
+@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy) { max-width: 1320px; } }
+#quest-list .bites { margin-top: 8px; grid-template-columns: 1fr; }   /* one column, like the game's quest list */
 .bites.wordy { grid-template-columns: 1fr; }
 #bites { margin-top: 12px; }   /* room under the view buttons */
 [data-detail][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
