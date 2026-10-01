@@ -401,14 +401,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
 
   <section class="card" data-tab="vj" id="vj" aria-labelledby="h-vj">
-    <h2 id="h-vj">Veggie Juice cycle</h2>
-    <p class="small muted">The usual loop: grow Tomato and Watermelon (taking turns) when nothing else needs the plots, until full; Breakfast
-      Boost the five quick crops until full; then Grape Juice the Beets and craft until the Tomatoes and Watermelons run out. Repeat.</p>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 id="h-vj" style="margin:0">Veggie Juice cycle</h2>
+      <div class="row" role="group" aria-label="Detail" style="gap:4px">
+        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
+      </div>
+    </div>
+    <ol class="small muted" style="margin:0 0 8px;padding-left:20px">
+      <li>Grow Tomato and Watermelon (taking turns) when the plots are free, until full.</li>
+      <li>Breakfast Boost the five quick crops until full.</li>
+      <li>Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out. Repeat.</li>
+    </ol>
     <div id="vj-cycle"></div>
   </section>
   <section class="card" data-tab="vj" aria-labelledby="h-vjc">
     <h2 id="h-vjc">Veggie Juice calculator</h2>
-    <p class="small muted">Each Veggie Juice takes <span id="vj-cut-text">10%</span> off the time <b>left</b> (20% once "A Better Juice" is done; never below 1 minute), so use them all at once, right after planting.</p>
+    <p class="small muted">Each Veggie Juice takes <span id="vj-cut-text">10%</span> off the time <b>left</b>, never below 1 minute: use them all right after planting. <span class="tip" data-tip="20% once the questline "A Better Juice" is done." aria-label="20% once the questline "A Better Juice" is done." tabindex="0">ⓘ</span></p>
     <div class="row">
       <label class="field">Crop <select id="vj-crop"></select></label>
       <label class="field">Minutes left <input id="vj-left" type="number" min="1" inputmode="numeric"></label>
@@ -418,9 +427,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
 
   <section class="card" data-tab="trips" id="trips" aria-labelledby="h-trips" hidden>
-    <h2 id="h-trips">I'm exploring here anyway</h2>
-    <p class="small muted">Going somewhere a lot anyway, like the Forest for Antlers? Add it here. You'll see what else the trip brings home,
-      and things found there get cheaper in the lists above (by the "Trip discount" in Your perks).</p>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 id="h-trips" style="margin:0">I'm exploring here anyway</h2>
+      <div class="row" role="group" aria-label="Detail" style="gap:4px">
+        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
+      </div>
+    </div>
+    <p class="small muted">Going somewhere a lot anyway, like the Forest for Antlers? Add it to see what else the trip brings home. <span class="tip" data-tip="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." aria-label="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." tabindex="0">ⓘ</span></p>
     <div class="row">
       <label class="field">Place <select id="trip-loc"></select></label>
       <label class="field">Plan
@@ -1604,9 +1618,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return `<div class="card" style="background:var(--bg);margin-top:10px">
         <div class="row" style="justify-content:space-between"><strong>${esc(t.loc)}: about ${short(amount)} ${UNIT[t.unit]}${t.mode === "until" ? ` (to gather ${short(t.qty)} ${esc(t.item)})` : ""}</strong>
           <button type="button" data-stop-trip="${esc(t.loc)}">Stop this trip</button></div>
-        <p class="small" style="margin:6px 0">This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.</p>
+        <p class="small" style="margin:6px 0">${S.nextDetail === "expanded" ? `This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.`
+          : `Finishes: ${done ? `<b>${done} tier${done === 1 ? "" : "s"}</b>` : "none"}${ak ? ` · <b>+${ak} AK</b>` : ""}`}</p>
         <div class="table-wrap"><table><thead><tr><th>Item</th><th class="num">About</th><th>What it does for you</th></tr></thead><tbody>${
-          rows.slice(0, 12).map(r => `<tr><td>${esc(r.item)}</td><td class="num">${short(r.q)}</td><td class="small">${r.notes.join("; ") || "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
+          rows.slice(0, 12).map(r => { const nt = r.notes.join("; ") || "—";
+            // Condensed: long "where it goes" notes fold away behind a tap
+            const cell = S.nextDetail !== "expanded" && nt.length > 90 ? `<details><summary>${nt.slice(0, nt.search(/[:;(]|$/)).trim() || "where it goes"}</summary>${nt}</details>` : nt;
+            return `<tr><td>${esc(r.item)}</td><td class="num">${short(r.q)}</td><td class="small">${cell}</td></tr>`; }).join("")}</tbody></table></div></div>`;
     }).join("");
   }
 
@@ -2162,7 +2180,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         else if (item === "Beet" && x) { const gj = Math.ceil(need / x.perRound);
           refill = `${fmt(gj)} Grape Juices (you have ${short(onHand["Grape Juice"] || 0)}), planting ${fmt(gj * (S.perks.plots || 0))} ${esc(x.seed)} (you have ${short(onHand[x.seed] || 0)})`; }
         else if (x) refill = `about ${minText(need / x.perHour * 60)} of farming`;
-        else { const e0 = C.effort(item, need), e = e0 && adjust(e0); refill = e ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") || "—" : "can't cost"; }
+        else { const e0 = C.effort(item, need), e = e0 && adjust(e0); refill = e ? (S.nextDetail === "expanded" ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") : todoLines(e).join(" · ")) || "—" : "can't cost"; }
       }
       return { item, per, have, makes: Math.floor(have / per), refill, x };
     });
@@ -2184,12 +2202,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // A whole cycle: Tomato + Watermelon (2 each) set the size; the rest refill several times along the way
     const quickRounds = quick.length ? Math.ceil(cycle * 7 / quick[0].x.perRound) * quick.length : 0;
     const beetGJ = beet && beet.x ? Math.ceil(cycle * 15 / beet.x.perRound) : null, beetSeeds = beetGJ ? beetGJ * (S.perks.plots || 0) : 0;
-    $("vj-cycle").innerHTML = `<p style="margin:0 0 6px">You have <b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice. You can craft <b>${fmt(now)}</b> now${now ? "" : ""} (limited by ${limit.map(esc).join(", ")}).</p>
+    const table = `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
+        rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
+    if (S.nextDetail !== "expanded") {
+      const stepC = twMakes < 1 ? `<b>Grow Tomato and Watermelon</b> until full` : quick.some(x => x.makes <= now && x.have < cap * 0.95)
+        ? `<b>Breakfast Boost</b> the quick crops: ~${fmt(quick.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0))} harvests`
+        : beet && beet.makes <= now ? `<b>Grape Juice the Beets</b> until full` : `<b>Craft Veggie Juice</b>: ${fmt(now)} now`;
+      $("vj-cycle").innerHTML = `<p style="margin:0 0 4px"><b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice · can craft <b>${fmt(now)}</b> now <span class="muted small">(short on ${limit.map(esc).join(", ")})</span></p>
+        <ul class="bite-parts"><li>Next: ${stepC}</li>${short1.map(x => `<li>Top up <b>${esc(x.item)}</b> <span class="muted">(enough for ${fmt(x.makes)})</span>: ${x.refill}</li>`).join("")}</ul>
+        <p class="small muted" style="margin:4px 0 8px">Full cycle: ~${fmt(cycle)} Veggie Juice · ~${fmt(quickRounds)} Boost harvests (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${
+          beetGJ ? ` · ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""}</p>${table}`;
+    } else $("vj-cycle").innerHTML = `<p style="margin:0 0 6px">You have <b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice. You can craft <b>${fmt(now)}</b> now${now ? "" : ""} (limited by ${limit.map(esc).join(", ")}).</p>
       <p style="margin:0 0 6px">Next: ${step}</p>
       <p class="small muted" style="margin:0 0 8px">A full cycle (full Tomatoes and Watermelons) makes about ${fmt(cycle)} Veggie Juice, taking about ${fmt(quickRounds)} Boost harvests
         (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${beetGJ ? ` and ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""} along the way.</p>
-      <div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
-        rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
+      ${table}`;
     // Calculator crop list
     const sel = $("vj-crop"), cur = sel.value;
     if (!sel.options.length) {
