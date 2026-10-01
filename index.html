@@ -137,7 +137,9 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .bites details { border: 0; padding: 0; margin: 4px 0 0; }
 .bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
-@media (min-width: 1100px) { main[data-tab="next"] { max-width: 1320px; } }
+@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy) { max-width: 1320px; } }
+.bites.wordy { grid-template-columns: 1fr; }
+[data-detail][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 #tip-pop { position: absolute; z-index: 20; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
   border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); white-space: pre-line; line-height: 1.45; }
@@ -362,6 +364,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <div class="row" role="group" aria-label="Order" style="gap:4px">
         <button type="button" data-view="blend" title="Everything in one list, quickest first: AP turned into minutes of play, plus waiting (set both in General settings).">Blended by effort</button>
         <button type="button" data-view="type" title="Grouped: ready to turn in, quests, masteries, Tower. Quickest first within each.">By type</button>
+      </div>
+      <div class="row" role="group" aria-label="Detail" style="gap:4px">
+        <button type="button" data-detail="condensed" title="A short to-do list for each step: where to go, how much, what to grow.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
       </div>
     </div>
     <ol class="bites" id="bites"></ol>
@@ -943,6 +949,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (k) cands.push({ t: `Finish ${esc(k.item)} ${tierName(k.tier)} to reach Tower level ${next.level}`,
         blocks: [{ label: `${fmt(k.left)} more · +${k.ak} AK (you need ${fmt(need)})${k.effort.how === "craft" || k.effort.how === "cook" ? ` · ${k.effort.how}` : ""}`, items: todoLines(k.effort) }],
         more: outletText(k.item, k.left, k.effort.amount),
+        wordy: `${fmt(k.left)} more (+${k.ak} AK, you need ${fmt(need)}): ${effortText(k.effort)}. ${outletText(k.item, k.left, k.effort.amount)}`,
         cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }) });
     }
     // Other quick masteries (AK toward the levels after)
@@ -950,7 +957,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const gain = c => p.noTower ? MASTERY_REWARD[c.tier] : `+${c.ak} AK`;
     for (const c of ap.known.slice(0, 6)) {
       if (cands.some(x => x.item === c.item)) continue;
-      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more · ${gain(c)}${c.effort.how === "craft" || c.effort.how === "cook" ? ` · ${c.effort.how}` : ""}`, items: todoLines(c.effort) }], cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
+      cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more · ${gain(c)}${c.effort.how === "craft" || c.effort.how === "cook" ? ` · ${c.effort.how}` : ""}`, items: todoLines(c.effort) }], wordy: `${fmt(c.left)} more (${gain(c)}): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }) });
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
     const hidden = new Set(S.questHidden || []);
@@ -980,6 +987,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
             ...n.missing.filter(m => !m.effort).map(m => `${short(m.left)} ${esc(m.item)} <span class="muted">(can't cost yet)</span>`)] }
         ].filter(b => b && (b.label || b.items.length)),
         tail: val.value >= 1 ? `<span class="muted">Reward ~${short(val.value)} AP</span>` : "",
+        wordy: (ready ? `Ready${st ? `: uses ${st}` : ""}.` : `${n.levels.length ? `Needs ${n.levels.join(", ")}. ` : ""}${n.missing.length ? `Still needs ${n.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : ""}${
+            n.cost || Object.keys(n.passive).length ? `: ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : ""}${
+            n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
+          + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
         done: doneBtn("quest", { name: q.name })
       });
@@ -995,16 +1006,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
     const TAG = { ready: "ready", quest: "Quest", mastery: "Mastery", tower: "Tower" };
     // The tag splits the two parts the ranking blends: active play (AP at your pace) and real waiting time
+    // Condensed (to-do lines) or Expanded (the full sentences)
+    const wordy = S.nextDetail === "expanded";
+    document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === (wordy ? "expanded" : "condensed"))));
+    $("bites").classList.toggle("wordy", wordy);
+    document.querySelector("main").classList.toggle("wordy", wordy);
     const effortTag = c => {
       if (c.mins === Infinity) return "can't cost yet";
       const play = c.ready ? 0 : c.cost / apm, waitM = c.ready ? 0 : c.hours * 60;
-      const playTxt = play < 1 ? "under a minute of play" : `~${minText(play)} of play`;
-      return waitM >= 1 ? `${playTxt} + ${minText(waitM)} waiting` : playTxt;
+      const playTxt = play < 1 ? "under a minute of play" : `${wordy ? "about " : "~"}${minText(play)} of play`;
+      return waitM >= 1 ? `${playTxt} + ${minText(waitM)} ${wordy ? "of waiting" : "waiting"}` : playTxt;
     };
     const li = b => `<li>${b.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${b.t}</strong>${b.done}</div>` : `<strong>${b.t}</strong>`}${
-      b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${b.d ? `<span class="small">${b.d}</span>` : ""}${
+      b.kind ? `<span class="small muted" style="display:block;margin:2px 0">${b.main ? `<span class="tag">main</span> ` : ""}<span class="tag">${isLvl(b) ? "Tower" : TAG[b.kind]}</span> ${effortTag(b)}</span>` : ""}${
+      wordy && b.wordy != null ? `<span class="small">${b.wordy}</span></li>` : `${b.d ? `<span class="small">${b.d}</span>` : ""}${
       (b.blocks || []).map(k => `${k.label ? `<span class="small bite-label">${k.label}</span>` : ""}${k.items.length ? `<ul class="bite-parts small">${k.items.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}`).join("")}${
-      b.tail ? `<span class="small">${b.tail}</span>` : ""}${b.more ? `<details class="small"><summary>Where the extras go</summary>${b.more}</details>` : ""}</li>`;
+      b.tail ? `<span class="small">${b.tail}</span>` : ""}${b.more ? `<details class="small"><summary>Where the extras go</summary>${b.more}</details>` : ""}</li>`}`;
     const extra = [];
     if (fixed) extra.push(fixed);
     // The first real wall, so you can start on it early
@@ -1035,6 +1052,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
   }
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { S.nextView = b.dataset.view; save(); render(false); }));
+  document.querySelectorAll("[data-detail]").forEach(b => b.addEventListener("click", () => { S.nextDetail = b.dataset.detail; save(); render(false); }));
   $("bites-more").addEventListener("click", () => { S.bitesAll = !S.bitesAll; save(); render(false); });
 
   function wallBite(lv, isNext) {
