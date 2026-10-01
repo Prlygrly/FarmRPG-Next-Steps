@@ -129,6 +129,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   in buddy.farm's quest data, so the planner can't see what they need. Let a player optionally paste a single quest's own page
   (quest.php) to read its needs and rewards, and include it like any other quest. Low priority: they're usually quick (about
   20 minutes), but it should be possible for anyone who wants it.
+- **To do: "Long hauls" (working name; was "common walls and blockers").** A view of the GMs and MMs that take the longest
+  (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
+  production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
+  overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
