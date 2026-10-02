@@ -136,6 +136,11 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - **To do: tools menu.** A small, unobtrusive menu (three dots or lines, in a corner) linking the player's other FarmRPG tools:
   this planner, the Large Net / fishing mastery planner (prlygrly.github.io/buddys-net-planner) and the pig calculator (URL to
   confirm). Same menu in each tool, so the list should live in one place that's easy to copy or share.
+- **To do: save as a QR code.** Next to "Make a save code", show the save as a QR code the player scans with their phone
+  (the code opens the site with the save in the URL, e.g. `#save=FRP1...`, and the planner loads it). Keep the text save too.
+  Catch: one QR code holds ~2.9 KB, and a full save (pasted inventory, masteries) may be bigger even compressed. Options: a slim
+  save with only what the phone needs, several QR codes in a row, or a "too big for a QR code" note with the text save as backup.
+  Needs a small QR library (cdnjs) or a hand-written encoder.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
