@@ -141,6 +141,17 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   Catch: one QR code holds ~2.9 KB, and a full save (pasted inventory, masteries) may be bigger even compressed. Options: a slim
   save with only what the phone needs, several QR codes in a row, or a "too big for a QR code" note with the text save as backup.
   Needs a small QR library (cdnjs) or a hand-written encoder.
+  Plan (measured on a made-up late-game save, 500 masteries + 600 items): two codes, masteries and inventory (perks, production,
+  silver and Tower ride on one of them). Store buddy.farm item IDs, not names, written as the gap from the previous ID
+  (~6,300 -> ~2,000 chars). Drop what can be worked out again or isn't needed on the phone (per-item ID/atMax/mastery tags,
+  undo history, UI settings, hidden lists, per-paste times; one date for the code). Counts: `m` = at the inventory cap (exact,
+  robust if the cap changes); under 100 exact; above that 2 significant figures (worst ~5% off, e.g. 105 -> 110). Never round
+  across a mastery line (996,000 must not become 1.0M). Result ~1,300-1,400 chars per code; one QR holds ~2,900, so each is
+  comfortable. Ruled out: % of cap (smallest, but +/-49 items on a 9,850 cap breaks small piles: 30 -> 0); round to 10/100
+  (fixed steps too big for small counts, too small for big ones).
+- **To do: paste feedback + clear button.** When a paste is read, leave the text in the box briefly (~0.6 s), then flash a
+  green check over the box as the text fades out, so the box is clearly ready for the next paste. When a paste isn't
+  recognised the text stays, with the warning and a "Clear" button next to the box.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
