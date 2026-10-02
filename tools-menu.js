@@ -6,7 +6,7 @@
   const TOOLS = [
     { name: "FarmRPG Next Steps", url: "https://prlygrly.github.io/FarmRPG-Next-Steps/", what: "What to do next: Tower, masteries, quests" },
     { name: "Large Net Planner", url: "https://prlygrly.github.io/buddys-net-planner/", what: "Fishing and Large Net masteries" },
-    { name: "Bacon Planner", url: "https://prlygrly.github.io/farmrpg-bacon-planner/", what: "Pigs and bacon" }
+    { name: "Bacon Planner", url: "https://prlygrly.github.io/farmrpg-bacon-planner/", what: "Which pigs to turn into bacon" }
   ];
   const here = location.pathname.toLowerCase();
   const css = `
