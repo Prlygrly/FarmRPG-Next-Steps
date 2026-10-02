@@ -163,6 +163,8 @@ h2 { font-size: 1.25rem; font-weight: 700; }
 main { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
 header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 header p { margin: 0; color: var(--muted); }
+.head-tools { display: flex; align-items: flex-end; gap: 10px; }
+:root { --tm-bg: var(--surface); --tm-ink: var(--ink); --tm-line: var(--line); }
 button, input, textarea { font: inherit; color: inherit; }
 button {
   background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
@@ -224,6 +226,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <h1>FarmRPG Next Steps</h1>
       <p>Paste your game pages. Get a short list of what to do next.</p>
     </div>
+    <div class="head-tools">
     <label class="small muted">Theme
       <select id="theme" aria-label="Page theme">
         <option value="">Auto (match my device)</option>
@@ -236,6 +239,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <option value="paper">Paper</option>
       </select>
     </label>
+    <span id="tools-menu"></span>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -495,6 +500,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </footer>
 </main>
 
+<script src="tools-menu.js" defer></script>
 <script src="tower.js"></script>
 <script src="parse.js"></script>
 <script src="drops.js"></script>
