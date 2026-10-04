@@ -26,4 +26,15 @@ assert.deepStrictEqual(flat.tower, { ak: 42, level: 220 });
 const col = parseMastery("Tier III (M) chevron_right\nTier IV (GM) chevron_down\nApple Cider\n1 / 100,000 Progress");
 assert.deepStrictEqual(col.collapsed, ["Tier III (M)"]);
 
+// Crop plots: from the next row's price, else the Plant All button; never from the seed list (made-up numbers)
+{
+  const { parseFarm } = require("../parse.js");
+  const home = ["Nothing Selected Beet (9906)Broccoli (777)Gold Pepper (412)", "CropsPlant All", "Selected[GJ (6.6K)](x)",
+    "[14 Left Today](x)", "Corn (40)", "Around Your Farm", "* [Sawmill](x)", "[Produces Boards/Wood hourly](x)", "[1,000 Boards](x)"];
+  assert.strictEqual(parseFarm(home.join("\n")).plots, 40);
+  assert.strictEqual(parseFarm(home.concat(["* [Grow more crops](x)", "[Adds another row of crops](x)", "[100.0T  Silver](x)"]).join("\n")).plots, 52);
+  assert.strictEqual(parseFarm("Plant All Selected Leek (36) Drink Veg Juice").plots, 36);
+  assert.strictEqual(parseFarm("Plant All Selected Nothing Selected Gold Pepper (412)").plots, undefined);
+}
+
 console.log("parse tests passed");

@@ -152,6 +152,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - **To do: paste feedback + clear button.** When a paste is read, leave the text in the box briefly (~0.6 s), then flash a
   green check over the box as the text fades out, so the box is clearly ready for the next paste. When a paste isn't
   recognised the text stays, with the warning and a "Clear" button next to the box.
+- **To do: paste production buildings one at a time.** The home page lists every building's output only with the perk that
+  shows it there. Without it, let players paste each building's own page (Sawmill, Hay Field, Quarry, Ironworks, Steelworks,
+  Coop, Pasture, Raptor Pen, Trout Farm, Vineyard, Worm Habitat, Orchard) and merge each into production, like the farm page.
+  Needs one example paste per building page.
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.

@@ -145,9 +145,22 @@
         if (m) out[item] = toInt(m[1]) * 60 / b.per;
       }
     }
-    // Planting spots: "Plant All Selected Leek (48)"
-    const pl = flat.match(/Plant All Selected [A-Za-z' ]+ \((\d+)\)/i);
-    if (pl) Object.defineProperty(out, "plots", { value: +pl[1], enumerable: false });
+    // Crop plots. Best source: the price of the next row under Expand Farm ("Grow more crops … 10.0T Silver"): rows of 4,
+    // each 10x the last, and the row reaching 52 plots costs 10T. Only trusted from 1T up (the 10x rule is confirmed there).
+    // Else the Plant All button ("Plant All Selected [GJ (6.6K) 14 Left Today] Leek (48)"): crop names are 1-2 words, so the
+    // seed list ("Nothing Selected Beet (9906)…") can't be misread as plots.
+    let plots = null;
+    const row = flat.match(/Grow more crops Adds another row of crops ([\d.,]+)\s*([KMBTQ]?)\s*Silver/i);
+    if (row) {
+      const cost = parseFloat(row[1].replace(/,/g, "")) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15 }[row[2].toUpperCase()] || 1);
+      const n = 48 + 4 * Math.round(Math.log10(cost / 1e13));
+      if (cost >= 1e12 && n >= 44) plots = n;
+    }
+    if (plots == null) {
+      const pl = flat.match(/Plant All Selected ?(?:GJ \([^)]*\) ?)?(?:\d+ Left Today ?)?[A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*)? \((\d+)\)/);
+      if (pl) plots = +pl[1];
+    }
+    if (plots != null) Object.defineProperty(out, "plots", { value: plots, enumerable: false });
     return out;
   }
 
