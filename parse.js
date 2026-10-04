@@ -157,7 +157,7 @@
       if (cost >= 1e12 && n >= 44) plots = n;
     }
     if (plots == null) {
-      const pl = flat.match(/Plant All Selected ?(?:GJ \([^)]*\) ?)?(?:\d+ Left Today ?)?[A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*)? \((\d+)\)/);
+      const pl = flat.match(/Plant All Selected ?(?:GJ \([^)]*\) ?)?(?:\d+ Left Today ?)?[A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*)? \((\d+)\)/i);
       if (pl) plots = +pl[1];
     }
     if (plots != null) Object.defineProperty(out, "plots", { value: plots, enumerable: false });
