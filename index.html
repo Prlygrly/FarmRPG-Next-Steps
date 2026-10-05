@@ -586,7 +586,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js?v=202610052109"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -738,6 +738,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
       else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
         done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+    } else if (kind === "request") {
+      // One request's own page (special and personal requests aren't in buddy.farm's quest data)
+      const r = parseRequest(text);
+      if (!r) msg = warn("No requested items were found. Copy the whole request page and try again.");
+      else {
+        S.requests = { ...(S.requests || {}), [r.id || r.name]: { ...r, at: Date.now() } }; done = true;
+        msg = `<div class="note" style="border-color:var(--good)">Read the request ${esc(r.name || "")}${r.npc ? ` from ${esc(r.npc)}` : ""}: ${r.need.length} items wanted.</div>`;
+      }
     } else if (kind === "market") {
       // The Farmer's Market: base prices = stack value / count. Needs My Inventory for the counts.
       const m = parseMarket(text), n = Object.keys(m.items).length;
@@ -1123,6 +1131,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const qs = S.quests;
     li.push(qs ? `<li>Help Needed: ${qs.length} quests (${qs.filter(q => q.ready).length} ready, ${qs.filter(q => q.section === "special").length} specials) <span class="muted small">(${ago(S.questsAt)})</span></li>`
                : `<li class="missing">Help Needed: not pasted yet (optional, for quest suggestions)</li>`);
+    const rq = Object.values(S.requests || {});
+    if (rq.length) li.push(`<li>Requests: ${rq.map(r => esc(r.name || "?")).join(", ")} <span class="muted small">(${ago(Math.max(...rq.map(r => r.at)))})</span></li>`);
     const pr = S.production;
     li.push(pr ? `<li>Farm: ${Object.keys(pr).length} things your buildings make <span class="muted small">(${ago(S.productionAt)})</span></li>`
                : `<li class="missing">Farm page: not pasted yet (optional, turns wood, straw, grapes… into hours or days; or type them under "Daily production")</li>`);

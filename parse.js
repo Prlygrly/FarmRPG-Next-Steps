@@ -314,6 +314,45 @@
     const pk = String(text).match(/extra (\d+)% due to your unlocked perks/i);
     return { items, perks: pk ? +pk[1] : null };
   }
+  // One request's own page (quest.php: special and personal requests). "Items Requested": "* Name" / "You have N" / "Nx";
+  // "Rewards": "* Silver" / amount (or Gold), then "* Item" / description lines / "Nx". The item links carry quest_id, and the
+  // Help Needed sidebar on the same page links that id to the title and "Request from NPC".
+  // Returns { id, name, npc, need: [[item, qty]], have: {item: n}, silver, gold, get: [[item, qty]] } or null.
+  function parseRequest(text) {
+    const raw = String(text || "");
+    const id = (raw.match(/quest_id=(\d+)/) || [])[1] || null;
+    let name = null, npc = null;
+    if (id) {
+      const t = raw.match(new RegExp("\\[([^\\]]+)\\]\\([^)]*quest\\.php\\?id=" + id + "\\)\\s*\\n\\s*\\[Request from ([^\\]]+)\\]"));
+      if (t) { name = t[1].trim(); npc = t[2].replace(/\s*[-–—]\s*(Main Quest|Side Request)\s*$/i, "").trim(); }
+    }
+    const lines = raw.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const at = lines.findIndex(l => /^Items Requested$/i.test(l)), rw = lines.findIndex(l => /^Rewards$/i.test(l));
+    if (at < 0 || rw < at) return null;
+    if (!name) {                                   // no links: the title is the "* Name" line just above its description
+      for (let i = at - 1; i > 0; i--) if (/^\*\s+/.test(lines[i - 1]) && /[.?!]$/.test(lines[i])) { name = lines[i - 1].replace(/^\*\s+/, ""); break; }
+    }
+    const need = [], have = {};
+    let item = null;
+    for (const l of lines.slice(at + 1, rw)) {
+      const it = l.match(/^\*\s+(.+)$/), h = l.match(/^You have ([\d,]+)$/i), q = l.match(/^([\d,]+)x$/);
+      if (it) item = it[1].trim();
+      else if (h && item) have[item] = toInt(h[1]);
+      else if (q && item) { need.push([item, toInt(q[1])]); item = null; }
+    }
+    const get = [];
+    let silver = 0, gold = 0, cur = null;
+    for (const l of lines.slice(rw + 1)) {
+      const it = l.match(/^\*\s+(.+)$/), q = l.match(/^([\d,]+)x$/), n = l.match(/^([\d,]+)$/);
+      if (it) cur = it[1].trim();
+      else if (n && cur === "Silver") { silver = toInt(n[1]); cur = null; }
+      else if (n && cur === "Gold") { gold = toInt(n[1]); cur = null; }
+      else if (q && cur) { get.push([cur, toInt(q[1])]); cur = null; }
+      else if (/^Consume a meal$/i.test(l)) break;
+    }
+    return need.length ? { id, name, npc, need, have, silver, gold, get } : null;
+  }
+
   // Base prices from a Market paste and inventory counts (cap for MAX ON HAND); whole numbers only (the game's prices are)
   function marketPrices(market, counts, cap) {
     const out = {};
@@ -339,6 +378,8 @@
     if (/Around Your Farm/i.test(text)) return "farm";
     if (/cannot have more than [\d,]+ of any single thing|Inventory Stats/.test(text)) return "inventory";
     if (/[\d,]+\s*\/\s*([\d,]+|∞)\s*Progress/.test(text)) return "mastery";
+    // One request's page carries the Help Needed sidebar, so check for its own headings first
+    if (/^\s*Items Requested\s*$/im.test(text) && /^\s*Rewards\s*$/im.test(text)) return "request";
     if (/Active Requests|Special Requests/i.test(text)) return "quests";
     return null;
   }
@@ -374,7 +415,7 @@
   const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
-    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseFriends: noChat(parseFriends), perkSettings,
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseFriends: noChat(parseFriends), perkSettings,
     detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);

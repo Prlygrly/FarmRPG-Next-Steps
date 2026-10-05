@@ -82,3 +82,24 @@ assert.deepStrictEqual(col.collapsed, ["Tier III (M)"]);
 }
 
 console.log("parse tests passed");
+
+// One request's own page (made-up ids and counts): needs, what you have, rewards; name and NPC from the sidebar link
+{
+  const { parseRequest, detectPage } = require("../parse.js");
+  const page = [
+    "Personal Requests (1)", "", "* [Items Wanted](https://farmrpg.com/quest.php?id=111)", "[Request from Vincent](https://farmrpg.com/quest.php?id=111)",
+    "", "* [Items Wanted](https://farmrpg.com/index.php#)", "If you can find the following items and give them to Vincent, you'll be rewarded for your effort.",
+    "Items Requested", "",
+    "* [Onion](https://farmrpg.com/item.php?id=33&from=quest&quest_id=111&needed=20)", "[You have 1,200](https://farmrpg.com/item.php?id=33&from=quest&quest_id=111&needed=20)", "[20x](https://farmrpg.com/item.php?id=33&from=quest&quest_id=111&needed=20)",
+    "* [Stone Jelly](https://farmrpg.com/item.php?id=694&from=quest&quest_id=111&needed=5)", "[You have 0](https://farmrpg.com/item.php?id=694)", "[5x](https://farmrpg.com/item.php?id=694)",
+    "", "[Track Items](https://farmrpg.com/index.php#)", "Rewards", "", "* Silver", "1,000,000",
+    "* [Canoe](https://farmrpg.com/item.php?id=615&from=quest&quest_id=111)", "[Gently down the stream...](https://farmrpg.com/item.php?id=615)", "[3x](https://farmrpg.com/item.php?id=615)",
+    "", "Consume a meal"].join("\n");
+  assert.strictEqual(detectPage(page), "request");
+  const r = parseRequest(page);
+  assert.deepStrictEqual(r, { id: "111", name: "Items Wanted", npc: "Vincent", need: [["Onion", 20], ["Stone Jelly", 5]],
+    have: { Onion: 1200, "Stone Jelly": 0 }, silver: 1000000, gold: 0, get: [["Canoe", 3]] });
+  // Without links (plain copy): the title is the line above the description
+  const plain = page.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+  assert.strictEqual(parseRequest(plain).name, "Items Wanted");
+}
