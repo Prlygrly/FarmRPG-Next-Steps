@@ -2349,11 +2349,34 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay, true)) || 0;
     return { perDay, budget: b };
   }
-  // Better used than sold: items used exploring or fishing, and ingredients of anything you haven't Mega Mastered yet
-  // (sell the Butter, not the Butter Churn; keep Leather Helmets while Reinforced Helmet still needs its MM)
-  const USED_NOT_SOLD = ["Explosive", "Large Net", "Fishing Net", "Arnold Palmer", "Apple Cider", "Lemonade", "Orange Juice", "Iced Tea", "Grape Juice", "Veggie Juice", "Chum"];
-  const keepFor = (item, p) => USED_NOT_SOLD.includes(item) ? ["used exploring or fishing"]
-    : ((RECIPES.items[item] || {}).uses || []).map(u => u[0]).filter(u => u in p.items && p.items[u] < 1e6);
+  // Better used than sold: items used exploring or fishing, gifts, and ingredients (crafting or cooking) of anything you
+  // haven't Mega Mastered yet (sell the Butter Churn's Butter, not the churn; keep Leather Helmets while Reinforced Helmet needs its MM).
+  // Exceptions: a few sell well and the next step's parts are slow or costly (Lantern, Red Shield); and an item at your cap
+  // that you can't make into anything right now (another part is missing) may be sold.
+  const USED_NOT_SOLD = ["Explosive", "Large Net", "Fishing Net", "Arnold Palmer", "Apple Cider", "Lemonade", "Orange Juice", "Iced Tea", "Grape Juice", "Veggie Juice"];
+  const GIFT_NOT_SOLD = ["Chum"];
+  const SELL_ANYWAY = { Lantern: ["Linked Lantern", "its parts are slow or costly to get"], "Red Shield": ["Frost Shield", "its parts are costly or hard to get"] };
+  const openUses = (item, p) => ((RECIPES.items[item] || {}).uses || []).map(u => u[0]).filter(u => u in p.items && p.items[u] < 1e6);
+  const canMakeNow = (item, into) => {               // the other parts of one craft are on hand
+    const r = RECIPES.items[into], inv = (S.inventory && S.inventory.items) || {};
+    return !!(r && r.recipe && r.recipe.every(([i, q]) => i === item || ((inv[i] || {}).count || 0) >= q));
+  };
+  const atCapIdle = (item, p) => {
+    const have = ((S.inventory && S.inventory.items[item]) || {}).count || 0, cap = invCap();
+    return cap !== Infinity && have >= cap && !openUses(item, p).some(u => canMakeNow(item, u));
+  };
+  // null = fine to sell; otherwise why it's kept
+  const keepFor = (item, p) => {
+    if (USED_NOT_SOLD.includes(item)) return "used exploring or fishing";
+    if (GIFT_NOT_SOLD.includes(item)) return "better gifted to a townsperson";
+    if (SELL_ANYWAY[item]) return null;
+    const open = openUses(item, p);
+    if (!open.length || atCapIdle(item, p)) return null;
+    return `goes into ${open.slice(0, 3).map(esc).join(", ")}${open.length > 3 ? ` and ${open.length - 3} more` : ""}`;
+  };
+  // A short note on a sell suggestion that bends the rule
+  const sellNote = (item, p) => SELL_ANYWAY[item] && openUses(item, p).length ? ` ${esc(SELL_ANYWAY[item][0])} pays more, but ${SELL_ANYWAY[item][1]}.`
+    : openUses(item, p).length && atCapIdle(item, p) ? " At your cap, and nothing to make it into right now." : "";
   function renderSilverGoal(p) {
     if (!S.mastery || !C) { $("silver-goal-list").innerHTML = `<p class="small muted">Paste Mastery Progress in Setup first.</p>`; return; }
     const F = window.FRP, k = S.perks, { perDay, budget } = silverBudget();
@@ -2373,7 +2396,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       .map(([loc, L]) => ({ loc, perNet: (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) }))
       .filter(f => !fishing[0] || f.perNet > fishing[0].perNet).sort((a, b) => a.perNet - b.perNet)[0];   // the nearest step up
     const kept = [];
-    const keep = n => { const k = keepFor(n, p); if (k.length) kept.push([n, k]); return k.length > 0; };
+    const keep = n => { const k = keepFor(n, p); if (k) kept.push([n, k]); return !!k; };
     const rows = F.silverWays({ coster: C, perDay, recipes: RECIPES, price: n => sellPrice(n, p), craftLevel: (p.skills || {}).Crafting ?? 1, budget, fishing, keep });
     const UNIT = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
     const daysTo = d => need == null || !(d > 0) ? "" : need <= 0 ? " · goal reached" : ` · goal in <b>${longText(need / d)}</b>`;
@@ -2383,13 +2406,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const line = r => r.kind === "fish"
       ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish.</span></li>`
       : `<li><b>Craft ${esc(r.item)}</b> and sell: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">${fmt(r.price)} each x ~${short(r.perDay)} a day, limited by ${by(r.limit)}${
-        wordy ? `; uses ${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries` : ""}.</span></li>`;
+        wordy ? `; uses ${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries` : ""}.${sellNote(r.item, p)}</span></li>`;
     // Per drink or net, for crafts that need hand-gathered parts (compare with fishing per net)
     const perUnit = rows.filter(r => r.kind === "craft" && Object.keys(r.perUnit).length).map(r => {
       const [u, v] = Object.entries(r.perUnit).sort((a, b) => b[1] - a[1])[0]; return { item: r.item, u, v };
     }).sort((a, b) => b.v - a.v).slice(0, 4);
     const lv = (p.skills || {}).Crafting ?? 1;
-    const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null && !keepFor(n, p).length).length;   // only end products are worth pricing
+    const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null && !keepFor(n, p)).length;   // only end products are worth pricing
     $("silver-goal-list").innerHTML = (goal ? `<p class="small" style="margin:0 0 6px">${S.silverGoal > 0 ? "Goal" : `Tower ${p.level + 1}`}: <b>${short(goal)}</b>${
         S.silver != null ? `; you have ${short(S.silver)}${need > 0 ? `, ${short(need)} to go` : ""}` : " (your silver isn't pasted yet)"}.</p>` : "") +
       (timed.length ? `<ul style="margin:0;padding-left:20px">${timed.map(line).join("")}</ul>` : `<p class="small muted">No priced crafts or fishing places yet.</p>`) +
@@ -2398,7 +2421,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       (perUnit.length ? `<p class="small" style="margin:8px 0 2px"><b>Per drink or net</b> <span class="muted">(crafts with hand-gathered parts)</span></p><ul class="small" style="margin:0;padding-left:20px">${
         perUnit.map(x => `<li>${esc(x.item)}: ~${short(x.v)} per ${UNIT[x.u] || esc(x.u)}</li>`).join("")}</ul>` : "") +
       (kept.length ? `<details class="small muted" style="margin:8px 0 0"><summary>${fmt(kept.length)} priced items left out: better used than sold</summary>${
-        kept.map(([n, k]) => `${esc(n)} (${k[0] === "used exploring or fishing" ? k[0] : `goes into ${k.slice(0, 3).map(esc).join(", ")}${k.length > 3 ? ` and ${k.length - 3} more` : ""}`})`).join("; ")}.</details>` : "") +
+        kept.map(([n, k]) => `${esc(n)} (${k})`).join("; ")}.</details>` : "") +
       `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products at your level have no price yet: unlock them, then paste the Farmer's Market page (and My Inventory) to add them.` : ""}</p>`;
   }
   $("silver-goal-in").addEventListener("change", () => { const v = +$("silver-goal-in").value || 0; if (v > 0) S.silverGoal = v; else delete S.silverGoal; save(); render(false); });
