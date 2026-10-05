@@ -9,9 +9,8 @@ Answered questions are removed; their answers live in knowledge/ and the README.
    today only 15 crafts have prices (292 at your level don't).
 
 ## Questions
-4. **Fishing silver per net:** Glacier Lake comes out ~10M a net for you (buddy.farm ~11.7k average per fish x 500 fish per net
-   with Reinforced Netting + Fishing Trawl x 1.7 sell perks). Does that match what you see? If a Large Net catches fewer fish,
-   tell me the real number.
+4. ~~Fishing silver per net~~ answered: ~11.4M a net at Glacier Lake (all sold); Shrimp-a-Plenty and Sea Pincher Special
+   each x1.10. Recorded in knowledge/mechanics/silver.md.
 5. **Fishing vs. masteries:** the Silver goal's fishing line uses all your Large Nets a day, which also feed Slow grinds. I left
    that as a note rather than splitting the budget. OK?
 6. **Old "Making silver" card** (Next steps, only before Fun Guy): the new Silver goal card on Best use covers it for everyone.
