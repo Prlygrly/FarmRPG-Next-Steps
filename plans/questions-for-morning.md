@@ -1,4 +1,4 @@
-# Questions for the player (overnight work, 2026-10-05)
+# Questions for the player (overnight work, 2026-10-05; updated after the player's first answers)
 
 Everything below was built locally and committed, not pushed. Each question notes the call I made so you can just say
 "fine" or correct it.
@@ -43,3 +43,20 @@ Everything below was built locally and committed, not pushed. Each question note
 Slow grinds batches 1-4, Silver goal batches 1-3 + next fishing place, Tower silver column, daily-drop wording.
 Run `git log --oneline -12` to see them. Say "push" when you're happy.
 
+
+## Answered 2026-10-05 (to build next)
+- **Arnold Palmers / Apple Ciders / Lemonade (Q3):** assume the hand-gathered parts (Glass, Tea Leaves) are always on hand;
+  the limit is the fruit. Default the budgets from fruit only, and add a small line: AP a day needed in Ember Lagoon for the
+  Glass, and in Tea Leaves' explore place for the Tea Leaves.
+- **Scope:** only masteries **required for the Tower** (plus the always-on five until MM'd). The 31 rows included non-Tower ones
+  (Cabbage Stew, Shrimp-a-Plenty, Pink Jelly, Grape Juice, Runestones…): drop those. The "Slower than" setting stays.
+- **Antlers (Q6):** voiding at midnight is fine. The goal is a noon bonus (10%) as big as the cap, i.e. two full drops a day:
+  production >= cap / 10%. Reframe the What if / Large Net row around "noon bonus fills the cap" instead of "raise the cap".
+- **Sinking Swamp (Q11):** not unlocked (expensive puzzle quest), so the next-place hint is right.
+- **Upgrade prices (Q5):** the player will sample prices and send them.
+- **Personal requests:** example pastes received ("Items Wanted" from Vincent, "Lost Items" from Rosalie, quest.php pages).
+  Format: "Items Requested" then per item "[Name]" / "You have N" / "Nx"; "Rewards" then "Silver" / amount and items "Nx".
+  This is the page the "paste a special request" to-do needs; build a parser for it (works for special requests too).
+
+## Still open
+1, 2, 4, 7, 8, 9, 10 above.
