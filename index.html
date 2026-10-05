@@ -2422,7 +2422,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         perUnit.map(x => `<li>${esc(x.item)}: ~${short(x.v)} per ${UNIT[x.u] || esc(x.u)}</li>`).join("")}</ul>` : "") +
       (kept.length ? `<details class="small muted" style="margin:8px 0 0"><summary>${fmt(kept.length)} priced items left out: better used than sold</summary>${
         kept.map(([n, k]) => `${esc(n)} (${k})`).join("; ")}.</details>` : "") +
-      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products at your level have no price yet: unlock them, then paste the Farmer's Market page (and My Inventory) to add them.` : ""}</p>`;
+      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products at your level have no price yet (optional: a Farmer's Market paste with them unlocked, plus My Inventory, adds them).` : ""}</p>`;
   }
   $("silver-goal-in").addEventListener("change", () => { const v = +$("silver-goal-in").value || 0; if (v > 0) S.silverGoal = v; else delete S.silverGoal; save(); render(false); });
 

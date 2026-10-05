@@ -36,20 +36,13 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 - The Farmer's Market page states the perk total ("You are getting an extra 70% due to your unlocked perks"), and one "Item of the day" sells for extra (e.g. Garnet +28%).[^player]
 - The Market lists each unlocked item's whole-stack value at the **base** price (count x base; perks and mastery are added when you sell), and nothing for locked items. Items at the cap say "MAX ON HAND" (count = your cap); for the rest, divide by the count from an Inventory paste taken at the same time. Iron Cup: 1,589,940 / 9,636 = 165 exactly.[^player]
 
-# Base sell prices (known so far)
+# Base sell prices
 
-| Item | Base | Item | Base |
-|---|---|---|---|
-| Iron Cup | 165 | Fancy Pipe | 5,000 |
-| Lemon Quartz Ring | 1,500 | Barbed Wire | 20,000 |
-| Emerald Ring | 2,500 | Linked Lantern | 100,000 |
-| Shimmer Ring | 5,000 | Blue Purse | 110,000 |
-| MIAB | 2,000 | Crossbow | 125,000 |
-| Wooden Bow | 2,500 | Sturdy Shield | 4,000 |
-| Awl | 500 | Lantern | 40,000 |
-| Wooden Button | 550 | | |
-
-From the player's Market page (whole-stack values) divided by inventory counts; MIAB and Wooden Bow confirmed, and Sturdy Shield, Lantern, Awl and Wooden Button given, by the player. Raw materials (Wood, Boards, Planks, Stone) are never sold: always craft them into something first.[^player]
+Base prices are the same for every player, so they're built into the site: `prices.js` holds 84 (2026-10-05), worked out
+from one Market paste and an Inventory paste taken at the same moment (every result a whole number, and all matching the
+hand-kept ones). Examples: Iron Cup 165, Lantern 40,000, Linked Lantern 100,000, Crossbow 125,000, Butter 60,000,
+Fancy Violin 1,500,000, Grand Piano 2,000,000, Concord Grape Pie 25,000,000. A Market paste can add missing items.
+Which items are worth selling is a planner rule (sell end products, not their parts: see planner/rules.md).[^player]
 
 # Fishing for silver
 
