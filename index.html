@@ -319,7 +319,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       </span>
     </div>
     <p class="small muted">Masteries that take months at your production, longest first. Tap one for more.</p>
-    <details class="small" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
+    <details class="small" id="grind-numbers" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
       <div class="row" id="grind-settings" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
     <details class="small" id="whatif-box" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">What if <span id="whatif-on"></span></summary>
       <p class="muted" style="margin:6px 0">Change a number to see how much sooner each grind finishes. Blank keeps your current value.</p>
@@ -2200,7 +2200,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const longText = d => d < 60 ? `${fmt(Math.max(1, Math.round(d)))} day${Math.round(d) === 1 ? "" : "s"}` : d < 730 ? `${fmt(Math.round(d / 30.4))} months` : `${(d / 365).toFixed(1)} years`;
   const GRIND_FIELDS = [["grindDays", "Slower than (days)", 180, "Masteries faster than this are left out (the always-on ones stay)."],
     ["lnPerDay", "Large Nets a day", null, "Blank: the nets your production makes."], ["apPerDay", "Arnold Palmers a day", null, "Blank: what your production makes."],
-    ["acPerDay", "Apple Ciders a day", null, "Blank: what your production makes."], ["extraAntlers", "Extra Antlers a day", null, "Antlers you also gather exploring; they go into Large Nets."]];
+    ["acPerDay", "Apple Ciders a day", null, "Blank: what your production makes."], ["extraAntlers", "Extra Antlers a day", null, "Antlers you also gather exploring; they go into Large Nets."],
+    ["capPerDay", "Cap growth a day", null, "How much your inventory cap grows each day (Storehouse page). Pasting that page fills this in."]];
   // Usable amounts per day: crops (as now) plus buildings and orchard from a production env (current or what-if)
   function grindPerDay(env) {
     const perDay = {};
@@ -2302,7 +2303,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Masteries gathered with ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" or ")} aren't timed until you set how many you use a day.</p>` : "";
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     // No Storehouse data: times use today's cap for good, which overstates them
-    const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page (or set Cap growth a day in What if).</div>` : "";
+    const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
     $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
   // ---------- Silver goal ----------
@@ -2398,6 +2399,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   $("whatif-box").addEventListener("click", e => {
     const a = e.target.closest("[data-gsort]"); if (!a) return;
     e.preventDefault(); S.grindSort = a.dataset.gsort; save(); render(false);
+  });
+  // "Your numbers" link in the Storehouse note: open the box and go to the field
+  $("grind-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-open]"); if (!a) return;
+    e.preventDefault(); const d = $(a.dataset.open); d.open = true; d.scrollIntoView({ block: "nearest" });
+    const i = d.querySelector('[data-grind="capPerDay"]'); if (i) i.focus();
   });
   $("grind-settings").addEventListener("change", e => {
     const k = e.target.dataset.grind; if (!k) return;
