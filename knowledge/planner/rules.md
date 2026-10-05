@@ -56,7 +56,21 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Saved production carries its own unit, as the game states it: `{ n: 54210, per: "day" }` for daily drops (Antler,
   Eggs, Milk, Trout…), `{ n: 18002, per: "hour" }` for the rest. The math converts to per hour in one place
   (`ratesPerHour` in engine.js); never store or quote a daily drop as an hourly rate.[^player]
-- Full list of decisions and the batch history: the README.[^readme]
+- Quest value = max(craft/gather cost, trade price), x2 if it helps the plan, x0.1 otherwise; silver and gold not counted;
+  chests = contents - key cost. Ready isn't free (stock used is shown and costed). Chain look-ahead x0.7 a step, main x1.5.[^player]
+- Outlets (where a pile goes): one that earns a mastery or Tower need is always offered with its cost; others only if cheaper
+  than the job. Items with other uses (OTHER_USES: bait, Veggie Juice, pickaxes) say "keep for ..." instead of "sell".[^player]
+- What to plant: crops that aren't gatherable and are in season, ranked by what they feed (own tier, quest needs current + 5
+  ahead, AK-plan masteries; Tower and main x1.5), score = sum of weights / (1 + hours / 24). Crops officially <= 5 min are done
+  together under Breakfast Boost, counted in harvests.[^player]
+- Wishing well: only today's free tosses, each with what it brings and why; no totals or later days; items whose usual route is
+  covered by exploring done anyway don't need tosses. Spare tosses stock up for later steps of active chains (the biggest
+  single step past 5 ahead, never above the cap).[^player]
+- Daily overflow is framed as a goal (the product's next tier or Tower tier: "Mega Mastery in N days, X is the slowest").[^player]
+- Trips: places you explore anyway are discounted (default 50%); the main item's chain claims side drops first.[^player]
+- Done ticks: a quest leaves the list (needs out, rewards in, next quests appear); a mastery moves up a tier (+AK); a Tower level
+  goes +1 (AK -100). Undo via snapshots; any fresh Mastery, Inventory or Help Needed paste clears ticks.[^player]
+- Tabs and files: the README.[^readme]
 
 [^player]: Player confirmation
 [^readme]: farmrpg-planner README
