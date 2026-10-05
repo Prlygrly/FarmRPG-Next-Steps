@@ -325,6 +325,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div id="grind-list"></div>
     <div id="grind-standing"></div>
   </section>
+  <section class="card" data-tab="best" id="silver-goal" aria-labelledby="h-silver-goal">
+    <h2 id="h-silver-goal" style="margin:0 0 4px">Silver goal</h2>
+    <p class="small muted" style="margin:0 0 6px">The best ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
+    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
+    <div id="silver-goal-list"></div>
+  </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
     <p class="small muted">Refill your pantry: meals your quests need first, then what you're lowest on. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
@@ -985,6 +991,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderVJ();
     renderOverflow(p);
     renderGrinds(p);
+    renderSilverGoal(p);
     renderKitchen(p);
     $("quests").hidden = !S.quests;
     if (S.quests) renderQuests(p);
@@ -2241,6 +2248,52 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed;
   }
+  // ---------- Silver goal ----------
+  // Crafting and selling (from daily production, or per Large Net / Arnold Palmer / Apple Cider) and fishing with Large
+  // Nets at each place you can fish, best first. Budgets are the same as Slow grinds (typed, or what production makes).
+  function silverBudget() {
+    const F = window.FRP, perDay = grindPerDay(grindEnv()), auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, b = {};
+    const key = { lnPerDay: "LN", apPerDay: "AP", acPerDay: "AC" };
+    for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay)) || 0;
+    return { perDay, budget: b };
+  }
+  function renderSilverGoal(p) {
+    if (!S.mastery || !C) { $("silver-goal-list").innerHTML = `<p class="small muted">Paste Mastery Progress in Setup first.</p>`; return; }
+    const F = window.FRP, k = S.perks, { perDay, budget } = silverBudget();
+    const towerNext = !p.noTower && p.level != null ? tSilver(p.level + 1) : null;
+    const goal = S.silverGoal > 0 ? S.silverGoal : towerNext;
+    $("silver-goal-in").value = S.silverGoal > 0 ? S.silverGoal : "";
+    $("silver-goal-in").placeholder = towerNext ? `${short(towerNext)} (Tower ${p.level + 1})` : "";
+    const need = goal ? Math.max(0, goal - (S.silver || 0)) : null;
+    const perNetSize = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
+    const fishing = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && W.places[loc])
+      .map(([loc, L]) => ({ loc, perNet: (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) }))
+      .filter(f => f.perNet > 0).sort((a, b) => b.perNet - a.perNet).slice(0, 1);       // the best place you can fish
+    const rows = F.silverWays({ coster: C, perDay, recipes: RECIPES, price: n => sellPrice(n, p), craftLevel: (p.skills || {}).Crafting ?? 1, budget, fishing });
+    const UNIT = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
+    const daysTo = d => need == null || !(d > 0) ? "" : need <= 0 ? " · goal reached" : ` · goal in <b>${longText(need / d)}</b>`;
+    const by = x => x.kind === "prod" ? `${esc(x.by)}${BUILDING[x.by] ? ` (${esc(BUILDING[x.by])})` : ""}` : `${UNIT[x.by] || esc(x.by)}s a day`;
+    const wordy = S.nextDetail === "expanded";
+    const timed = rows.filter(r => r.silverDay != null).slice(0, 6);
+    const line = r => r.kind === "fish"
+      ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish.</span></li>`
+      : `<li><b>Craft ${esc(r.item)}</b> and sell: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">${fmt(r.price)} each x ~${short(r.perDay)} a day, limited by ${by(r.limit)}${
+        wordy ? `; uses ${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries` : ""}.</span></li>`;
+    // Per drink or net, for crafts that need hand-gathered parts (compare with fishing per net)
+    const perUnit = rows.filter(r => r.kind === "craft" && Object.keys(r.perUnit).length).map(r => {
+      const [u, v] = Object.entries(r.perUnit).sort((a, b) => b[1] - a[1])[0]; return { item: r.item, u, v };
+    }).sort((a, b) => b.v - a.v).slice(0, 4);
+    const lv = (p.skills || {}).Crafting ?? 1;
+    const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null).length;
+    $("silver-goal-list").innerHTML = (goal ? `<p class="small" style="margin:0 0 6px">${S.silverGoal > 0 ? "Goal" : `Tower ${p.level + 1}`}: <b>${short(goal)}</b>${
+        S.silver != null ? `; you have ${short(S.silver)}${need > 0 ? `, ${short(need)} to go` : ""}` : " (your silver isn't pasted yet)"}.</p>` : "") +
+      (timed.length ? `<ul style="margin:0;padding-left:20px">${timed.map(line).join("")}</ul>` : `<p class="small muted">No priced crafts or fishing places yet.</p>`) +
+      (perUnit.length ? `<p class="small" style="margin:8px 0 2px"><b>Per drink or net</b> <span class="muted">(crafts with hand-gathered parts)</span></p><ul class="small" style="margin:0;padding-left:20px">${
+        perUnit.map(x => `<li>${esc(x.item)}: ~${short(x.v)} per ${UNIT[x.u] || esc(x.u)}</li>`).join("")}</ul>` : "") +
+      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} crafts at your level have no price yet: paste the Farmer's Market page (and My Inventory) to add them.` : ""}</p>`;
+  }
+  $("silver-goal-in").addEventListener("change", () => { const v = +$("silver-goal-in").value || 0; if (v > 0) S.silverGoal = v; else delete S.silverGoal; save(); render(false); });
+
   // What if fields: cap, days ahead (the cap grows meanwhile), cap growth, and a target output per building and fruit
   function renderWhatIf() {
     const w = S.whatIf || {}, cap = invCap();

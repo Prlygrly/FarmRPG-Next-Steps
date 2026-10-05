@@ -16,3 +16,14 @@ Everything below was built locally and committed, not pushed. Each question note
 6. **Try it:** What if → Inventory cap 20,000 shows Large Net MM ~14 → ~9 months, because your daily Antler drop voids past
    the cap. That might be the most useful single number on the tab.
 
+## Silver goal (Best use tab)
+7. **Fishing per net looks huge:** Glacier Lake comes out ~10M silver a net for you (buddy.farm ~11.7k average per fish x 500
+   fish per net with Reinforced Netting + Fishing Trawl x 1.7 sell perks). Does ~10M a net match what you see? If a Large Net
+   catches fewer fish than 250/400/500, tell me the real number and I'll fix the formula.
+8. **Prices:** only 15 crafts have prices (292 at your level don't). Please paste your **Farmer's Market** page once more
+   (with a fresh My Inventory paste right before or after): the planner now works out every listed item's base price itself.
+9. **Fishing vs. masteries:** the fishing line uses all your Large Nets a day; those nets also feed Slow grinds (Frost Shield,
+   Runestones…). I left that as a note rather than splitting the budget. OK?
+10. The old "Making silver" card (Next steps, only before Fun Guy) is still there; the new card is on Best use for everyone.
+    Remove the old one, or keep both?
+

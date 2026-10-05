@@ -109,6 +109,11 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   first stir at 1 min, then every 15 min, each −10% of the time left — matches the wiki's full-perk table to the second. Taste = bonus
   mastery (+1, +1 per 30 min base), Season = random XP: not modelled. Cooking level +
   "Recipes I don't have" filter. One meal per oven (wiki).
+- **Silver goal** (Best use) — "Saving up" (blank = next Tower level), your silver, and the best ways to earn it: crafting and
+  selling (crafts a day from production and budgets, x your sell price; limited-by shown) and Large Nets at your best unlocked
+  fishing place (per net x nets a day), each with days to the goal; plus silver per Arnold Palmer / Apple Cider / Large Net for
+  crafts with hand-gathered parts. A Farmer's Market paste (with My Inventory) adds base prices for everything it lists
+  (`parseMarket`, `marketPrices`; `S.prices`, hand-kept PRICES win). Engine: `silverWays` (engine.js).
 - **Slow grinds** — masteries that take longer than "Slower than" (default 180 days) at your production, plus Orange Juice,
   Lemonade, Large Net, White Parchment and Beet until MM'd. Each row: next GM/MM, time (~days/months/years), progress bar,
   "Limited by" (the slowest input: a building, crops, or Large Nets / Arnold Palmers / Apple Ciders a day). Those budgets default
@@ -147,7 +152,7 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
-- **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
+- **Done (2026-10-05): silver goal** (see Tabs). Old note: A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
 - **Friendship (started):** npcs.js has every townsperson's loves/likes. Done: items only another quest gives point to it with its

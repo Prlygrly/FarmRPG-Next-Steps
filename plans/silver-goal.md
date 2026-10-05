@@ -20,3 +20,7 @@ Nets at the best place they have unlocked. Each way says silver a day (or per un
 3. **Silver goal card** (Best use tab): goal field (blank = next Tower level), your silver, the top ways with silver a day and
    days to the goal, and what each uses up (production that could go to masteries). Condensed / Expanded.
 4. **Docs + questions.**
+
+## Progress
+- Batches 1-3 done (2026-10-05). Market page -> base prices; silverWays; Silver goal card on Best use.
+
