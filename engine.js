@@ -454,6 +454,7 @@
       if (!r.craft || !r.recipe || (r.level || 1) > (ctx.craftLevel || 1)) continue;
       const price = ctx.price(item);
       if (!(price > 0)) continue;
+      if (ctx.keep && ctx.keep(item)) continue;           // better used than sold (an ingredient of an unfinished mastery, or used exploring)
       const u = ctx.coster.unit(item);
       if (!u) continue;
       // Crafts a day: each passive input and each budget is a limit; the tightest wins

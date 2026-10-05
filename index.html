@@ -2324,6 +2324,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay, true)) || 0;
     return { perDay, budget: b };
   }
+  // Better used than sold: items used exploring or fishing, and ingredients of anything you haven't Mega Mastered yet
+  // (sell the Butter, not the Butter Churn; keep Leather Helmets while Reinforced Helmet still needs its MM)
+  const USED_NOT_SOLD = ["Explosive", "Large Net", "Fishing Net", "Arnold Palmer", "Apple Cider", "Lemonade", "Orange Juice", "Iced Tea", "Grape Juice", "Veggie Juice", "Chum"];
+  const keepFor = (item, p) => USED_NOT_SOLD.includes(item) ? ["used exploring or fishing"]
+    : ((RECIPES.items[item] || {}).uses || []).map(u => u[0]).filter(u => u in p.items && p.items[u] < 1e6);
   function renderSilverGoal(p) {
     if (!S.mastery || !C) { $("silver-goal-list").innerHTML = `<p class="small muted">Paste Mastery Progress in Setup first.</p>`; return; }
     const F = window.FRP, k = S.perks, { perDay, budget } = silverBudget();
@@ -2342,7 +2347,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const nextPlace = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && !W.places[loc] && UNLOCK[loc])
       .map(([loc, L]) => ({ loc, perNet: (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) }))
       .filter(f => !fishing[0] || f.perNet > fishing[0].perNet).sort((a, b) => a.perNet - b.perNet)[0];   // the nearest step up
-    const rows = F.silverWays({ coster: C, perDay, recipes: RECIPES, price: n => sellPrice(n, p), craftLevel: (p.skills || {}).Crafting ?? 1, budget, fishing });
+    const kept = [];
+    const keep = n => { const k = keepFor(n, p); if (k.length) kept.push([n, k]); return k.length > 0; };
+    const rows = F.silverWays({ coster: C, perDay, recipes: RECIPES, price: n => sellPrice(n, p), craftLevel: (p.skills || {}).Crafting ?? 1, budget, fishing, keep });
     const UNIT = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
     const daysTo = d => need == null || !(d > 0) ? "" : need <= 0 ? " · goal reached" : ` · goal in <b>${longText(need / d)}</b>`;
     const by = x => x.kind === "prod" ? `${esc(x.by)}${BUILDING[x.by] ? ` (${esc(BUILDING[x.by])})` : ""}` : `${UNIT[x.by] || esc(x.by)}s a day`;
@@ -2357,7 +2364,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const [u, v] = Object.entries(r.perUnit).sort((a, b) => b[1] - a[1])[0]; return { item: r.item, u, v };
     }).sort((a, b) => b.v - a.v).slice(0, 4);
     const lv = (p.skills || {}).Crafting ?? 1;
-    const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null).length;
+    const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null && !keepFor(n, p).length).length;   // only end products are worth pricing
     $("silver-goal-list").innerHTML = (goal ? `<p class="small" style="margin:0 0 6px">${S.silverGoal > 0 ? "Goal" : `Tower ${p.level + 1}`}: <b>${short(goal)}</b>${
         S.silver != null ? `; you have ${short(S.silver)}${need > 0 ? `, ${short(need)} to go` : ""}` : " (your silver isn't pasted yet)"}.</p>` : "") +
       (timed.length ? `<ul style="margin:0;padding-left:20px">${timed.map(line).join("")}</ul>` : `<p class="small muted">No priced crafts or fishing places yet.</p>`) +
@@ -2365,7 +2372,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         esc(UNLOCK[nextPlace.loc][0])}${UNLOCK[nextPlace.loc][1] ? ` + Fishing ${UNLOCK[nextPlace.loc][1]}${((p.skills || {}).Fishing ?? 0) < UNLOCK[nextPlace.loc][1] ? ` (you're ${(p.skills || {}).Fishing ?? 1})` : ""}` : ""}.</p>` : "") +
       (perUnit.length ? `<p class="small" style="margin:8px 0 2px"><b>Per drink or net</b> <span class="muted">(crafts with hand-gathered parts)</span></p><ul class="small" style="margin:0;padding-left:20px">${
         perUnit.map(x => `<li>${esc(x.item)}: ~${short(x.v)} per ${UNIT[x.u] || esc(x.u)}</li>`).join("")}</ul>` : "") +
-      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} crafts at your level have no price yet: paste the Farmer's Market page (and My Inventory) to add them.` : ""}</p>`;
+      (kept.length ? `<details class="small muted" style="margin:8px 0 0"><summary>${fmt(kept.length)} priced items left out: better used than sold</summary>${
+        kept.map(([n, k]) => `${esc(n)} (${k[0] === "used exploring or fishing" ? k[0] : `goes into ${k.slice(0, 3).map(esc).join(", ")}${k.length > 3 ? ` and ${k.length - 3} more` : ""}`})`).join("; ")}.</details>` : "") +
+      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products at your level have no price yet: unlock them, then paste the Farmer's Market page (and My Inventory) to add them.` : ""}</p>`;
   }
   $("silver-goal-in").addEventListener("change", () => { const v = +$("silver-goal-in").value || 0; if (v > 0) S.silverGoal = v; else delete S.silverGoal; save(); render(false); });
 

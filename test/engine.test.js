@@ -222,6 +222,9 @@ console.log("engine tests passed");
   assert.strictEqual(rows2.find(r => r.item === "Pipe").silverDay, 100 * 8500);   // Wood: 1,000 / 10 = 100 a day
   assert.strictEqual(rows2.find(r => r.item === "Pipe").limit.by, "Wood");
   assert.strictEqual(rows2.find(r => r.item === "Charm").silverDay, 10 * 1000);   // 40 AP / 4
+  // keep: items better used than sold are left out (e.g. an ingredient of an unfinished mastery)
+  const rows3 = silverWays({ ...ctx, keep: n => n === "Shield" });
+  assert.deepStrictEqual(rows3.map(r => r.item || r.loc), ["Lake", "Charm"]);
 }
 
 // Upgrade prices: each new unit costs rate x the new amount (the player's samples)
