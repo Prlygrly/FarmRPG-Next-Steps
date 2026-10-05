@@ -13,6 +13,7 @@ Read the relevant concept before changing game rules in the code.
 * [Inventory cap and voiding](mechanics/inventory-cap.md) - per-item cap, voiding, can't craft into a full item
 * [The Tower and AK](mechanics/tower.md) - 100 AK a level, MM requirements, AK sources
 * [Tower artifacts](mechanics/tower-artifacts.md) - each floor's artifact and the perk it unlocks; Scythe of Dewstar
+* [Steak Market](mechanics/steak-market.md) - Steaks, Kabobs, Truffles: when to buy or sell
 * [Effort: AP, AC and Large Nets](mechanics/effort-units.md) - buddy.farm's per-drop formulas
 * [Daily production](mechanics/production.md) - buildings, orchard, Hickory Omelette, year-long blockers
 * [Building upgrades](mechanics/building-upgrades.md) - production bought in chosen amounts, rising prices, orchard limit, cap growth per day

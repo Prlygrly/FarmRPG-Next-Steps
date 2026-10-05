@@ -51,7 +51,7 @@ with a source.
 ## Tabs
 - **Next steps**: what to do next, quickest first; Tower levels; AK plan; Leveling up.
 - **Quests**: what each quest still needs, its cost and reward; the wishing well's free tosses for today.
-- **Best use**: where to spend nets and drinks, what to plant, daily overflow, kitchen, silver goal.
+- **Best use**: where to spend nets and drinks, what to plant, daily overflow, kitchen, Steak Market (sell Truffles today?), silver goal.
 - **Slow grinds**: the Tower masteries that take months, what limits them, and what an upgrade would save.
 - **Veggie Juice**: the juice cycle and a calculator.
 - **Trips**: what a planned exploring trip brings.

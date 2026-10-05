@@ -353,6 +353,37 @@
     return need.length ? { id, name, npc, need, have, silver, gold, get } : null;
   }
 
+  // The Steak Market page (steaks, hourly Steak Kabobs, daily Truffles), plus any of its three history pages.
+  // Returns { steak: {price, market, canBuy, owned}, kabob: {price, canBuy, owned}, truffle: {white, black, whiteChance,
+  // blackChance, whiteOwned, blackOwned}, history: { truffle: [{date, white, black}], steak: [{date, price, market,
+  // volume}], kabob: [{time, price}] } } (parts missing from the paste are null).
+  function parseSteak(text) {
+    const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
+    const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
+    const part = (from, to) => { const i = flat.search(from); if (i < 0) return ""; const rest = flat.slice(i); const j = to ? rest.slice(1).search(to) : -1; return j < 0 ? rest : rest.slice(0, j + 1); };
+    const st = part(/About the Steak Market/i, /About the Steak Kabob Market/i), kb = part(/About the Steak Kabob Market/i, /About the Truffle Market/i);
+    const tr = flat.match(/single White Truffle sells for ([\d,]+) Silver and a single Black Truffle sells for ([\d,]+)/i);
+    const out = {
+      steak: st ? { price: (st.match(/Current Market Price: ([\d,]+)/i) || [])[1] ? toInt(st.match(/Current Market Price: ([\d,]+)/i)[1]) : null,
+        market: (st.match(/Steak Market is (\w+)/i) || [])[1] || null, canBuy: (st.match(/buy up to ([\d,]+) more Steaks/i) || [])[1] ? toInt(st.match(/buy up to ([\d,]+) more Steaks/i)[1]) : null,
+        owned: (st.match(/Steaks Owned: ([\d,]+)/i) || [])[1] ? toInt(st.match(/Steaks Owned: ([\d,]+)/i)[1]) : null } : null,
+      kabob: kb ? { price: (kb.match(/Current Market Price: ([\d,]+)/i) || [])[1] ? toInt(kb.match(/Current Market Price: ([\d,]+)/i)[1]) : null,
+        canBuy: (kb.match(/buy up to ([\d,]+) more Kabobs/i) || [])[1] ? toInt(kb.match(/buy up to ([\d,]+) more Kabobs/i)[1]) : null,
+        owned: (kb.match(/Steak Kabobs Owned: ([\d,]+)/i) || [])[1] ? toInt(kb.match(/Steak Kabobs Owned: ([\d,]+)/i)[1]) : null } : null,
+      truffle: tr ? { white: toInt(tr[1]), black: toInt(tr[2]),
+        whiteChance: (flat.match(/White Truffle price increase chance at Reset: ([A-Za-z ]+?)(?= Black| White|$)/i) || [])[1] || null,
+        blackChance: (flat.match(/Black Truffle price increase chance at Reset: ([A-Za-z ]+?)(?= White| Black|$)/i) || [])[1] || null,
+        whiteOwned: num(/White Truffles Owned: ([\d,]+)/i), blackOwned: num(/Black Truffles Owned: ([\d,]+)/i) } : null,
+      history: { truffle: [], steak: [], kabob: [] }
+    };
+    const D = "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\\d{1,2})";
+    const th = part(/Truffle Market History/i), sh = part(/Steak Market History/i), kh = part(/Kabob Market History/i);
+    if (th) for (const m of th.matchAll(new RegExp(D + " ([\\d,]+) ([\\d,]+)", "g"))) out.history.truffle.push({ date: m[1] + " " + m[2], white: toInt(m[3]), black: toInt(m[4]) });
+    if (sh) for (const m of sh.matchAll(new RegExp(D + " ([\\d,]+) (Stable|Unstable|Risky|Wild) ([\\d,]+)", "g"))) out.history.steak.push({ date: m[1] + " " + m[2], price: toInt(m[3]), market: m[4], volume: toInt(m[5]) });
+    if (kh) for (const m of kh.matchAll(new RegExp(D + ", (\\d{1,2} [AP]M) ([\\d,]+)", "g"))) out.history.kabob.push({ time: m[1] + " " + m[2] + ", " + m[3], price: toInt(m[4]) });
+    return out;
+  }
+
   // Base prices from a Market paste and inventory counts (cap for MAX ON HAND); whole numbers only (the game's prices are)
   function marketPrices(market, counts, cap) {
     const out = {};
@@ -367,6 +398,7 @@
 
   function detectPage(text) {
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
+    if (/About the Truffle Market/i.test(text) && /About the Steak Market/i.test(text)) return "steak";
     if (/due to your unlocked perks/i.test(text) && /UNLOCKED INVENTORY/i.test(text)) return "market";
     if (/^\s*Current Levels\s*$/im.test(text) && /Townsfolk/i.test(text)) return "friends";
     if (/^\s*Friendship Levels\s*$/im.test(text) && /^\s*Game Stats\s*$/im.test(text)) return "friends";      // a profile page
@@ -415,7 +447,7 @@
   const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
-    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseFriends: noChat(parseFriends), perkSettings,
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
     detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);

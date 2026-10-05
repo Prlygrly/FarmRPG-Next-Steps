@@ -195,6 +195,9 @@ textarea {
 .row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
 .muted { color: var(--muted); }
 .good { color: var(--good); }
+.tag.good { color: var(--good); border-color: var(--good); }
+.tag.warn { color: var(--gold); border-color: var(--gold); }
+.tag.bad { color: var(--muted); }
 .small { font-size: .9rem; }
 .loaded { list-style: none; padding: 0; margin: 10px 0 0; }
 .loaded li::before { content: "✓ "; color: var(--good); font-weight: 700; }
@@ -344,6 +347,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <p class="small muted" id="grind-sort" style="margin:0 0 6px"></p>
     <div id="grind-list"></div>
     <div id="grind-standing"></div>
+  </section>
+  <section class="card" data-tab="best" id="steak-card" aria-labelledby="h-steak" hidden>
+    <h2 id="h-steak" style="margin:0 0 4px">Steak Market today</h2>
+    <p class="small muted" style="margin:0 0 6px">From your Steak Market paste. Truffles and Steaks change at reset, Kabobs every hour.</p>
+    <div id="steak-list"></div>
   </section>
   <section class="card" data-tab="best" id="silver-goal" aria-labelledby="h-silver-goal">
     <h2 id="h-silver-goal" style="margin:0 0 4px">Silver goal</h2>
@@ -580,7 +588,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js?v=202610052231"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -732,6 +740,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
       else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
         done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+    } else if (kind === "steak") {
+      const r = parseSteak(text);
+      const H = S.marketHistory || (S.marketHistory = { truffle: {}, steak: {}, kabob: {} });
+      for (const k of ["truffle", "steak", "kabob"]) for (const row of r.history[k]) H[k][row.date || row.time] = row;
+      for (const [k, max] of [["truffle", 90], ["steak", 90], ["kabob", 24]]) {        // keep the newest rows only
+        const keys = Object.keys(H[k]); if (keys.length > max) for (const x of keys.slice(0, keys.length - max)) delete H[k][x];
+      }
+      if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
+        msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
+      else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
     } else if (kind === "request") {
       // One request's own page (special and personal requests aren't in buddy.farm's quest data)
       const r = parseRequest(text);
@@ -1043,6 +1061,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderOverflow(p);
     renderGrinds(p);
     renderSilverGoal(p);
+    renderSteak();
     renderKitchen(p);
     $("quests").hidden = !questList().length;
     if (questList().length) renderQuests(p);
@@ -2304,6 +2323,53 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
     $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
+  // ---------- Steak Market: sell Truffles? buy or sell Steaks and Kabobs? ----------
+  // Truffle lines are the community's (knowledge/mechanics/steak-market.md); Steak and Kabob lines come from your pasted
+  // history (10th and 90th percentile) or, without one, from a 90-day / 24-hour sample.
+  const TRUFFLE_LINES = { White: { great: 190e6, sell: 185e6, need: 175e6 }, Black: { great: 610e6, sell: 600e6, need: 580e6 } };
+  const SWING_LINES = { steak: { buy: 46000, sell: 55000 }, kabob: { buy: 9600, sell: 10300 } };
+  // Prices change at the game's reset (midnight, US Central time); Kabobs at the top of every hour
+  const gameDay = t => new Date(t).toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+  function renderSteak() {
+    const m = S.steakMarket;
+    $("steak-card").hidden = !m;
+    if (!m) return;
+    const H = S.marketHistory || {}, today = gameDay(Date.now()) === gameDay(m.at);
+    const pct = (list, v) => list.length ? Math.round(100 * list.filter(x => x < v).length / list.length) : null;
+    const lines = (k, base) => {                                          // your history's 10th / 90th percentile, if any
+      const xs = Object.values(H[k] || {}).map(r => r.price).sort((a, b) => a - b);
+      return xs.length >= 10 ? { buy: xs[Math.round(0.1 * (xs.length - 1))], sell: xs[Math.round(0.9 * (xs.length - 1))] } : base;
+    };
+    const out = [];
+    if (!today) out.push(`<p class="small muted" style="margin:0 0 6px">These prices are from before today's reset: paste the Steak Market again for today's.</p>`);
+    else {
+      if (m.truffle) for (const kind of ["White", "Black"]) {
+        const price = m.truffle[kind.toLowerCase()], L = TRUFFLE_LINES[kind], owned = m.truffle[kind.toLowerCase() + "Owned"], chance = m.truffle[kind.toLowerCase() + "Chance"];
+        const [cls, say] = price >= L.great ? ["good", "sell: a high day"] : price >= L.sell ? ["good", "sell"] : price >= L.need ? ["warn", "sell only if you need the silver"] : ["bad", "hold"];
+        const hist = Object.values(H.truffle || {}).map(r => r[kind.toLowerCase()]), p = pct(hist, price);
+        out.push(`<li><b>${kind} Truffles: ${short(price)}</b> <span class="tag ${cls}">${say}</span><br><span class="small muted">${[
+          owned ? `your ${fmt(owned)} are worth ~${short(owned * price)}` : "",
+          chance ? `chance it rises at reset: ${esc(chance.toLowerCase())}` : "",
+          p != null ? `higher than ${p}% of the last ${hist.length} days` : "",
+          `sell from ${short(L.sell)}, ${short(L.great)}+ is a high day; ${short(L.need)}+ if you need the silver`].filter(Boolean).join(" · ")}</span></li>`);
+      }
+      if (m.steak && m.steak.price) {
+        const L = lines("steak", SWING_LINES.steak), v = m.steak.price;
+        const say = v <= L.buy && m.steak.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.steak.owned > 0 ? ["good", "sell"] : ["", "hold"];
+        out.push(`<li><b>Steaks: ${fmt(v)}</b>${m.steak.market ? ` (${esc(m.steak.market)})` : ""} <span class="tag ${say[0]}">${say[1]}</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
+          m.steak.owned ? `; you have ${fmt(m.steak.owned)}` : ""}${m.steak.canBuy ? `, can buy ${fmt(m.steak.canBuy)} more` : ""}</span></li>`);
+      }
+    }
+    // Kabobs: hourly, so the advice only holds until the top of the next hour
+    if (m.kabob && m.kabob.price && Date.now() < Math.floor(m.at / 3.6e6 + 1) * 3.6e6) {
+      const L = lines("kabob", SWING_LINES.kabob), v = m.kabob.price;
+      const say = v <= L.buy && m.kabob.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.kabob.owned > 0 ? ["good", "sell"] : ["", "hold"];
+      out.push(`<li><b>Steak Kabobs: ${fmt(v)}</b> <span class="tag ${say[0]}">${say[1]}</span> <span class="small muted">(until the top of the hour)</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
+        m.kabob.owned ? `; you have ${fmt(m.kabob.owned)}` : ""}</span></li>`);
+    }
+    $("steak-list").innerHTML = out.length ? out.filter(x => x.startsWith("<p")).join("") + `<ul style="margin:0;padding-left:20px">${out.filter(x => x.startsWith("<li")).join("")}</ul>` : "";
+  }
+
   // ---------- Silver goal ----------
   // Ways to earn silver; budgets as in Slow grinds.
   function silverBudget() {

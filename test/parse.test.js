@@ -103,3 +103,25 @@ console.log("parse tests passed");
   const plain = page.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
   assert.strictEqual(parseRequest(plain).name, "Items Wanted");
 }
+
+// Steak Market page and its history pages (made-up prices)
+{
+  const { parseSteak, detectPage } = require("../parse.js");
+  const page = ["About the Steak Market", "Steaks change in value each day. Right now the Steak Market is Risky. You can buy up to 1,000 more Steaks.",
+    "Current Market Price: 45,000 Silver [[View History]](https://farmrpg.com/steakhistory.php)", "Steaks Owned: 20", "Total Steak Value: 900,000 Silver",
+    "About the Steak Kabob Market", "Steak Kabobs change in value each hour. You can buy up to 5 more Kabobs.", "Current Market Price: 9,800 Silver", "Steak Kabobs Owned: 300",
+    "About the Truffle Market", "Truffle prices change in value each day. Right now, a single White Truffle sells for 180,000,000 Silver and a single Black Truffle sells for 610,000,000 Silver.",
+    "White Truffle price increase chance at Reset: Very Low", "Black Truffle price increase chance at Reset: High", "White Truffles Owned: 10", "Total Value: 1 Silver", "Black Truffles Owned: 4",
+    "Truffle Market History (Last 90 Days)", "Date", "White Truffle Price", "Black Truffle Price", "Oct 5", "180,000,000", "610,000,000", "Oct 4", "150,000,000", "200,000,000",
+    "White Truffle range 1 to 2 silver"].join("\n");
+  assert.strictEqual(detectPage(page), "steak");
+  const r = parseSteak(page);
+  assert.deepStrictEqual(r.steak, { price: 45000, market: "Risky", canBuy: 1000, owned: 20 });
+  assert.deepStrictEqual(r.kabob, { price: 9800, canBuy: 5, owned: 300 });
+  assert.deepStrictEqual(r.truffle, { white: 180000000, black: 610000000, whiteChance: "Very Low", blackChance: "High", whiteOwned: 10, blackOwned: 4 });
+  assert.deepStrictEqual(r.history.truffle, [{ date: "Oct 5", white: 180000000, black: 610000000 }, { date: "Oct 4", white: 150000000, black: 200000000 }]);
+  const sh = parseSteak("About the Steak Market x About the Truffle Market y Steak Market History (Last 90 Days) Date Price Market Volume Oct 5 47,986 Unstable 913,339 Oct 4 49,590 Stable 2,595,384 Price range");
+  assert.deepStrictEqual(sh.history.steak[1], { date: "Oct 4", price: 49590, market: "Stable", volume: 2595384 });
+  const kh = parseSteak("About the Truffle Market Kabob Market History Kabob Price History is limited to previous 24 hours. Time Price Oct 5, 5 PM 9,519 Oct 5, 4 PM 10,116 Price range");
+  assert.deepStrictEqual(kh.history.kabob, [{ time: "Oct 5, 5 PM", price: 9519 }, { time: "Oct 5, 4 PM", price: 10116 }]);
+}
