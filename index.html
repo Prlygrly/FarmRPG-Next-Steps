@@ -341,6 +341,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <div class="row" id="whatif-prod" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
       <p style="margin:8px 0 0"><button type="button" id="whatif-reset">Reset</button> <span class="muted" id="whatif-sort"></span></p>
     </details>
+    <p class="small muted" id="grind-sort" style="margin:0 0 6px"></p>
     <div id="grind-list"></div>
     <div id="grind-standing"></div>
   </section>
@@ -1062,8 +1063,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const us = (open.length ? open : all).slice().sort((a, b) => a.level - b.level);
     return us.length ? `Needed for Tower ${us.map(u => `${u.level} (${u.tier === "mm" ? "Mega Mastery" : "Grand Mastery"})`).join(", ")}` : "";
   };
-  const towerTag = (item, have, cls = " tower") => { const t = towerTipText(item, have);
-    return ` <span class="tag${cls}${t ? ` has-tip" data-tip="${esc(t)}" tabindex="0` : ""}">Tower</span>`; };
+  const towerTag = (item, have, cls = " tower", label = "Tower") => { const t = towerTipText(item, have);
+    return ` <span class="tag${cls}${t ? ` has-tip" data-tip="${esc(t)}" tabindex="0` : ""}">${label}</span>`; };
+  // The lowest Tower level that still needs this item's next tier (Infinity if none)
+  const towerLevelFor = (item, have) => Math.min(Infinity, ...((O && O.towerUse[item]) || []).filter(u => (have || 0) < (u.tier === "mm" ? 1e6 : 1e5)).map(u => u.level));
   const PLACE_LEVEL = { "Ember Lagoon": ["Exploring", 60], "Whispering Creek": ["Exploring", 70], "Jundland Desert": ["Exploring", 80],
     "Gary's Crushroom": ["Exploring", 90], "Lake Minerva": ["Fishing", 60], "Large Island": ["Fishing", 70], "Pirate's Cove": ["Fishing", 80],
     "Glacier Lake": ["Fishing", 90] };
@@ -2275,8 +2278,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       r.alt = t && t.days != null && r.days != null && r.days !== Infinity && t.days < r.days * 0.99 ? t.days : null;
       r.saved = r.alt != null ? r.days - r.alt : 0;
     }
-    if (alt && S.grindSort === "saved") rows.sort((a, b) => b.saved - a.saved);
-    $("whatif-sort").innerHTML = alt ? `Sort: ${["longest", "saved"].map(k => `<a href="#" data-gsort="${k}"${(S.grindSort || "longest") === k ? ' style="font-weight:700"' : ""}>${k === "saved" ? "most saved" : "longest"}</a>`).join(" · ")}` : "";
+    // Sort: longest (default), shortest, Tower level (the soonest blocker first), most saved (What if)
+    const sorts = { longest: "longest", shortest: "shortest", tower: "Tower level", ...(alt ? { saved: "most saved" } : {}) };
+    const sortBy = sorts[S.grindSort] ? S.grindSort : "longest", d = r => r.days == null || r.days === Infinity ? Infinity : r.days;
+    for (const r of rows) r.towerLv = towerLevelFor(r.item, r.have);
+    if (sortBy === "shortest") rows.sort((a, b) => d(a) - d(b));
+    else if (sortBy === "tower") rows.sort((a, b) => a.towerLv - b.towerLv || d(a) - d(b));
+    else if (sortBy === "saved") rows.sort((a, b) => b.saved - a.saved);
+    $("grind-sort").innerHTML = `Sort: ${Object.entries(sorts).map(([k, v]) => `<a href="#" data-gsort="${k}"${sortBy === k ? ' style="font-weight:700"' : ""}>${v}</a>`).join(" · ")}`;
+    $("whatif-sort").innerHTML = "";
     const wordy = S.nextDetail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
     const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])})` : ""}` : UNIT[x.kind] || esc(x.kind);
@@ -2297,7 +2307,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         : `<span class="muted">Fruit tops out around 9,100 a day (7,000 trees), so the noon drop can't fill a ${short(cap)} cap.</span>`;
     };
     const html = rows.map(r => {
-      const tower = O && (O.towerUse[r.item] || []).length ? towerTag(r.item, r.have, "") : "";
+      const tower = O && (O.towerUse[r.item] || []).length ? towerTag(r.item, r.have, "", sortBy === "tower" && r.towerLv !== Infinity ? `Tower ${r.towerLv}` : "Tower") : "";
       const pct = Math.min(100, r.have / r.target * 100);
       // Drinks and nets can be bought or gifted, so the total matters as well as the time
       const hand = {};
@@ -2467,7 +2477,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     save(); render(false);
   });
   $("whatif-reset").addEventListener("click", () => { delete S.whatIf; save(); render(false); });
-  $("whatif-box").addEventListener("click", e => {
+  $("grinds").addEventListener("click", e => {
     const a = e.target.closest("[data-gsort]"); if (!a) return;
     e.preventDefault(); S.grindSort = a.dataset.gsort; save(); render(false);
   });
