@@ -1,4 +1,5 @@
-// Parsing for pasted FarmRPG pages. Works in the browser (window.FRP.parse) and in node (require).
+// Readers for pasted FarmRPG pages (browser: window.FRP; node: require).
+// Headings match in any case: the Steam app copies in capitals.
 (function (root) {
   const toInt = s => parseInt(String(s).replace(/,/g, ""), 10);
   // Strip list bullets and markdown links that some browsers add when copying
@@ -21,8 +22,7 @@
       while (j >= 0 && !lines[j]) j--;
       if (j >= 0) put(lines[j], toInt(m[1]));
     }
-    // Pass 2: everything squashed onto one line (some phone browsers). Only used if pass 1 found little,
-    // because without a known-item list it can't tell names from surrounding junk as well.
+    // Pass 2: all on one line (some phone browsers); only used if pass 1 found little.
     const flat = text.replace(/\s+/g, " ");
     if (Object.keys(items).length < 5) {
       const re = /(?:^|\bStop|\bTrack|Complete!|chevron_down|chevron_right|chevron_up)\s+([^\/%]+?)\s+([\d,]+)\s*\/\s*([\d,]+|∞)\s*Progress/g;
@@ -59,9 +59,8 @@
     return { items, tower, skills, totals, collapsed, looksLikeMastery };
   }
 
-  // Inventory page. Each item is a run of lines that all link item.php?id=N:
-  // name first, then description, optional "MAX ON HAND" and mastery tag, count last.
-  // MAX ON HAND only means "at the cap": crafting into that item is blocked until some is used or sold.
+  // Inventory: each item is a run of lines linking item.php?id=N: name, description, [MAX ON HAND], [mastery tag], count.
+  // MAX ON HAND = at the cap (crafting into it is blocked).
   const MASTERY_TAGS = { "Mastered": "m", "Grand Mastered": "gm", "Mega Mastered": "mm" };
   function parseInventory(text) {
     const items = {};
@@ -88,7 +87,7 @@
 
     // Plain-text copy (no links): name line, description lines, count line, inside the item sections
     if (!Object.keys(items).length) {
-      const start = lines.findIndex(l => /chevron_down$/.test(l) && /^(?:[*•-]\s+)?(Meals|Items|Fish & Bait|Crops|Seeds)\b/i.test(l));   // any case (Steam app)
+      const start = lines.findIndex(l => /chevron_down$/.test(l) && /^(?:[*•-]\s+)?(Meals|Items|Fish & Bait|Crops|Seeds)\b/i.test(l));
       let block = [];
       for (const raw of start < 0 ? [] : lines.slice(start)) {
         const l = raw.replace(/^[*•-]\s+/, "");
@@ -110,14 +109,14 @@
   function parseOrchard(text) {
     const flat = text.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const out = {};
-    const re = /([\d,]+) (Apple|Orange|Lemon) Trees ([\d,]+) Production/gi;          // any case (the Steam app copies in capitals)
+    const re = /([\d,]+) (Apple|Orange|Lemon) Trees ([\d,]+) Production/gi;
     let m;
     while ((m = re.exec(flat))) out[m[2][0].toUpperCase() + m[2].slice(1).toLowerCase()] = { trees: toInt(m[1]), production: toInt(m[3]) };
     return out;
   }
 
-  // Farm page ("Around Your Farm"): what each building makes. Returns { item: amount per HOUR }.
-  // Each building's numbers are per its own period, stated on the page (daily, hourly, every 3 or 10 minutes).
+  // Farm page ("Around Your Farm"): { item: per hour }; index.html saves it in each item's own unit (engine storeRates).
+  // Each building states its own period (daily, hourly, every 3 or 10 minutes).
   const FARM = [
     { at: "Chicken Coop", per: 24 * 60, items: [["Eggs", "Eggs"], ["Feathers", "Feathers"]] },
     { at: "Cow Pasture", per: 24 * 60, items: [["Milk", "Milk"]] },
@@ -135,7 +134,7 @@
   ];
   function parseFarm(text) {
     const flat = text.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
-    const lower = flat.toLowerCase();                                   // match in any case (the Steam app copies in capitals)
+    const lower = flat.toLowerCase();
     const out = {};
     for (const b of FARM) {
       const i = lower.indexOf(b.at.toLowerCase());
@@ -146,10 +145,8 @@
         if (m) out[item] = toInt(m[1]) * 60 / b.per;
       }
     }
-    // Crop plots. Best source: the price of the next row under Expand Farm ("Grow more crops … 10.0T Silver"): rows of 4,
-    // each 10x the last, and the row reaching 52 plots costs 10T. Only trusted from 1T up (the 10x rule is confirmed there).
-    // Else the Plant All button ("Plant All Selected [GJ (6.6K) 14 Left Today] Leek (48)"): crop names are 1-2 words, so the
-    // seed list ("Nothing Selected Beet (9906)…") can't be misread as plots.
+    // Crop plots: the next Expand Farm row's price (rows of 4, x10 each, 10T reaches 52; trusted from 1T), else the
+    // Plant All button (crop names are 1-2 words, so the seed list can't be misread). knowledge/mechanics/crops.md
     let plots = null;
     const row = flat.match(/Grow more crops Adds another row of crops ([\d.,]+)\s*([KMBTQ]?)\s*Silver/i);
     if (row) {
@@ -173,7 +170,7 @@
     const out = [];
     let section = null, name = [], last = null;
     for (const l of lines) {
-      const h = l.match(/^(Special|Active|Personal) Requests\s*\(\d+\)/i);   // any case: the Steam app copies headings in capitals
+      const h = l.match(/^(Special|Active|Personal) Requests\s*\(\d+\)/i);
       if (h) { section = h[1].toLowerCase(); name = []; last = null; continue; }
       if (!section) continue;
       if (/^(Request Totals|Use a PHR Voucher|Community Center)\b/i.test(l)) { section = null; continue; }
@@ -197,7 +194,7 @@
   function parsePerks(text) {
     const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
     const page = /Points Left/i.test(text) && /Perks Avail/i.test(text) ? "perks" : "supply";
-    const startAt = lines.findIndex(l => page === "perks" ? /^Farming Perks$/i.test(l) : /^Cap Upgrades$/i.test(l));   // headings in any case (Steam app)
+    const startAt = lines.findIndex(l => page === "perks" ? /^Farming Perks$/i.test(l) : /^Cap Upgrades$/i.test(l));
     const unlocked = [];
     let block = [];
     for (const l of startAt < 0 ? [] : lines.slice(startAt)) {
@@ -262,9 +259,8 @@
     return { levels, totd: t ? (FRIEND_ALIAS[clean(t[1])] || clean(t[1])) : null };
   }
 
-  // Which page was pasted? Checked most specific first.
-  // One production building's own page (for players whose home page doesn't list output). Each page ends with its own
-  // sentence; amounts are stored per hour like parseFarm (daily ones / 24). [building, regex, [[item, group, perDay?]]]
+  // One building's own page (players whose home page doesn't list output); each ends with its own sentence.
+  // Rates per hour like parseFarm. [building, regex, [[item, group, perDay?]]]
   const BUILDING_PAGES = [
     ["Chicken Coop", /chicken coop is producing ([\d,]+) eggs and ([\d,]+) feathers per day/i, [["Eggs", 1, 1], ["Feathers", 2, 1]]],
     ["Cow Pasture", /cow pasture is producing ([\d,]+) milk per day/i, [["Milk", 1, 1]]],
@@ -356,12 +352,9 @@
     return { silver: toInt(s[1]), gold: g ? toInt(g[1]) : null };
   }
 
-  // Chat: every copied page carries the chat panel. Cut it out before anything else looks at the text, so a message like
-  // "Active Requests (5)" or "Chicken Coop" can't fool page detection or a parser (and other players' names go nowhere).
-  // 1. The whole panel: from the channel tabs ("HELP GLOBAL SPOILERS…" or "Help / Global / Spoilers") or the first
-  //    message time to the "View Chat Log" link.
-  // 2. Any message left over: a "03:56:17 PM" line, the sender's line (a profile link, or a plain name when links are
-  //    stripped), an optional "flag_fill", then the message line.
+  // Chat: cut it out before anything reads the page, so a message can't fool detection (and names go nowhere):
+  // 1. the panel, from the channel tabs (or first message time) to "View Chat Log";
+  // 2. any stray message: a "03:56:17 PM" line, the sender (link or plain name), optional "flag_fill", the message.
   function stripChat(text) {
     let t = String(text || "");
     const end = t.search(/\[?View Chat Log\]?/i);

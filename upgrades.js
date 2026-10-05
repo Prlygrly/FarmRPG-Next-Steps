@@ -1,7 +1,5 @@
-// Building upgrade prices, from the player's samples (2026-10-05): the price of each new unit of production is a fixed rate
-// x the new amount (Vineyard 11,000 -> 11,001 costs 2,000 x 11,001 = 22,002,000). So going from A to B costs
-// rate x (A+1 + ... + B) = rate x (B(B+1) - A(A+1)) / 2. Amounts are in each building's own unit (see `per`).
-// See knowledge/mechanics/building-upgrades.md.
+// Building upgrade prices: each new unit costs rate x the new amount, so A -> B costs rate x (B(B+1) - A(A+1)) / 2.
+// Amounts in each building's own unit (`per`). knowledge/mechanics/building-upgrades.md
 (function (root) {
   const UPGRADES = {
     Grapes: { rate: 2000, per: "day" },          // Vineyard

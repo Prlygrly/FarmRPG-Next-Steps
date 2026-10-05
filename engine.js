@@ -1,4 +1,4 @@
-// Tower engine: walk up from the player's level and report what each next level needs.
+// Planning and costing. Game rules: knowledge/ (pointers by each section).
 (function (root) {
   const TIER = { m: 10000, gm: 100000, mm: 1000000 };
 
@@ -39,7 +39,7 @@
     return { levels, walls, firstWall, freeLevels, akToClearFree, mmCount };
   }
 
-  // Silver to advance TO a level: level x the rate for its band (1-100: 50M, 101-199: 100M, 200-300: 300M, 301+: 500M)
+  // Silver to reach a level (knowledge/mechanics/tower.md)
   function towerSilver(tower, L) {
     const s = tower.silverPerLevel;
     if (!s) return 0;
@@ -60,10 +60,8 @@
   const AK = { m: 10, gm: 100 };
   const SKILL_NAMES = ["Farming", "Fishing", "Crafting", "Exploring", "Cooking", "Mining"];
 
-  // Rank the cheapest AK: every item's next AK-paying tier (M = 10 AK, GM = 100 AK).
-  // Cost is "items left per AK" until batch 6 turns counts into AC/AP/nets.
+  // Cheapest AK: each item's next AK-paying tier (knowledge/mechanics/mastery.md)
   // opts = { akTarget, fromLevel, tower, skills, limit, drops, perks, where, hidden }
-  // where = { month, seasons, places } filters out closed or out-of-season places (see effortOptions)
   function akPlan(items, opts = {}) {
     const uses = opts.tower ? towerUses(opts.tower, opts.fromLevel || 0) : {};
     const cands = [], hiddenList = [], seasonal = [], slow = [];
@@ -108,7 +106,7 @@
   }
 
   // ---------- Effort: how many AC / AP / Large Nets to gather `left` more of an item ----------
-  // Formulas match buddy.farm (src/utils/format.tsx). 1 AC = 1 AP = 1 Large Net for ranking, for now.
+  // knowledge/mechanics/effort-units.md
   const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
     plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20 };
 
@@ -146,12 +144,8 @@
   const bestEffort = (item, left, drops, perks, where) => effortOptions(item, left, drops, perks, where)[0] || null;
 
   // ---------- Gather or craft: the cheapest way to get ONE of an item ----------
-  // Cost is in "effort" = AP + AC + Large Nets (1 each, for now), kept per unit too so it can be shown.
-  // Crafting costs the ingredients (each costed the same way, all the way down) divided by the Resource
-  // Saver bonus: 45% means 1.45 items per craft on average. Cooking doesn't get that bonus.
-  // Items that are neither dropped nor crafted (farmed, mined, events) have no cost: null.
-  // Things the player produces passively (buildings, orchard, animals) count as free here.
-  // Batch 10 replaces this with real daily amounts.
+  // Effort per unit; crafts cost their ingredients / Resource Saver (not cooking); null = no known way.
+  // Passive items (buildings, orchard) are free here. knowledge/mechanics/effort-units.md
   const DEFAULT_PASSIVE = ["Wood", "Board", "Stone", "Coal", "Iron", "Nails", "Steel", "Steel Wire", "Straw",
     "Antler", "Apple", "Orange", "Lemon", "Grapes", "Milk", "Feathers", "Eggs"];
   function makeCoster(drops, recipes, perks = DEFAULT_PERKS, where = null, passive = DEFAULT_PASSIVE) {
@@ -230,9 +224,7 @@
   const tripBudgetFor = (item, qty, loc, unit, drops, perks) => { const c = unitCostAt(item, loc, unit, drops, perks); return c ? c * qty : null; };
 
   // ---------- Outlets: where extra items go, so nothing is lost to the inventory cap ----------
-  // You can't craft into a full item, but gathering past the cap voids. When making `qty` of an item would
-  // overflow, pick a recipe that uses it: Tower items first, then things with mastery left to earn, then the
-  // cheapest extra ingredients. Follow the chain two more steps; at the end, give away (if mailable) or sell.
+  // A pile about to void goes into a recipe that uses it, two steps deep, then gift or sell (knowledge/planner/rules.md).
   // ctx = { recipes, coster, adjust?, counts: mastery counts, onHand: {item: count}, cap, perks, towerUse, drops?, where?,
   //         maxCost?: skip outlets whose extra ingredients cost more than this (e.g. the job's own cost) }
   function outletPlan(item, qty, ctx, depth = 0) {
@@ -267,8 +259,7 @@
         tower: (towerUse[p] || []).some(u => (counts[p] || 0) < TIER[u.tier])      // only if that Tower need isn't met yet
       });
     }
-    // Outlets that also earn a mastery or a Tower need are always offered (with their cost shown): that cost buys
-    // progress too, and selling feels wasteful. Only outlets that earn nothing are skipped when they cost more than the job.
+    // Outlets that earn progress are always offered (knowledge/planner/rules.md)
     const allowed = o => ctx.maxCost == null || o.goal || o.tower || o.cost <= ctx.maxCost;
     const skipped = opts.filter(o => !allowed(o)).length;
     if (skipped) opts.splice(0, opts.length, ...opts.filter(allowed));
@@ -302,10 +293,8 @@
     if (locs.some(l => locOpen(l, where) || !(where.seasons.locs[l]))) return null;
     return [...new Set(locs.flatMap(l => where.seasons.locs[l] || []))].sort((a, b) => a - b);
   }
-  // A place counts as unlocked if the player has gathered at least half of the items found only there
-  // (same rule as the net planner's fishing spots). Places with no items of their own count as unlocked.
-  // Most explore finds aren't on the mastery page, so explore places are only judged when inventory counts
-  // are included (opts.exploreEvidence); otherwise they count as unlocked.
+  // Unlocked = gathered at least half the items found only there (knowledge/mechanics/locked-places.md).
+  // Explore places are only judged with inventory counts (opts.exploreEvidence).
   function placesUnlocked(items, drops, seasons, opts = {}) {
     const own = {};
     for (const [name, it] of Object.entries(drops.items)) {
@@ -321,7 +310,7 @@
   }
 
   // ---------- Daily production (pure, so it can be tested and re-run with what-if numbers) ----------
-  // Hours between drops; everything else drops hourly (coal too, per the Quarry page).
+  // Hours between drops; the rest drop hourly (knowledge/mechanics/production.md)
   const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
     Straw: 1 / 6, Stone: 1 / 6, Sandstone: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };
   // Stored production carries its own unit, as the game states it: { Antler: { n: 54210, per: "day" }, Wood: { n: 18002, per: "hour" } }.
@@ -335,11 +324,10 @@
   // Old saves: bare numbers (per hour) become entries; entries stay as they are
   const migrateRates = prod => Object.fromEntries(Object.entries(prod || {}).map(([k, e]) => [k, typeof e === "number" ? entryOf(k, e) : e]));
   // env = { production: {item: per hour}, orchard: {fruit: {production}}, cap, gap (hours between your checks),
-  //         antlerNoon, orchardNoon (noon bonus %) }. Each drop is capped at the inventory cap; you can only use what fits.
+  //         antlerNoon, orchardNoon (%) }. Each drop is capped at the inventory cap.
   function productionMath(env) {
     const cap = env.cap > 0 ? env.cap : Infinity, gap = env.gap || 1;
-    // A daily drop plus a noon bonus (Tree Shaker, Antler Snare): the bonus is a % of the full production, not of what
-    // fit. Each is capped on its own when you check between them; one cap for both if you don't.
+    // Noon bonus = % of full production, capped apart from midnight's drop when checked between (production.md)
     const noonDay = (P, pct) => {
       const bonus = P * pct / 100;
       if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
@@ -365,9 +353,8 @@
     const usableDay = n => env.orchard && env.orchard[n] ? fruitPerDay(n) : (env.production || {})[n] > 0 ? usableRate(n, env.production[n]) * 24 : 0;
     return { noonDay, usableRate, fruitPerDay, perDay, usableDay };
   }
-  // The cap grows every day (Storehouse work), so a drop that voids today voids less later. Days to collect `need` of an
-  // item when day d's cap = cap + capPerDay x d: add up day by day until the cap stops mattering, then the steady rate.
-  // Cumulative totals are cached per item in `cache`.
+  // Days to collect `need` while the cap grows by capPerDay a day (knowledge/mechanics/inventory-cap.md);
+  // cumulative totals cached per item in `cache`.
   function daysWithGrowingCap(env, capPerDay, item, need, cache = {}) {
     const pm = cap => productionMath({ ...env, cap }).usableDay(item);
     const max = pm(Infinity);
@@ -403,9 +390,8 @@
   }
 
   // ---------- Slow grinds: how long a GM or MM takes, and what holds it back ----------
-  // How many of an item your production alone makes a day (e.g. Large Nets from Antlers): the scarcest passive input.
-  // null if it needs anything gathered by hand.
-  // ignoreHand: assume the hand-gathered parts are always on hand (Glass, Tea Leaves for the drinks), so only production counts
+  // Made a day from production alone (the scarcest passive input); null if it needs hand-gathered parts,
+  // unless ignoreHand (drinks: Glass and Tea Leaves assumed on hand).
   function makesPerDay(item, coster, perDay, ignoreHand = false) {
     const u = coster.unit(item);
     if (!u || (!ignoreHand && Object.keys(u.byUnit).length) || !Object.keys(u.passive).length) return null;
@@ -419,8 +405,7 @@
     const parts = [], untimed = [];
     for (const [p, q] of Object.entries(e.passive || {})) {
       const r = ctx.perDay[p] || 0;
-      // Buildings and orchard with a growing cap: counted day by day (ctx.growth = { env, capPerDay, extra: {item: per day} })
-      // (items with extra typed amounts, e.g. Antlers from exploring, keep the flat rate)
+      // Growing cap counted day by day (ctx.growth = { env, capPerDay, extra }); items with typed extras stay flat
       const g = ctx.growth, grows = g && g.capPerDay > 0 && r !== Infinity && !(g.extra && g.extra[p]) && productionMath(g.env).usableDay(p) > 0;
       const days = grows ? daysWithGrowingCap(g.env, g.capPerDay, p, q, (g.cache ||= {})) : r > 0 ? q / r : Infinity;
       parts.push({ item: p, kind: "prod", need: q, days });
@@ -457,14 +442,13 @@
   // ---------- Silver goal: ways to earn silver, best first ----------
   // ctx = { coster, perDay, recipes, price: item -> your sell price (null if unknown), craftLevel, budget: {LN, AP, AC},
   //         fishing: [{ loc, perNet }] (unlocked places, silver per Large Net after perks) }.
-  // Crafts: how many a day production (and the budgets) allow, x your price. Fishing: silver per net x Large Nets a day.
   function silverWays(ctx) {
     const rows = [], budget = ctx.budget || {};
     for (const [item, r] of Object.entries(ctx.recipes.items)) {
       if (!r.craft || !r.recipe || (r.level || 1) > (ctx.craftLevel || 1)) continue;
       const price = ctx.price(item);
       if (!(price > 0)) continue;
-      if (ctx.keep && ctx.keep(item)) continue;           // better used than sold (an ingredient of an unfinished mastery, or used exploring)
+      if (ctx.keep && ctx.keep(item)) continue;           // better used than sold (index.html keepFor)
       const u = ctx.coster.unit(item);
       if (!u) continue;
       // Crafts a day: each passive input and each budget is a limit; the tightest wins

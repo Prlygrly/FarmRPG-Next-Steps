@@ -1,9 +1,6 @@
-// Compact save for QR codes: three small codes instead of one long one.
-//   "a" = masteries + quests     "b" = inventory     "c" = perks, production, silver and other settings that matter
-// Each loads on its own, so a player can rescan just their inventory. Items are written by buddy.farm item ID (not name),
-// as the gap from the previous ID, so "Large Net 9850" costs a few characters. Counts are rounded to 2 significant figures
-// (under 100 stay exact; worst case ~5% off), "m" means "at the inventory cap", and rounding never crosses a mastery line
-// or the cap (996,000 stays under 1M). The JSON this makes is then squeezed and written as text by the page.
+// Save as three QR codes, each loading on its own: "a" masteries + quests, "b" inventory, "c" perks, production, settings.
+// Items by buddy.farm ID (as gaps from the previous ID); counts to 2 significant figures (exact under 100, "m" = at the cap),
+// never rounded across a mastery line or the cap.
 (function (root) {
   const TIERS = [10000, 100000, 1000000];
   const V = 2;
