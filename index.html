@@ -668,8 +668,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const b = parseBuilding(text), n = Object.keys(b.rates);
       if (n.length) { S.production = { ...(S.production || {}), ...b.rates }; S.productionAt = Date.now(); }
       if (b.cap && S.inventory) S.inventory.cap = b.cap;
+      if (b.capPerDay) S.perks.capPerDay = b.capPerDay;                  // for projecting the cap (Slow grinds)
       done = true;
-      msg = `<div class="note" style="border-color:var(--good)">${b.buildings.length ? `Read the ${esc(b.buildings.join(", "))}: ${esc(n.join(", "))}.` : ""}${b.cap ? ` Inventory cap: ${fmt(b.cap)}.` : ""}</div>`;
+      msg = `<div class="note" style="border-color:var(--good)">${b.buildings.length ? `Read the ${esc(b.buildings.join(", "))}: ${esc(n.join(", "))}.` : ""}${b.cap ? ` Inventory cap: ${fmt(b.cap)}${b.capPerDay ? `, +${fmt(b.capPerDay)} a day` : ""}.` : ""}</div>`;
     } else if (kind === "orchard") {
       const r = parseOrchard(text);
       if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
@@ -1264,15 +1265,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // autocrafting runs after the drop, so it can't use the excess either. Between two of your checks you can use at most
   // one inventory's worth, so the usable rate is min(made per gap, cap) / gap, where the gap is the drop interval or the
   // time between your checks, whichever is longer. (Straw every 10 minutes, emptied each time, really can be 6 caps an hour.)
-  const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
-    Straw: 1 / 6, Stone: 1 / 6, Sandstone: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };   // coal is hourly (Quarry page)   // everything else hourly
+  // Production math lives in engine.js (productionMath); these wrappers feed it this player's numbers
+  const DROP_HOURS = window.FRP.DROP_HOURS;
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
-  const usableRate = (n, perHour) => {
-    if (n === "Antler") return noonDay(perHour * 24, S.perks.antlerNoon ?? 10) / 24;
-    const gap = Math.max(DROP_HOURS[n] || 1, checkGap());
-    return Math.min(perHour * gap, invCap()) / gap;
-  };
+  const prodEnv = () => ({ production: S.production, orchard: S.orchard, cap: invCap(), gap: checkGap(),
+    antlerNoon: S.perks.antlerNoon, orchardNoon: S.perks.orchardNoon });
+  const usableRate = (n, perHour) => window.FRP.productionMath(prodEnv()).usableRate(n, perHour);
   // Waiting on a building is counted in whole drops: 886 Boards still means waiting for the next hourly drop, not 5 minutes.
   // Returns { hours, drops, gap } (gap = hours between the drops you can use).
   const prodWait = (n, v) => {
@@ -1289,20 +1288,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // A Hickory Omelette adds 20% of an hour's Sawmill output every 10 minutes for an hour (~1.2 extra drops): worth it for 1-2 drops
     return SAWMILL.includes(n) && w.gap < 24 && w.drops <= 2 ? `${t}, or a Hickory Omelette` : t;
   };
-  // A daily drop plus a noon bonus (Tree Shaker, Antler Snare): the bonus is a % of the full production, not of what
-  // fit. Each is capped on its own when you check between them; one cap for both if you don't.
-  const noonDay = (P, pct) => {
-    const bonus = P * pct / 100, cap = invCap(), gap = checkGap();
-    if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
-    return Math.min(P + bonus, cap) * 24 / Math.max(24, gap);
-  };
-  // Orchard fruit per day: the midnight drop plus the noon bonus (a % of the full production, not of what fit), each
-  // capped on its own when you check between them; one cap for both if you don't
-  const fruitPerDay = n => {
-    const o = S.orchard && S.orchard[n];
-    if (!o || !o.production) return 0;
-    return noonDay(o.production, S.perks.orchardNoon ?? 10);
-  };
+  const noonDay = (P, pct) => window.FRP.productionMath(prodEnv()).noonDay(P, pct);
+  const fruitPerDay = n => window.FRP.productionMath(prodEnv()).fruitPerDay(n);
   const allProd = () => {
     const crops = cropRates();
     for (const c of Object.keys(crops)) if (gatherable(c)) delete crops[c];

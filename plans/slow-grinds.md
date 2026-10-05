@@ -51,3 +51,7 @@ Written by a read-only planning agent; not yet reviewed with the player. Open qu
 
 Updated batches: as section 5, with the threshold set to ~180 days (setting), the always-on list, a cap-growth field
 (+N a day) and target-amount what-ifs per building.
+
+## Progress
+- Batch 1 done (2026-10-05): `productionMath(env)` in engine.js (usableRate, noonDay, fruitPerDay, perDay) with tests;
+  index.html wrappers delegate. Storehouse page gives cap growth (`S.perks.capPerDay`). Cap upgrades: each +2 costs 10x the last.

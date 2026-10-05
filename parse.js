@@ -293,8 +293,9 @@
       if (!buildings.includes(b)) buildings.push(b);
       for (const [item, g, daily] of items) rates[item] = toInt(m[g]) / (daily ? 24 : 1);
     }
-    const cap = flat.match(/Currently your MAX Inventory is ([\d,]+)/i);   // the Storehouse page
-    return { buildings, rates, cap: cap ? toInt(cap[1]) : null };
+    const cap = flat.match(/Currently your MAX Inventory is ([\d,]+)/i);   // the Storehouse page: cap and its daily growth
+    const grow = flat.match(/it will increase by ([\d,]+) each time you work/i);
+    return { buildings, rates, cap: cap ? toInt(cap[1]) : null, capPerDay: grow ? toInt(grow[1]) : null };
   }
 
   function detectPage(text) {

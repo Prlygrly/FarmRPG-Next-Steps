@@ -28,7 +28,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T12:00:00Z }
 
 - The cap grows by a fixed amount **each day** (Storehouse work), starting around **+2 a day**. Perks raise it, and it can be
   bought up in **steps of +2**.[^player]
-- Example: the player's +18 a day → +20 costs **10 trillion silver** (2026-10-05).[^player]
+- Each +2 step costs **10× the one before**: the player's +18 → +20 is 10T, +20 → +22 is 100T, then 1 quadrillion
+  (2026-10-05).[^player]
+- The Storehouse page states the current daily growth: "it will increase by N each time you work".[^pages]
 
 # Planner implications
 

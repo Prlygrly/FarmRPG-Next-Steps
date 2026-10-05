@@ -136,3 +136,22 @@ assert.strictEqual(towerSilver(TOWER, 221), 66.3e9);
 assert.strictEqual(towerSilver(TOWER, 301), 150.5e9);
 
 console.log("engine tests passed");
+
+// Daily production (made-up numbers): each drop is capped at the inventory cap; noon bonuses capped on their own
+{
+  const { productionMath, DROP_HOURS } = require("../engine.js");
+  assert.strictEqual(DROP_HOURS.Coal, undefined);                       // coal is hourly
+  const pm = productionMath({ production: { Wood: 600, Straw: 600, Eggs: 50 }, orchard: { Apple: { production: 900 } }, cap: 500, gap: 1 / 6, antlerNoon: 10, orchardNoon: 10 });
+  assert.strictEqual(pm.usableRate("Wood", 600), 500);                   // hourly drop of 600, only 500 fit
+  assert.strictEqual(pm.usableRate("Straw", 600), 600);                  // 100 every 10 minutes: all fit
+  assert.strictEqual(pm.usableRate("Eggs", 50), 500 / 24);               // daily drop of 1,200, only 500 fit
+  assert.strictEqual(pm.fruitPerDay("Apple"), 500 + 90);                 // midnight 900 -> 500, noon bonus 90
+  assert.strictEqual(pm.usableRate("Antler", 100), (500 + 240) / 24);    // 2,400 a day -> 500, noon bonus 240
+  const d = pm.perDay();
+  assert.strictEqual(d.Wood, 500 * 24);
+  assert.strictEqual(d.Apple, 590);
+  // Checking only once a day: one cap for the drop and the noon bonus together
+  assert.strictEqual(productionMath({ cap: 500, gap: 24 }).noonDay(900, 10), 500);
+  // No cap known: nothing is lost
+  assert.strictEqual(productionMath({ gap: 1 }).usableRate("Wood", 600), 600);
+}

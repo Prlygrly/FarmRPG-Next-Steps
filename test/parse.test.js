@@ -64,6 +64,7 @@ assert.deepStrictEqual(col.collapsed, ["Tier III (M)"]);
   const store = side + "Right now, it will increase by 5 each time you work. Currently your MAX Inventory is 1,234.";
   assert.strictEqual(detectPage(store), "building");
   assert.strictEqual(parseBuilding(store).cap, 1234);
+  assert.strictEqual(parseBuilding(store).capPerDay, 5);
 }
 
 console.log("parse tests passed");

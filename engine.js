@@ -320,7 +320,41 @@
     return out;
   }
 
-  const api = { DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Daily production (pure, so it can be tested and re-run with what-if numbers) ----------
+  // Hours between drops; everything else drops hourly (coal too, per the Quarry page).
+  const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
+    Straw: 1 / 6, Stone: 1 / 6, Sandstone: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };
+  // env = { production: {item: per hour}, orchard: {fruit: {production}}, cap, gap (hours between your checks),
+  //         antlerNoon, orchardNoon (noon bonus %) }. Each drop is capped at the inventory cap; you can only use what fits.
+  function productionMath(env) {
+    const cap = env.cap > 0 ? env.cap : Infinity, gap = env.gap || 1;
+    // A daily drop plus a noon bonus (Tree Shaker, Antler Snare): the bonus is a % of the full production, not of what
+    // fit. Each is capped on its own when you check between them; one cap for both if you don't.
+    const noonDay = (P, pct) => {
+      const bonus = P * pct / 100;
+      if (gap < 12) return Math.min(P, cap) + Math.min(bonus, cap);
+      return Math.min(P + bonus, cap) * 24 / Math.max(24, gap);
+    };
+    const usableRate = (n, perHour) => {
+      if (n === "Antler") return noonDay(perHour * 24, env.antlerNoon ?? 10) / 24;
+      const g = Math.max(DROP_HOURS[n] || 1, gap);
+      return Math.min(perHour * g, cap) / g;
+    };
+    const fruitPerDay = n => {
+      const o = env.orchard && env.orchard[n];
+      return o && o.production ? noonDay(o.production, env.orchardNoon ?? 10) : 0;
+    };
+    // Usable amount per day of everything the buildings and orchard make
+    const perDay = () => {
+      const out = {};
+      for (const [n, v] of Object.entries(env.production || {})) if (v > 0) out[n] = usableRate(n, v) * 24;
+      for (const n of Object.keys(env.orchard || {})) { const f = fruitPerDay(n); if (f > 0) out[n] = f; }
+      return out;
+    };
+    return { noonDay, usableRate, fruitPerDay, perDay };
+  }
+
+  const api = { DROP_HOURS, productionMath, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
