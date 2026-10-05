@@ -6,5 +6,4 @@ Answered questions are removed; their answers live in knowledge/.
 (none open)
 
 ## Waiting on data
-- Upgrade prices for the animal buildings and the orchard (Quarry and Ironworks done).
-- Fish prices for places not yet fished with a Market paste (Sinking Swamp and others use buddy.farm's average).
+- Optional: Blue Crab, Seaweed, Shrimp and Sea Dragon prices (locked in the player's Market) would complete Small Island and Vast Ocean.

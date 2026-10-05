@@ -57,6 +57,9 @@ Which items are worth selling is a planner rule (sell end products, not their pa
   bonus, rare unpriced items left out) 11.38M: what the planner uses, falling back to buddy.farm's average where most of
   the catch has no price. Glacier Lake fish prices are all 10% above round numbers (Sea Crest 12,100, Ice Shark 14,300);
   they match the in-game total, so they're taken as real.[^player]
+- Players who reach Sinking Swamp have Truffles, which beat any gathering for silver, so fishing silver there doesn't
+  matter. Truffle sell prices vary by day; there's no public source to read them from (the game's pages need a login,
+  buddy.farm has no prices, Reddit posts are the community's signal).[^player]
 - Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
 
 # Sawmill Silver (from Crafting 20)

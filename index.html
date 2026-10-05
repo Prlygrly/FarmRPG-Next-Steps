@@ -2348,7 +2348,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const perNetSize = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
     // Silver a net from what it catches: each fish's share of the catch x its base price x its mastery bonus (x1.1 / x1.2),
     // out-of-season fish left out; rare items with no price drop out. Glacier Lake: 11.38M vs 11.40M in game
-    // (knowledge/mechanics/silver.md). Without prices for most of the catch, buddy.farm's average silver per fish instead.
+    // (knowledge/mechanics/silver.md). Under 80% of the catch priced: buddy.farm's average silver per fish instead.
     const sellPrices = { ...(S.prices || {}), ...PRICES.sell };
     const netSilver = (loc, L) => {
       const bonus = c => c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1;
@@ -2361,7 +2361,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         if (sellPrices[item] != null) { priced += w; perFish += w * sellPrices[item] * b; }
       }
       if (!all) return 0;
-      const each = priced / all >= 0.9 ? perFish / all : (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * avg / all;
+      const each = priced / all >= 0.8 ? perFish / all : (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * avg / all;
       return each * perNetSize * (1 + (k.sellBonus ?? 0) / 100);
     };
     const fishing = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && W.places[loc])
@@ -2370,7 +2370,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // The best fishing place still locked, if it pays more per net: what unlocks it (knowledge/mechanics/locked-places.md)
     const UNLOCK = { "Lake Minerva": ["Lava Sphere", 60], "Large Island": ["Tribal Mask", 70], "Pirate's Cove": ["Mapping Compass", 80],
       "Glacier Lake": ["Water Orb (\"A Wall in the Way\")", 90], "Sinking Swamp": ["the swamp puzzle", 0] };
-    const nextPlace = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && !W.places[loc] && UNLOCK[loc])
+    const nextPlace = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && !W.places[loc] && UNLOCK[loc] && loc !== "Sinking Swamp")   // anyone there sells Truffles, not fish
       .map(([loc, L]) => ({ loc, perNet: netSilver(loc, L) }))
       .filter(f => !fishing[0] || f.perNet > fishing[0].perNet).sort((a, b) => a.perNet - b.perNet)[0];   // the nearest step up
     const kept = [];

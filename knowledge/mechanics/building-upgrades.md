@@ -41,7 +41,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T12:00:00Z }
 
 - Steel Wire isn't bought: it follows Steel, **Steel / 3 rounded** (1,250 -> 417, 1,253 -> 418, 1,256 -> 419).[^player]
 - Followers: Sandstone comes with Stone; each Ironworks step adds 1 Iron and 3 Nails (500 Iron + 1,500 Nails every 3 minutes).[^player]
-- Not sampled yet: Coop, Pasture, Raptor Pen (animals, not amounts), Orchard (trees).
+- Not sampled, on purpose: Coop, Pasture, Raptor Pen (animals) and the Orchard (trees). By the time a player maxes them the
+  cost rarely matters; the Silver goal takes a typed amount for anything else.[^player]
 - Some buildings have a **hard limit**. The orchard's tree count maxes out (a few special items, possibly the Tree of Life,
   raise it slightly; the effect looks small unless a player has many).[^player]
 
