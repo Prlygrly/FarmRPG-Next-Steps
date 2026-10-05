@@ -1649,15 +1649,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   };
 
   function renderTower(p, tp) {
-    let akLeft = p.ak;
+    let akLeft = p.ak, silverLeft = S.silver;
     const rows = tp.levels.map(lv => {
       akLeft -= TOWER.akPerLevel;
+      const cost = tSilver(lv.level);
+      if (silverLeft != null) silverLeft -= cost;
       const needs = lv.unmet.length
         ? lv.unmet.map(u => u.kind === "mmCount" ? `${u.need} MMs of any item (have ${u.have})` : `${esc(u.item)} ${u.tier.toUpperCase()} <span class="muted">(${fmt(u.left)} left${itemEffort(u.item, u.left)})</span>`).join("<br>")
         : `<span class="ok">Only AK</span>`;
-      return `<tr><td class="num">${lv.level}</td><td>${needs}</td><td class="num ${akLeft >= 0 ? "ok" : "muted"}">${akLeft >= 0 ? "Have it" : fmt(-akLeft)}</td></tr>`;
+      // Silver: what's still needed counting every level up to this one (just this level's cost if your silver isn't known)
+      const sil = !cost ? "" : silverLeft == null ? short(cost) : silverLeft >= 0 ? "Have it" : short(-silverLeft);
+      return `<tr><td class="num">${lv.level}</td><td>${needs}</td><td class="num ${akLeft >= 0 ? "ok" : "muted"}">${akLeft >= 0 ? "Have it" : fmt(-akLeft)}</td><td class="num ${silverLeft != null && silverLeft >= 0 ? "ok" : "muted"}">${sil}</td></tr>`;
     });
-    $("t-tower").innerHTML = `<thead><tr><th class="num">Level</th><th>Masteries still needed</th><th class="num">AK still needed (total)</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+    $("t-tower").innerHTML = `<thead><tr><th class="num">Level</th><th>Masteries still needed</th><th class="num">AK still needed (total)</th><th class="num">${S.silver != null ? "Silver still needed (total)" : "Silver"}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
   }
 
   function renderAK(ap, akTarget) {
@@ -2114,7 +2118,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
     if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
     const fullIn = n => { const room = cap - (onHand[n] || 0); return room <= 0 ? 0 : room / (rawDay[n] / 24); };
-    const fullText = n => { const h = fullIn(n); return h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`; };
+    // Once-a-day drops fill in whole drops: "full at the next drop", "full in 3 days" (not "full in 2.4 days")
+    const daily = n => (window.FRP.DROP_HOURS[n] || 1) >= 24 || !!(S.orchard || {})[n];
+    const fullWhen = (n, h) => {
+      if (daily(n)) { const d = Math.ceil(h / 24 - 1e-9); return d <= 1 ? "at the next drop" : `in ${fmt(d)} days`; }
+      return `in ${minText(h * 60)}`;
+    };
+    const fullText = n => { const h = fullIn(n); return h <= 0 ? `<b class="bad">full now</b>` : `full ${fullWhen(n, h)}`; };
     // The standing ones: follow the chain and say how far the Mega Mastery is at this rate
     const standing = Object.entries(STANDING).filter(([n]) => perDay[n]).map(([n, chain]) => {
       let qty = perDay[n], prev = n;
@@ -2165,9 +2175,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const byB = {};
     for (const n of Object.keys(perDay).filter(n => !STANDING[n])) (byB[BUILDING[n] || "Other"] ||= []).push(item(n));
     const blocks = Object.entries(byB).map(([b, its]) => ({ b, its: its.sort((a, c) => a.h - c.h), h: Math.min(...its.map(x => x.h)) })).sort((a, c) => a.h - c.h);
-    const fullShort = h => h <= 0 ? `<b class="bad">full now</b>` : `full in ${minText(h * 60)}`;
-    const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : minText(x.h * 60)}`).join(" · ")}</span></summary>
-      <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h)})</span> → ${x.sum}${
+    const fullShort = (h, n) => h <= 0 ? `<b class="bad">full now</b>` : `full ${fullWhen(n, h)}`;
+    const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : fullWhen(x.n, x.h).replace(/^in /, "")}`).join(" · ")}</span></summary>
+      <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h, x.n)})</span> → ${x.sum}${
         S.nextDetail === "expanded" ? `<br>${x.detail}` : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
     $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<p class="small muted" style="margin:10px 0 0">${Object.keys(STANDING).filter(n => perDay[n]).map(esc).join(", ")}: see <a href="#" data-go="grinds">Slow grinds</a>.</p>` : "");
     $("grind-standing").innerHTML = (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
