@@ -189,3 +189,18 @@ console.log("engine tests passed");
   assert.deepStrictEqual(rows.map(r => [r.item, r.tier, r.left, r.days, r.pinned]), [["Chum", "gm", 100000, 1000, false], ["Net", "mm", 10000, 100, true]]);
   assert.strictEqual(grindList({ Net: 990000 }, { coster, perDay }).length, 0);   // fast and not pinned
 }
+
+// What if: changed numbers flow into the usable amounts (made-up numbers)
+{
+  const { whatIfEnv, productionMath } = require("../engine.js");
+  const env = { production: { Wood: 600 }, orchard: { Apple: { production: 900, trees: 100 } }, cap: 500, capPerDay: 10, gap: 1 };
+  assert.strictEqual(whatIfEnv(env, {}).cap, 500);
+  assert.strictEqual(whatIfEnv(env, { days: 30 }).cap, 800);             // 500 + 10 a day x 30
+  assert.strictEqual(whatIfEnv(env, { days: 30, capPerDay: 20 }).cap, 1100);
+  assert.strictEqual(whatIfEnv(env, { cap: 1000 }).cap, 1000);
+  const w = whatIfEnv(env, { cap: 1000, prod: { Wood: 2000 }, fruit: { Apple: 1500 } });
+  const pm = productionMath(w);
+  assert.strictEqual(pm.usableRate("Wood", 2000), 1000);
+  assert.strictEqual(pm.fruitPerDay("Apple"), 1000 + 150);
+  assert.strictEqual(env.production.Wood, 600);                          // the original is untouched
+}

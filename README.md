@@ -115,6 +115,8 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   to what production makes (`makesPerDay`); typed values win; "Extra Antlers a day" feeds Large Nets. Each row assumes it gets
   the whole budget and, for crops, all plots. Items needing something the farm doesn't make collapse into one count. "Set and
   forget" (year-long chains) moved here from Daily overflow. Engine: `productionMath`, `grindTime`, `grindList` (engine.js).
+  **What if** card: inventory cap, days from now (cap grows by cap growth a day), cap growth, and a target output per building
+  and fruit; each row shows "→ ~new time (N sooner)", sortable by most saved (`whatIfEnv` in engine.js).
 - **Veggie Juice** — cycle card: juice on hand, how many you can craft now + limiting item, "Next:" step of the player's loop (grow
   Tomato + Watermelon until full → Breakfast Boost the five quick crops until full → Grape Juice the Beets and craft until Tomato/
   Watermelon run out), "also top up" for Twine/Horn/Glass Bottle that would run out first, full-cycle size (cap ÷ 2, set by Tomato +

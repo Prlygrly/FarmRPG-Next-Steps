@@ -354,6 +354,19 @@
     return { noonDay, usableRate, fruitPerDay, perDay };
   }
 
+  // What if: the same production env with some numbers changed. w = { cap, days (project the cap: + capPerDay a day),
+  // capPerDay, prod: {item: per hour}, fruit: {Apple: fruit at midnight} }. Blank fields keep the current value.
+  function whatIfEnv(env, w = {}) {
+    const grow = w.capPerDay > 0 ? w.capPerDay : env.capPerDay || 0;
+    const base = w.cap > 0 ? w.cap : env.cap;
+    const cap = w.days > 0 && base > 0 ? base + grow * w.days : base;
+    const production = { ...(env.production || {}) };
+    for (const [n, v] of Object.entries(w.prod || {})) if (v > 0) production[n] = v;
+    const orchard = { ...(env.orchard || {}) };
+    for (const [n, v] of Object.entries(w.fruit || {})) if (v > 0) orchard[n] = { ...(orchard[n] || {}), production: v };
+    return { ...env, cap, production, orchard };
+  }
+
   // ---------- Slow grinds: how long a GM or MM takes, and what holds it back ----------
   // How many of an item your production alone makes a day (e.g. Large Nets from Antlers): the scarcest passive input.
   // null if it needs anything gathered by hand.
@@ -397,7 +410,7 @@
     return rows.sort((a, b) => (b.days ?? -1) - (a.days ?? -1));
   }
 
-  const api = { DROP_HOURS, productionMath, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { DROP_HOURS, productionMath, whatIfEnv, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

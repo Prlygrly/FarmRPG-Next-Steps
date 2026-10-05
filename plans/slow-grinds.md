@@ -61,3 +61,6 @@ Updated batches: as section 5, with the threshold set to ~180 days (setting), th
 - Batch 3 done (2026-10-05): the tab (Condensed/Expanded rows, progress bar, Limited by, Tower tag), "Your numbers" (threshold,
   Large Nets / Arnold Palmers / Apple Ciders a day, extra Antlers), Set and forget moved here, no-production items counted.
   Next: batch 4, the What if card (cap, cap growth, trees, building output targets) and days saved.
+- Batch 4 done (2026-10-05): What if card (`S.whatIf`: cap, days, capPerDay, prod targets per hour, fruit at midnight),
+  second run per row, Longest | Most saved sort. Fruit is a target amount, not trees (the farm page has no tree counts).
+- Batch 5 (Max preset per building, upgrade costs) waits on price data: see questions-for-morning.md.

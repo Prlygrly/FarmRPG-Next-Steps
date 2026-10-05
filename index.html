@@ -185,6 +185,7 @@ textarea {
 }
 .row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
 .muted { color: var(--muted); }
+.good { color: var(--good); }
 .small { font-size: .9rem; }
 .loaded { list-style: none; padding: 0; margin: 10px 0 0; }
 .loaded li::before { content: "✓ "; color: var(--good); font-weight: 700; }
@@ -314,6 +315,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <p class="small muted">Masteries that take months at your production, longest first. Tap one for more.</p>
     <details class="small" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
       <div class="row" id="grind-settings" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
+    <details class="small" id="whatif-box" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">What if <span id="whatif-on"></span></summary>
+      <p class="muted" style="margin:6px 0">Change a number to see how much sooner each grind finishes. Blank keeps your current value.</p>
+      <div class="row" id="whatif-fields" style="gap:10px;align-items:flex-end"></div>
+      <details style="margin-top:6px"><summary class="muted" style="cursor:pointer">Building output</summary>
+        <div class="row" id="whatif-prod" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
+      <p style="margin:8px 0 0"><button type="button" id="whatif-reset">Reset</button> <span class="muted" id="whatif-sort"></span></p>
+    </details>
     <div id="grind-list"></div>
     <div id="grind-standing"></div>
   </section>
@@ -2153,34 +2161,53 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const GRIND_FIELDS = [["grindDays", "Slower than (days)", 180, "Masteries faster than this are left out (the always-on ones stay)."],
     ["lnPerDay", "Large Nets a day", null, "Blank: the nets your production makes."], ["apPerDay", "Arnold Palmers a day", null, "Blank: what your production makes."],
     ["acPerDay", "Apple Ciders a day", null, "Blank: what your production makes."], ["extraAntlers", "Extra Antlers a day", null, "Antlers you also gather exploring; they go into Large Nets."]];
-  function grindPerDay() {
+  // Usable amounts per day: crops (as now) plus buildings and orchard from a production env (current or what-if)
+  function grindPerDay(env) {
     const perDay = {};
-    for (const [n, v] of Object.entries(allProd())) if (v > 0) perDay[n] = v * 24;
-    for (const n of Object.keys(S.orchard || {})) { const f = fruitPerDay(n); if (f > 0) perDay[n] = f; }
+    for (const [n, v] of Object.entries(allProd())) if (v > 0 && !(S.production || {})[n]) perDay[n] = v * 24;   // crops
+    Object.assign(perDay, window.FRP.productionMath(env).perDay());
     if (S.perks.autoBuyIronNails) { perDay.Iron = Infinity; perDay.Nails = Infinity; }   // bought as needed: never the limit
     if (S.perks.extraAntlers > 0) perDay.Antler = (perDay.Antler || 0) + S.perks.extraAntlers;
     return perDay;
   }
+  const grindEnv = () => ({ ...prodEnv(), capPerDay: S.perks.capPerDay || 0 });
+  const whatIfOn = () => { const w = S.whatIf || {}; return w.cap > 0 || w.days > 0 || w.capPerDay > 0 || Object.values(w.prod || {}).some(v => v > 0) || Object.values(w.fruit || {}).some(v => v > 0); };
   function renderGrinds(p) {
-    const F = window.FRP, perDay = grindPerDay();
+    const F = window.FRP, perDay = grindPerDay(grindEnv());
     const auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, made = {};
     for (const [k, n] of Object.entries(auto)) made[k] = C ? F.makesPerDay(n, C, perDay) : null;
+    renderWhatIf();
     $("grind-settings").innerHTML = GRIND_FIELDS.map(([k, label, def, tipText]) => `<label class="field"><span>${label}${tip(tipText)}</span><input type="number" min="0" data-grind="${k}" value="${S.perks[k] ?? ""}" placeholder="${
       def != null ? def : made[k] != null ? `~${short(made[k])}` : ""}" style="width:7em"></label>`).join("");
     if (!S.mastery || !C) { $("grind-list").innerHTML = `<p class="small muted">Paste Mastery Progress (and your farm page) in Setup to see your slow grinds.</p>`; return; }
     if (!Object.keys(perDay).length) { $("grind-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to time your grinds.</p>`; return; }
-    const val = k => S.perks[k] > 0 ? S.perks[k] : made[k] || 0;
-    const budget = { LN: val("lnPerDay"), AP: val("apPerDay"), AC: val("acPerDay") };
+    const budgetFor = (pd, mk) => { const v = k => S.perks[k] > 0 ? S.perks[k] : mk[k] || 0; return { LN: v("lnPerDay"), AP: v("apPerDay"), AC: v("acPerDay") }; };
+    const budget = budgetFor(perDay, made);
+    // What if: the same grinds again with the changed numbers
+    let alt = null;
+    if (whatIfOn()) {
+      const pd2 = grindPerDay(F.whatIfEnv(grindEnv(), S.whatIf)), made2 = {};
+      for (const [k, n] of Object.entries(auto)) made2[k] = F.makesPerDay(n, C, pd2);
+      alt = { perDay: pd2, budget: budgetFor(pd2, made2) };
+    }
     const all = F.grindList(p.items, { coster: C, perDay, budget }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS });
     // Ones that need something the farm doesn't make at all aren't grinds yet: one muted count instead
     const rows = all.filter(r => r.pinned || r.days !== Infinity), noProd = all.length - rows.length;
+    for (const r of rows) {
+      const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget });
+      r.alt = t && t.days != null && r.days != null && r.days !== Infinity && t.days < r.days * 0.99 ? t.days : null;
+      r.saved = r.alt != null ? r.days - r.alt : 0;
+    }
+    if (alt && S.grindSort === "saved") rows.sort((a, b) => b.saved - a.saved);
+    $("whatif-sort").innerHTML = alt ? `Sort: ${["longest", "saved"].map(k => `<a href="#" data-gsort="${k}"${(S.grindSort || "longest") === k ? ' style="font-weight:700"' : ""}>${k === "saved" ? "most saved" : "longest"}</a>`).join(" · ")}` : "";
     const wordy = S.nextDetail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
     const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])})` : ""}` : UNIT[x.kind] || esc(x.kind);
     const html = rows.map(r => {
       const tower = O && (O.towerUse[r.item] || []).length ? ` <span class="tag">Tower</span>` : "";
       const pct = Math.min(100, r.have / r.target * 100);
-      const time = r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}`;
+      const time = (r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}`) +
+        (r.alt != null ? ` <span class="good">→ ~${longText(r.alt)} (${longText(r.saved)} sooner)</span>` : "");
       const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
       const parts = r.parts.slice().sort((a, b) => b.days - a.days);
       const lines = [`${short(r.left)} to go (${short(r.have)} / ${short(r.target)})`,
@@ -2199,6 +2226,34 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed;
   }
+  // What if fields: cap, days ahead (the cap grows meanwhile), cap growth, and a target output per building and fruit
+  function renderWhatIf() {
+    const w = S.whatIf || {}, cap = invCap();
+    $("whatif-on").textContent = whatIfOn() ? "(on)" : "";
+    const f = (k, label, ph, tipText, v) => `<label class="field"><span>${label}${tipText ? tip(tipText) : ""}</span><input type="number" min="0" data-wi="${k}" value="${v ?? ""}" placeholder="${ph}" style="width:8em"></label>`;
+    $("whatif-fields").innerHTML = f("cap", "Inventory cap", cap === Infinity ? "" : short(cap), "", w.cap) +
+      f("days", "Days from now", "", "Your cap keeps growing by your daily cap growth for this many days.", w.days) +
+      f("capPerDay", "Cap growth a day", S.perks.capPerDay ? `+${S.perks.capPerDay}` : "", "From the Storehouse page; bought in steps of +2.", w.capPerDay);
+    const daily = n => (window.FRP.DROP_HOURS[n] || 1) >= 24;
+    const prod = Object.entries(S.production || {}).filter(([, v]) => v > 0).map(([n, v]) =>
+      f("prod:" + n, `${esc(n)} ${daily(n) ? "a day" : "an hour"}`, short(daily(n) ? v * 24 : v), "", (w.prod || {})[n] > 0 ? (daily(n) ? w.prod[n] * 24 : w.prod[n]) : null));
+    const fruit = Object.entries(S.orchard || {}).filter(([, o]) => o && o.production).map(([n, o]) =>
+      f("fruit:" + n, `${esc(n)} at midnight`, short(o.production), "Trees x fruit per tree; the orchard has a tree limit.", (w.fruit || {})[n]));
+    $("whatif-prod").innerHTML = [...prod, ...fruit].join("") || `<span class="muted">Paste your farm page first.</span>`;
+  }
+  $("whatif-box").addEventListener("change", e => {
+    const k = e.target.dataset.wi; if (!k) return;
+    const v = +e.target.value || 0, w = S.whatIf = S.whatIf || {};
+    if (k.startsWith("prod:")) { const n = k.slice(5); (w.prod ||= {})[n] = v > 0 ? ((window.FRP.DROP_HOURS[n] || 1) >= 24 ? v / 24 : v) : 0; }
+    else if (k.startsWith("fruit:")) (w.fruit ||= {})[k.slice(6)] = v;
+    else w[k] = v;
+    save(); render(false);
+  });
+  $("whatif-reset").addEventListener("click", () => { delete S.whatIf; save(); render(false); });
+  $("whatif-box").addEventListener("click", e => {
+    const a = e.target.closest("[data-gsort]"); if (!a) return;
+    e.preventDefault(); S.grindSort = a.dataset.gsort; save(); render(false);
+  });
   $("grind-settings").addEventListener("change", e => {
     const k = e.target.dataset.grind; if (!k) return;
     const v = e.target.value.trim();
