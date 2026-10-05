@@ -629,9 +629,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
 
   // ---------- Paste ----------
-  // Saved page (.mht/.mhtml/.html, e.g. Chrome's Download on a phone): turn its HTML back into the line-per-thing text a
-  // copy would give, so the same parsers read it. Chrome's .mht is quoted-printable (long lines broken with "=", "=" written
-  // "=3D"), so decode that first. Same approach as the net planner's savedPageToText().
+  // Saved page (.mht/.html, e.g. Chrome's Download on a phone) -> the text a copy gives; .mht is quoted-printable.
   function savedPageToText(raw) {
     if (/Content-Transfer-Encoding:\s*quoted-printable/i.test(raw)) {
       const bytes = raw.replace(/=\r?\n/g, "").replace(/=([0-9A-F]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
@@ -727,7 +725,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       S.perkPages = { ...(S.perkPages || {}), [kind]: got };
       const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
       Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster"), sellBonus: add("sellBonus"), craftSilverCut: add("craftSilverCut") });
-      // Friendship gift bonus: Primer x1.1, then O.M.G (one perk ~x1.37, both ~x1.75 on average)
+      // Friendship gift bonus (knowledge/mechanics/friendship.md)
       { const omg = add("omg"), mult = (1 + add("friendPrimer") / 100) * (omg >= 2 ? 1.75 : omg === 1 ? 1.37 : 1); S.perks.friendBonus = Math.round((mult - 1) * 100); }
       S.perkPagesAt = Date.now();
       S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
@@ -813,8 +811,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     ["lemonSqueezer", "Lemon Squeezer (Arnold Palmer finds 500 items)"], ["cinnamonSticks", "Cinnamon Sticks (Apple Cider explores 1,250 times)"],
     ["reinforcedNetting", "Reinforced Netting (+150 fish per Large Net)"], ["fishingTrawl", "Fishing Trawl (+100 fish per Large Net)"],
     ["autoBuyIronNails", "Buys Iron and Nails automatically (counts them as unlimited)"]];
-  // Where each number comes from in the game, named as on the Perks and Farm Supply pages, so it can be checked.
-  // Perks of the same kind add up.
+  // Where each number comes from, named as on the Perks and Farm Supply pages (knowledge/data/perks.md).
   const tip = t => ` <span class="tip" data-tip="${esc(t)}" aria-label="${esc(t)}" tabindex="0">ⓘ</span>`;
   const tipLines = (...lines) => lines.join("\n");
   const PERK_SRC = {
@@ -855,7 +852,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     perkField("Cooking faster %", "cookFaster", 90) + perkField("Crop growth cut %", "cropGrowthCut", 99) +
     perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100) +
     perkField("Friendship gift bonus %", "friendBonus", 500);
-  // General settings: how you play, not what the game gives you. Hover the ⓘ for what each one does.
+  // General settings: how you play, not what the game gives you.
   $("general").innerHTML =
     `<label class="field"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
     `<label class="field"><span>An hour of waiting feels like … minutes of play${tip(TIPS.wait)}</span> <input type="number" min="0" max="600" data-perk="waitWorth"></label>` +
@@ -890,8 +887,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
   });
 
-  // Crop plots come in sets of 4, and each set costs 10x the one before (the set that reaches 52 plots is ~10T silver).
-  // Over 100 is almost surely a typo or a misread paste, so ask first. Returns the plots to keep, or null to undo.
+  // Plots come in sets of 4, each 10x the last (knowledge/mechanics/crops.md): over 100 asks first.
+  // Returns the plots to keep, or null to undo.
   const PLOT_SOFT_MAX = 100;
   const plotSetCost = p => 1e13 * 10 ** ((p - 52) / 4);
   const BIG = [[1e33, "decillion"], [1e30, "nonillion"], [1e27, "octillion"], [1e24, "septillion"], [1e21, "sextillion"], [1e18, "quintillion"], [1e15, "quadrillion"]];
@@ -913,7 +910,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return v;
   }
 
-  // Typed production: shown in each building's natural unit, stored per hour (orchard: midnight amount)
+  // Typed production, in each building's own unit (orchard: the midnight amount)
   const PROD = [["Wood", "hour"], ["Board", "hour"], ["Stone", "hour"], ["Coal", "hour"], ["Iron", "hour"], ["Nails", "hour"],
     ["Steel", "hour"], ["Steel Wire", "hour"], ["Straw", "hour"], ["Worms", "hour"], ["Gummy Worms", "hour"], ["Mealworms", "hour"],
     ["Apple", "orchard"], ["Orange", "orchard"], ["Lemon", "orchard"], ["Grapes", "day"], ["Milk", "day"], ["Eggs", "day"],
@@ -1008,8 +1005,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const akTarget = Math.max(tp.akToClearFree, tower100(p.ak));
     W = where(p);
     renderPlaces(p);
-    // Anything the farm makes counts as "daily production" (costed in time, not AP)
-    // Only things with a known rate count (a new player with no farm/orchard paste gathers or crafts everything)
+    // Daily production = items with a known rate (costed in time, not AP)
     const passive = [...new Set([...Object.entries(allProd()).filter(([, v]) => v > 0).map(([n]) => n), ...Object.keys(S.orchard || {}), ...(S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [])])];
     C = makeCoster(DROPS, RECIPES, S.perks, W, passive);
     const ap = akPlan(p.items, { akTarget, tower: TOWER, fromLevel: p.level, skills: p.skills, drops: DROPS, coster: C, where: W, hidden: S.hidden,
@@ -1089,8 +1085,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
   const tower100 = ak => Math.max(0, TOWER.akPerLevel - ak);
 
-  // Paste section can be hidden. While hidden, one line says whether the pages that change often are over a week
-  // old (Mastery Progress, My Inventory, Help Needed). Farm, orchard and perk pages don't get reminders.
+  // Paste section can be hidden; then one line flags week-old Mastery, Inventory or Help Needed pastes.
   function renderPasteToggle() {
     const hidden = !!(S.ui && S.ui.pasteHidden);
     $("paste-body").hidden = hidden;
@@ -1147,9 +1142,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (m && !m.tower && p.level == null) $("status").innerHTML ||= warn("Your Tower level wasn't in that paste. Type it in the box below.");
   }
 
-  // "Do these next": one list of masteries, tower and quests, quickest first. Each candidate carries its AP cost
-  // and how long it waits on production; ready quests cost nothing. Up to 5 are shown, then a "start early" wall note.
-  // Tower levels also cost silver (level x 50M/100M/300M/500M by band)
+  // "Do these next": masteries, Tower and quests, quickest first (knowledge/planner/rules.md).
   const tSilver = L => window.FRP.towerSilver(TOWER, L);
   const silverShort = L => S.silver == null ? 0 : Math.max(0, tSilver(L) - S.silver);
   const silverNote = L => S.silver == null ? `, plus ${short(tSilver(L))} silver (type yours in Setup to check)` : `, and the ${short(tSilver(L))} silver`;
@@ -1210,8 +1203,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         done: doneBtn("quest", { name: q.name })
       });
     }
-    // Effort in minutes of play: AP at your pace, plus waiting (an hour of it counts as a few minutes, since you can do other
-    // things meanwhile). Both are General settings. Ready quests cost nothing to finish.
+    // Effort in minutes of play (knowledge/planner/rules.md)
     const apm = Math.max(1, S.perks.apPerMin || 100), wait = (S.perks.waitWorth ?? 20) / 60;
     for (const c of cands) c.mins = c.ready ? 0 : c.cost === Infinity ? Infinity : c.cost / apm + c.hours * 60 * wait;
     for (const c of cands) c.kind = c.ready ? "ready" : c.main || /quest/.test(c.t) ? "quest" : /Tower level/.test(c.t) ? "tower" : "mastery";
@@ -1286,7 +1278,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const UNIT = { AP: "Arnold Palmers", AC: "Apple Ciders", LN: "Large Nets", explores: "explores" };
   const short = n => n >= 999.5e9 ? `${(n / 1e12).toFixed(n >= 99.95e12 ? 0 : 1)}T` : n >= 999.5e6 ? `${(n / 1e9).toFixed(n >= 99.95e9 ? 0 : 1)}B` : n >= 999500 ? `${(n / 1e6).toFixed(n >= 99.95e6 ? 0 : 1)}M` : n >= 9500 ? `${(n / 1000).toFixed(n >= 99500 ? 0 : 1)}k` : fmt(Math.ceil(n));
   // "335 AP at Highland Hills for Fern Leaf + …" (forWhat names what each place is visited for, biggest first)
-  // Places and what each one is for: ["3,664 Arnold Palmers at Jundland Desert for Langstaff Crest", …, "2 more places"]
   const placeList = (byPlace, max = 3, forWhat = null) => {
     const list = Object.entries(byPlace || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]);
     const shown = list.slice(0, max).map(([k, v]) => {
@@ -1301,16 +1292,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const unitMix = byUnit => Object.entries(byUnit).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([u, v]) => `${short(v)} ${UNIT[u]}`).join(" + ");
   // Daily-production ingredients, biggest first: "71k Apple + 1,774 Orange"
   const passiveMix = p => Object.entries(p || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).map(([n, v]) => `${short(v)} ${esc(n)}`).join(" + ");
-  // Daily-production ingredients as time. Orchard fruit arrives in two lumps a day, so it's always days
-  // (plus what gathering the fruit would cost). Everything else with a known rate: hours if under 12, else days,
-  // naming the slowest item. Items with no rate stay as amounts; bought-automatically items are left out.
-  // Crops: how many of each you can grow per hour, from plots, growth time and harvesting habits.
-  // Harvests per hour = the fewer of (60 / growth minutes) and how often you really harvest, plus Grape Juice
-  // (each one is an instant harvest) spread over the day. Mega seeds count only if you have some.
+  // Daily-production ingredients as time: fruit in days, the rest hours under 12, else days.
+  // Crops per hour (knowledge/mechanics/crops.md)
   // Best seed per crop: { crop: { seed, minutes (growth after perks), perHour } }
-  // Veggie Juice on a planted crop takes 10% off the time left, or 20% once "A Better Juice" is done. It's assigned as soon
-  // as you qualify (Tower 100 and Farming, Fishing, Crafting, Exploring at 99), so qualifying with no part of it in Help
-  // Needed means done, unless the player says otherwise (they might have hidden it).
+  // Veggie Juice cut: 10%, or 20% once "A Better Juice" counts as done (knowledge/mechanics/veggie-juice.md)
   let VJ_CUT = 0.1;
   function vjCut(p) {
     const sk = p.skills || {}, qualifies = (p.level ?? 0) >= 100 && ["Farming", "Fishing", "Crafting", "Exploring"].every(k => (sk[k] ?? 0) >= 99);
@@ -1340,7 +1325,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     for (const [crop, seeds] of Object.entries(SEEDS.crops)) {
       for (const sd of seeds) {
         if (sd.seed.startsWith("Mega ") && !(onHand[sd.seed] && onHand[sd.seed].count > 0)) continue;
-        // "X% faster" perks add up and take that share off the growth time (capped at 95%); Corn has its own on top
+        // Growth perks add up, capped at 95%; Corn has its own on top (knowledge/mechanics/crops.md)
         const c = Math.min(0.95, (k.cropGrowthCut || 0) / 100 + (crop === "Corn" ? (k.cornGrowthCut || 0) / 100 : 0));
         const before = Math.max(0.5, sd.minutes * (1 - c));
         // Veggie Juice (by the setting) on every planting, except Breakfast Boost crops (official growth 5 min or less)
@@ -1355,15 +1340,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return out;
   }
   const cropRates = () => Object.fromEntries(Object.entries(cropInfo()).map(([c, x]) => [c, x.perHour]));
-  // Everything made over time: farm buildings (per hour) plus crops. Buildings win if both know an item.
-  // Crops that can also be gathered at a place you can use (Mushroom) are gathered, not farmed: exploring is
-  // quick with AP while growing is slow. Only crops with no drop anywhere you can go count as farming.
+  // Everything made over time: buildings (per hour) plus crops; crops you can gather somewhere (Mushroom) are
+  // gathered, not farmed.
   const gatherable = crop => { const e = W && window.FRP.bestEffort(crop, 1, DROPS, S.perks, W); return !!(e && e.unit !== "explores"); };
-  // Production lands in drops, and a drop can only fill your inventory: anything over your cap voids on arrival, and
-  // autocrafting runs after the drop, so it can't use the excess either. Between two of your checks you can use at most
-  // one inventory's worth, so the usable rate is min(made per gap, cap) / gap, where the gap is the drop interval or the
-  // time between your checks, whichever is longer. (Straw every 10 minutes, emptied each time, really can be 6 caps an hour.)
-  // Production math lives in engine.js (productionMath); these wrappers feed it this player's numbers
+  // Usable rate: each drop is capped at your inventory (knowledge/mechanics/production.md); math in engine.js.
   const DROP_HOURS = window.FRP.DROP_HOURS;
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
@@ -1395,8 +1375,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return { ...crops, ...bld };
   };
 
-  // A Hickory Omelette makes the Sawmill also produce 20% of its hourly amount every 10 minutes, for 1 hour:
-  // 2.2x Wood and Boards while one is active. More omelettes extend the time, not the rate.
+  // Hickory Omelette: Sawmill x2.2 while active (knowledge/mechanics/production.md)
   const SAWMILL = ["Wood", "Board"], HICKORY = 1 + 6 * 0.2;
   // How long daily production takes to cover `p`: { fruit, fruitDays, slow: {item, hours}, sawHours, otherHours, rest }
   function prodTime(p) {
@@ -1415,9 +1394,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     return t;
   }
-  // Daily production only gets "Too slow after" days to cover a job. Whatever it can't make in that time is
-  // gathered at its cheapest drop instead (Coal at Mount Banon, say), and that AP/AC/nets is added to the cost.
-  // Things with no drop (Grapes) can't be topped up, so the job stays slow.
+  // Production gets "Too slow after" days; the rest is gathered or crafted (knowledge/planner/rules.md).
   function adjust(e) {
     if (!e.passive || !Object.keys(e.passive).length) return e;
     const hrs = (S.perks.slowDays ?? 7) * 24;
@@ -1435,8 +1412,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         if (out.passive[n] < 0.5) delete out.passive[n];
       }
     }
-    // Places you already visit for this job drop other things too: Highland Hills for Fern Leaf also brings Wood.
-    // Those count toward the daily-production items the job needs, so there's less to wait for.
+    // Side drops from places this job visits count toward its production needs.
     for (const [k, amt] of Object.entries(e.byPlace || {})) {
       const [u, loc] = k.split("|");
       const got = window.FRP.tripYield(loc, u, amt, DROPS, S.perks);
@@ -1445,8 +1421,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         if (take >= 1) { out.passive[n] -= take; out.alsoGets.push({ item: n, qty: take, loc }); }
       }
     }
-    // Then whatever production can't make in time is gathered or crafted (Coal at Black Rock Canyon, Steel from
-    // Carbon Sphere + Glass Orb), and that AP is added. Things with no other source (Grapes) stay slow.
+    // Then what production can't make in time is gathered or crafted, and its AP added.
     for (const [n, v] of Object.entries(out.passive)) {
       const cap = orch[n] ? fruitPerDay(n) * (hrs / 24) : prod[n] > 0 ? prod[n] * hrs : null;
       if (cap == null || v <= cap) continue;
@@ -1570,9 +1545,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Townsfolk ----------
-  // Gift XP: loved 150, liked 25 (super-loved items like Heart Container have their own big XP, but cost far too much).
-  // Cheap gifts: things your farm makes count as free; the rest by AP per friendship XP. Supplies (Apple Cider…) and
-  // super-loved items are left out.
+  // Gift XP and cheap gifts: knowledge/mechanics/friendship.md (farm-made items count as free).
   const NPC = (window.NPCS && NPCS.npcs) || {};
   function cheapGifts(npc, max = 3) {
     const n = NPC[npc];
@@ -1621,8 +1594,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return `from the quest <b>${esc(src)}</b>${npc ? ` <span class="muted">(needs ${esc(npc)} friendship ${lvl}${have != null ? `, you're ${have}: ${friendGap(npc, have, lvl, gifts.find(g => g.how === "loves") || gifts[0])}` : ""}${gifts.length ? `; gift ${gifts.map(giftText).join(", ")}` : ""})</span>` : ""}`;
   }
 
-  // Friendship uses the skill XP table; counted from the start of your current level. ~N of your best gift to get there
-  // (2x on the Townsfolk of the Day).
+  // Friendship uses the skill XP table from your current level (2x on the Townsfolk of the Day)
   function friendGap(npc, have, want, g) {
     const xp = Math.max(0, lvTotal(want) - lvTotal(have));
     if (!g) return `~${short(xp)} friendship XP`;
@@ -1881,9 +1853,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Leveling up (toward 4x90 and 4x99) ----------
-  // XP to the next level, to 90 and to 99 from the start of the current level (the paste has levels only). Exploring and
-  // Fishing also get "about how many" at your best open place: buddy.farm's XP per explore/fish covers the items found, so
-  // the wiki's flat 125 per explore and 75 per fish are added on top.
+  // XP to the next level, 90 and 99 from the current level (knowledge/mechanics/levels-and-xp.md).
   const MAIN_SKILLS = ["Farming", "Fishing", "Crafting", "Exploring"];
   const lvTotal = l => LEVELS.total[Math.min(99, Math.max(1, l)) - 1];
   // Crafting picks by level (FarmRPG wiki "Crafting Advice"): good XP and silver
@@ -1929,7 +1899,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Making silver (before Fun Guy) ----------
-  // Sell price = base x (1 + sell perks) x mastery bonus (x1.1 Mastered, x1.2 Grand Mastered; MM adds nothing more)
+  // Sell price: knowledge/mechanics/silver.md
   const sellPrice = (item, p) => {
     const base = PRICES.sell[item] ?? (S.prices || {})[item];      // hand-kept first, then from a Market paste
     if (base == null) return null;
@@ -1974,8 +1944,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Best use: "Spend my…" ----------
-  // Every place you can use with that unit gets two lists: masteries (via tripEffects) and quests (your active ones
-  // and up to 5 ahead in each chain). Finished things first, quickest first; then part-done progress, biggest first.
+  // Each usable place: the masteries and quests (active + 5 ahead) it finishes or moves closer.
   const BEST_ITEM = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
   $("best-unit").addEventListener("change", () => { S.best = { unit: $("best-unit").value, amount: null }; save(); render(false); });
   $("best-amt").addEventListener("change", () => { S.best = { ...(S.best || {}), unit: $("best-unit").value, amount: +$("best-amt").value || null }; save(); render(false); });
@@ -2111,8 +2080,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const score = jobs.reduce((s, j) => s + j.w / (1 + j.hours / 24), 0);
       return { crop, ...x, jobs, score };
     }).filter(c => c.jobs.length).sort((a, b) => b.score - a.score);
-    // Crops that officially grow in 5 minutes or less are done together under Breakfast Boost (instant growth for
-    // 2 minutes): counted in plant-and-harvest rounds, not hours. Boosts are treated as free (players have plenty).
+    // Crops officially <= 5 min go under Breakfast Boost, in rounds (knowledge/mechanics/breakfast-boost.md).
     const extraHtml = j => j.extra ? `<details class="muted"><summary>where the extra goes (more than you can hold)</summary>${j.extra}</details>` : "";
     const rounds = S.perks.boostRounds || 250;
     const boost = crops.filter(c => c.base <= 5), timed = crops.filter(c => c.base > 5);
@@ -2150,8 +2118,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Best use: daily overflow ----------
-  // Some daily production has one obvious home: Mega Masteries that take a year or more even at full production, so
-  // every day that isn't turned into them is lost ground. Everything else gets the usual outlet pick.
+  // Year-long Mega Masteries get standing chains; everything else the usual outlet pick.
   const BUILDING = { Eggs: "Chicken Coop", Feathers: "Chicken Coop", Milk: "Cow Pasture", Antler: "Raptor Pen", "Steak Kabob": "Raptor Pen",
     Worms: "Worm Habitat", "Gummy Worms": "Worm Habitat", Mealworms: "Worm Habitat", Trout: "Trout / Bait Farm", Grubs: "Trout / Bait Farm",
     Minnows: "Trout / Bait Farm", Grapes: "Vineyard", Board: "Sawmill", Wood: "Sawmill", Iron: "Ironworks", Nails: "Ironworks", Steel: "Steelworks",
@@ -2190,8 +2157,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         left ? `; ${esc(prev)} Mega Mastery: ${short(left)} to go, about <b>${fmt(Math.ceil(left / qty))} days</b> if you keep up` : "; Mega Mastery done"}.</span>
         <span class="small muted">Also uses a day: ${Object.entries(also).map(([i, q]) => `${short(q)} ${esc(i)}`).join(", ")}.</span></li>`;
     });
-    // Everything else, grouped by building. Each item's best outlet is framed as a goal (its next tier, or the Tower tier
-    // it still needs): how many days of this item it takes, and what the other ingredients cost. Pricey ones show it.
+    // Everything else by building, each outlet framed as a goal (knowledge/planner/rules.md).
     const sumEff = (extra, key) => extra.reduce((m, x) => { for (const [k, v] of Object.entries(x.effort[key] || {})) m[k] = (m[k] || 0) + v; return m; }, {});
     const item = n => {
       const day = perDay[n], keep = OTHER_USES[n];
@@ -2237,8 +2203,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Slow grinds ----------
-  // Masteries that take months at this player's production (plus a few always-on ones until MM'd). Large Nets, Arnold
-  // Palmers and Apple Ciders a day default to what production makes; each row assumes it gets the whole budget.
+  // Tower masteries that take months (knowledge/planner/rules.md).
   const GRIND_ALWAYS = ["Orange Juice", "Lemonade", "Large Net", "White Parchment", "Beet"];
   const longText = d => d < 60 ? `${fmt(Math.max(1, Math.round(d)))} day${Math.round(d) === 1 ? "" : "s"}` : d < 730 ? `${fmt(Math.round(d / 30.4))} months` : `${(d / 365).toFixed(1)} years`;
   const GRIND_FIELDS = [["grindDays", "Slower than (days)", 180, "Masteries faster than this are left out (the always-on ones stay)."],
@@ -2351,18 +2316,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
   // ---------- Silver goal ----------
-  // Crafting and selling (from daily production, or per Large Net / Arnold Palmer / Apple Cider) and fishing with Large
-  // Nets at each place you can fish, best first. Budgets are the same as Slow grinds (typed, or what production makes).
+  // Ways to earn silver; budgets as in Slow grinds.
   function silverBudget() {
     const F = window.FRP, perDay = grindPerDay(grindEnv()), auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, b = {};
     const key = { lnPerDay: "LN", apPerDay: "AP", acPerDay: "AC" };
     for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay, true)) || 0;
     return { perDay, budget: b };
   }
-  // Better used than sold: items used exploring or fishing, gifts, and ingredients (crafting or cooking) of anything you
-  // haven't Mega Mastered yet (sell the Butter Churn's Butter, not the churn; keep Leather Helmets while Reinforced Helmet needs its MM).
-  // Exceptions: a few sell well and the next step's parts are slow or costly (Lantern, Red Shield); and an item at your cap
-  // that you can't make into anything right now (another part is missing) may be sold.
+  // Better used than sold, with exceptions (knowledge/planner/rules.md).
   const USED_NOT_SOLD = ["Explosive", "Large Net", "Fishing Net", "Arnold Palmer", "Apple Cider", "Lemonade", "Orange Juice", "Iced Tea", "Grape Juice", "Veggie Juice"];
   const GIFT_NOT_SOLD = ["Chum"];
   const SELL_ANYWAY = { Lantern: ["Linked Lantern", "its parts are slow or costly to get"], "Red Shield": ["Frost Shield", "its parts are costly or hard to get"] };
@@ -2491,14 +2452,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
 
   // ---------- Best use: kitchen ----------
-  // Meals ranked by what finishing them does: their own next tier (Tower tier if needed), quest needs down each chain.
-  // Oven time = meals × cook time ÷ ovens; ingredients costed the usual way. Cooking level and missing recipes filter.
   $("kitchen-missing").addEventListener("change", () => {
     S.noRecipe = $("kitchen-missing").value.split(",").map(x => x.trim()).filter(Boolean); save(); render(false);
   });
-  // Cook time (FarmRPG wiki "Cooking"): perks take their % off the base time; the first stir is possible after 1 minute,
-  // then every 15 minutes, and each takes 10% off the time left. Checks out against the wiki's full-perk table
-  // (Onion Soup, 25% faster, stirring every time: 37 min 27 s).
+  // Cook time: perks, then your stirs (knowledge/mechanics/cooking.md)
   function cookMinutes(n, m) {
     let done = m.minutes * (1 - Math.min(90, S.perks.cookFaster || 0) / 100);
     for (let k = 0, ts = 1; k < (S.perks.stirs || 0) && ts < done; k++, ts += 15) done = ts + (done - ts) * 0.9;
@@ -2552,8 +2509,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   // ---------- Wishing well ----------
-  // Quest items you're short of (current quest + up to 5 ahead, adding up down each chain) that the well can give.
-  // Toss options: ones you already have enough of first, then the cheapest expected cost (tosses = needed ÷ chance).
+  // Quest items you're short of that the well gives (knowledge/planner/rules.md).
   function renderWW(p) {
     const W2 = window.WW && WW.want;
     $("ww").hidden = !(S.quests && W2);
@@ -2573,7 +2529,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     const perOf = item => { const u = C.unit(item), t = TRADE.trade[item]; return u && u.per != null ? u.per : t ? t.ap : null; };
     // Exploring you'll do anyway (for your quests, up to 5 ahead, and your Trips) brings things home too: those don't need tosses
-    // (Spool of Copper comes along while exploring Jundland Desert for Langstaff Crests)
     const busy = {};
     for (const q of S.quests) {
       if (hidden.has(q.name) || q.section === "personal") continue;
@@ -2591,7 +2546,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       for (const [item, q] of Object.entries(yieldsNow(loc, u, amt))) if (W2[item] && q >= 1) { anyway[item] = (anyway[item] || 0) + q; (anywayAt[item] ||= new Set()).add(loc); }
     }
     // Crafted things too: if the places its usual route visits are ones you're exploring enough anyway, it needs no tosses
-    // (Spool of Copper = Metal Spool + Copper Wire, both from places your quests already send you)
     const covered = (item, n) => {
       const e = C.effort(item, n);
       const ks = e ? Object.entries(e.byPlace || {}).filter(([, v]) => v >= 0.5) : [];
@@ -2617,9 +2571,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       // "No other way" means no recipe and no drop anywhere, not just "can't cost it" (Fancy Drum is craftable)
       return { ...x, opts, gather: own == null ? null : own * x.short, otherWay: !!(r && r.recipe) || !!DROPS.items[x.item] };
     }
-    // Only worth it when the item has no other way in, or tossing (the tossed items count at their own value) is cheaper.
-    // Strictly today: only today's free tosses are shown, never totals or later days, so nothing nudges anyone to pay gold
-    // for extra tosses. Picks that would need more than 30 days of free tosses are left out.
+    // Only with no other way in, or when tossing is cheaper; today's free tosses only (rules.md).
     const free = S.perks.wwTosses || 0;
     if (!free) { $("ww-list").innerHTML = `<p class="small muted">How many free tosses do you get a day? Paste your <b>Farm Supply</b> page (it reads the Extra Wish perks) or set <b>Free wishing well tosses a day</b> in Setup → Your perks (3, up to 29 with perks, +1 for beta testers). Tosses that cost gold are never suggested.</p>`; return; }
     const worth = x => x.gather == null ? !x.otherWay : x.opts[0].cost != null && x.opts[0].cost < x.gather;
@@ -2638,10 +2590,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
           anyway[x.item] ? ` (plus about ${fmt(Math.floor(anyway[x.item]))} from exploring you'll do anyway at ${[...anywayAt[x.item]].map(esc).join(", ")})` : ""}; ${
           x.gather == null ? "there's no other way to get it" : "tossing is cheaper than getting it the usual way"}. You have ${short(o.have)} ${esc(o.inp)}.</span></li>`);
     }
-    // Spare tosses: stock up for later in your active chains (past 5 ahead, to the end of each chain). Only chains you're on
-    // count, so finished questlines never come up. Same rules: items you have, not what exploring brings, today only.
-    // Quests take items one step at a time and you keep gathering in between, so the stock to aim for is the biggest single
-    // step's need (never more than your cap), not the whole chain added up (Gold Leaf: 6,000 per step, not 18.8k).
+    // Spare tosses stock up for later chain steps: the biggest single step, never above the cap (rules.md).
     if (left) {
       const far = {}, farWhy = {};
       for (const q of S.quests) {
@@ -2837,16 +2786,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (data.rGold) out.push(`${fmt(data.rGold)} gold`);
     return out.join(", ") || "nothing listed";
   }
-  // What a quest's rewards are worth to this player, in the same effort units as costs (1 AP = 1 AC = 1 Large Net).
-  // Supplies count in full (500 AP = 500). Items that help the plan (mastery still to earn, Tower needs) count
-  // at what they'd cost to get. Anything else counts at a tenth, since it would mostly be sold.
-  // Items with no cost at all (unique rewards, chests) can't be valued: listed in `special`.
-  // Value of `qty` of one item. Items that help the plan count double (they finish a quest AND feed a mastery or
-  // Tower need); other costed items a tenth. Chests and bags are worth what's inside: fixed chests everything
-  // listed (minus the key they use up), grab bags the average of one pick. Unknown things go in `special`.
-  // Rough value for parts with no cost of their own (Small Gear, Screw…, which only come from chests): look at the
-  // crafts that use them where you still need that mastery or Tower item, and take the costed ingredients that go
-  // in alongside, per part. Averaged over those crafts. It's a proxy, not a price.
+  // Reward value in AP (knowledge/planner/rules.md): helps the plan x2, other costed items x0.1, chests = contents - key,
+  // parts only chests give (Small Gear) valued by the crafts they go into; unknown things go in `special`.
   function roughValue(item, p) {
     const r = RECIPES.items[item];
     const vals = [];
@@ -2884,7 +2825,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const t = TRADE.trade[item];
     return qty * Math.max(u.per, t ? t.ap : 0) * (helps ? 2 : 0.1);
   }
-  // Quest values are in AP (1 Apple Cider and 1 Large Net count as 1 AP each)
   const pct = x => x >= 10 ? `${fmt(Math.round(x))}×` : `${Math.round(x * 100)}%`;
   function questValue(data, p) {
     const special = [];
@@ -2908,8 +2848,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
            n.cost || Object.keys(n.passive).length ? `costing ${[passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ")}` : "",
            n.uncosted.length ? `<span class="muted">can't cost ${n.uncosted.map(esc).join(", ")}</span>` : "",
            st ? `<span class="muted">then uses ${st}</span>` : ""].filter(Boolean).join("; ");
-      // Quests nearly always cost more than they give, so judge them by how much of their cost comes back:
-      // reward value ÷ cost. The next few quests in the chain count too, a bit less for each step away.
+      // Judged by reward value / cost; the next quests in the chain count a little less each step.
       const val = questValue(data, p);
       const ahead = [];
       let chainV = 0, chainC = 0;
@@ -2971,8 +2910,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
 
   // ---------- Save codes ----------
-  // A save code is everything in S, turned into text: JSON, squeezed with the browser's built-in compression,
-  // then written as letters and numbers. "FRP1." = compressed; "FRP0." = not (for browsers without compression).
+  // A save code is S as compressed JSON in text: "FRP1." compressed, "FRP0." not.
   const b64 = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const unb64 = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
   async function squeeze(bytes, mode) {
@@ -3035,9 +2973,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
   $("load-go").addEventListener("click", () => loadCode($("load-code").value));
 
-  // ---------- QR codes: the save as two small links a phone can scan ----------
-  // 1 = masteries and quests, 2 = inventory, 3 = perks, production and settings (see savecode.js). Each is a link to this page with the save after "#",
-  // which browsers never send to the server. Opening it asks before replacing anything.
+  // ---------- QR codes: three links a phone can scan (savecode.js) ----------
+  // The save sits after "#", which browsers never send to the server.
+  // Opening one asks before replacing anything.
   async function qrLink(o) {
     const z = await squeeze(new TextEncoder().encode(JSON.stringify(o)), "in");
     return location.origin + location.pathname + "#q=" + b64(z);
@@ -3087,8 +3025,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   });
 
   // ---------- "Done" ticks: a stopgap between pastes ----------
-  // Each tick changes the saved state (quest list, inventory, mastery counts, tower level/AK) and keeps a copy of
-  // how things were just before, so any tick can be undone (along with the ticks after it). Any fresh paste clears them.
+  // Each tick changes the saved state and keeps a copy to undo; any fresh paste clears them.
   const MAX_TICKS = 20;
   function tick(kind, label, fn) {
     const { changes = [], ...rest } = S;

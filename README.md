@@ -24,7 +24,7 @@ Everything stays in your own browser: nothing you paste is uploaded or sent anyw
 
 Plain static site: `index.html` + JS files, no build step. Effort is counted in AP (1 Apple Cider = 1 Large Net = 1 AP) plus time
 waiting on daily production. Nothing player-specific is hardcoded; all player data comes from pastes or typed fields.
-GitHub Pages serves `main`, so a push goes live. Before each push run `node tools/bump-version.js` (versions the script tags so
+Before each push run `node tools/bump-version.js` (versions the script tags so
 browsers never mix old and new files).
 
 **Game rules and planner decisions live in [`knowledge/`](knowledge/index.md)** (Google's
