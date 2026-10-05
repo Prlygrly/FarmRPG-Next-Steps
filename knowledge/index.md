@@ -14,6 +14,7 @@ Read the relevant concept before changing game rules in the code.
 * [The Tower and AK](mechanics/tower.md) - 100 AK a level, MM requirements, AK sources
 * [Effort: AP, AC and Large Nets](mechanics/effort-units.md) - buddy.farm's per-drop formulas
 * [Daily production](mechanics/production.md) - buildings, orchard, Hickory Omelette, year-long blockers
+* [Building upgrades](mechanics/building-upgrades.md) - production bought in chosen amounts, rising prices, orchard limit, cap growth per day
 * [Crops and growth](mechanics/crops.md) - yield per hour, perks, Mega seeds, Grape Juice
 * [Breakfast Boost](mechanics/breakfast-boost.md) - 5-minute crops instant for 2 minutes
 * [Cookies](mechanics/cookies.md) - x3 per cookie; never recommended
