@@ -42,9 +42,11 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   no `verified` yet: add `verified: { by: human:player, at: … }` once the player has checked one.
 - `index.html` — the whole UI (tabs, rendering, costing glue, quests, trips, saves, themes).
 - `parse.js` — page parsers: Mastery Progress, My Inventory, Help Needed, Orchard, farm page, Perks, Farm Supply; `detectPage()`.
-- `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries, perks, production, quests, settings) and code b
-  (inventory); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
+- `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries + quests), b (inventory), c (perks, production,
+  settings); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
   rounded across a mastery line or the cap), default perks left out. Tested in test/savecode.test.js.
+- `items.js` — every buddy.farm item ID (1,370), from `tools/snapshot-items.js` (crawls item pages from every name the planner
+  knows; `tools/item-seeds.txt` adds items nothing links to, e.g. old event collectibles). Used by savecode.js.
 - `tools-menu.js` — the ☰ menu linking the FarmRPG tools; the net and bacon planners load it from this site, so edit the list here.
 - `engine.js` — `towerPlan`, `akPlan`, `makeCoster` (gather vs craft, passive items, `forWhat`, `activeEffort`), effort/perk math,
   seasons/places, trips (`tripYield`), outlets (`outletPlan`).
@@ -241,7 +243,9 @@ prices.js; sell bonus/crafting silver cut from perks); data/perks.md (every perk
 perk tips (page › section › perk); shorter text everywhere with Condensed/Expanded views and a card grid on Next steps; quests one
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
-2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as two QR codes (savecode.js; Setup > Save
-and load > Show as QR codes; scanning opens `#q=…` and asks before loading; checked with a QR reader); crop plots in sets of 4,
+2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as three QR codes (savecode.js + items.js; Setup >
+Save and load > Show as QR codes; scanning opens `#q=…` and asks before loading; a code too big says so). Checked on a real late-game
+save (443 masteries, 885 items, 18 quests): codes ~1,950 / 2,050 / 950 chars, all decoded by a QR reader; round trip lost nothing,
+worst count 4.8% off, no mastery line or cap crossed; crop plots in sets of 4,
 confirm over 100 with the silver cost, read from the next row's price (rows x10 each, 10T reaches 52) or Plant All, never from the
 seed list.

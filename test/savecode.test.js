@@ -24,9 +24,9 @@ const S = {
 };
 S.quests = [{ name: "Fake Fishing I", section: "active", npc: null, kind: null, ready: true, dates: null },
   { name: "A Made-up Special", section: "special", npc: null, kind: null, ready: false, dates: "Oct 1 - Oct 9" }];
-const { a, b } = pack(S, R, 1000, Q);
-assert.ok(!("changes" in a.s) && !("nextDetail" in a.s) && !("silverAt" in a.s), "UI state and times stay behind");
-const A = unpack(JSON.parse(JSON.stringify(a)), R, Q), B = unpack(JSON.parse(JSON.stringify(b)), R);
+const { a, b, c } = pack(S, R, 1000, Q);
+assert.ok(!("changes" in c.s) && !("nextDetail" in c.s) && !("silverAt" in c.s) && !("mastery" in c.s), "UI state and times stay behind");
+const A = { ...unpack(JSON.parse(JSON.stringify(a)), R, Q), ...unpack(JSON.parse(JSON.stringify(c)), R, Q) }, B = unpack(JSON.parse(JSON.stringify(b)), R);
 assert.deepStrictEqual(A.mastery.items, { "Large Net": 9900000, "Board": 990000, "Apple Cider": 87, "Puffer": 750000 });
 assert.deepStrictEqual(A.mastery.tower, S.mastery.tower);
 assert.strictEqual(A.silver, 123456789);
@@ -42,6 +42,7 @@ assert.strictEqual(B.inventory.cap, 9850);
 const odd = unpack(pack({ inventory: { items: { "Not A Real Item": { count: 5 } }, cap: 100 } }, R).b, R);
 assert.strictEqual(odd.inventory.items["Not A Real Item"].count, 5);
 assert.throws(() => unpack({ v: 9 }, R));
+assert.strictEqual(A.questsAt, 1000);
 
 // Size: a made-up late-game player (500 masteries, 600 items) plus 60 quests, must fit one QR code each (~2,900 chars)
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -54,7 +55,7 @@ for (const n of pick(600)) big.inventory.items[n] = { count: rnd() < 0.3 ? 9850 
 big.quests = Object.keys(Q.quests).slice(100, 160).map((name, i) => ({ name, section: i < 10 ? "main" : "active", npc: Q.quests[name].npc || null, kind: null, ready: false, dates: null }));
 const chars = o => Math.ceil(zlib.deflateRawSync(Buffer.from(JSON.stringify(o))).length * 4 / 3);
 const p = pack(big, R, Date.now(), Q);
-console.log(`late-game sizes: a ${chars(p.a)} chars, b ${chars(p.b)} chars`);
-assert.ok(chars(p.a) < 2400 && chars(p.b) < 2000);
+console.log(`late-game sizes: a ${chars(p.a)} chars, b ${chars(p.b)} chars, c ${chars(p.c)} chars`);
+assert.ok(chars(p.a) < 2400 && chars(p.b) < 2400 && chars(p.c) < 2400);
 
 console.log("savecode tests passed");

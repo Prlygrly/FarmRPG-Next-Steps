@@ -514,6 +514,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="seasons.js"></script>
 <script src="recipes.js"></script>
 <script src="recipes-extra.js"></script>
+<script src="items.js"></script>
 <script src="savecode.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer></script>
 <script src="seeds.js"></script>
@@ -2654,7 +2655,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   $("load-go").addEventListener("click", () => loadCode($("load-code").value));
 
   // ---------- QR codes: the save as two small links a phone can scan ----------
-  // 1 = masteries and everything else, 2 = inventory (see savecode.js). Each is a link to this page with the save after "#",
+  // 1 = masteries and quests, 2 = inventory, 3 = perks, production and settings (see savecode.js). Each is a link to this page with the save after "#",
   // which browsers never send to the server. Opening it asks before replacing anything.
   async function qrLink(o) {
     const z = await squeeze(new TextEncoder().encode(JSON.stringify(o)), "in");
@@ -2662,14 +2663,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
   $("save-qr").addEventListener("click", async () => {
     if (typeof qrcode === "undefined" || typeof CompressionStream === "undefined") { saveMsg("QR codes need an internet connection and an up-to-date browser. Use a save code instead."); return; }
-    const { a, b } = SAVECODE.pack(S, RECIPES, Date.now(), QUESTS, START_PERKS);
-    const parts = [[a, "1. Masteries, perks and settings"], [b, "2. Inventory"]].filter(([o]) => o);
+    const { a, b, c } = SAVECODE.pack(S, RECIPES, Date.now(), QUESTS, START_PERKS);
+    const parts = [[a, "Masteries and quests"], [b, "Inventory"], [c, "Perks, production and settings"]].filter(([o]) => o)
+      .map(([o, label], i) => [o, `${i + 1}. ${label}`]);
     if (!parts.length) { saveMsg("Nothing to save yet. Paste a page first."); return; }
     const html = [];
     for (const [o, label] of parts) {
       const link = await qrLink(o);
-      const qr = qrcode(0, "L"); qr.addData(link, "Byte"); qr.make();
-      html.push(`<figure><div class="qr">${qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true })}</div><figcaption class="small">${label}</figcaption></figure>`);
+      let svg;
+      try { const qr = qrcode(0, "L"); qr.addData(link, "Byte"); qr.make(); svg = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+      catch (e) { svg = null; }                                          // more than one QR code holds
+      html.push(svg ? `<figure><div class="qr">${svg}</div><figcaption class="small">${label}</figcaption></figure>`
+        : `<figure><div class="note">${label}: too big for a QR code (${fmt(link.length)} characters). Use a save code for this part.</div></figure>`);
     }
     $("qr-box").innerHTML = html.join(""); $("qr-box").hidden = false;
     saveMsg(`Scan ${parts.length > 1 ? "each code" : "the code"} with your phone's camera. Counts are rounded slightly (2 digits) to fit; use a save code for an exact copy.`, true);
@@ -2681,11 +2686,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     try {
       const o = JSON.parse(new TextDecoder().decode(await squeeze(unb64(m[1]), "out")));
       const got = SAVECODE.unpack(o, RECIPES);
-      const what = o.k === "b" ? "inventory" : "masteries, perks and settings";
+      const what = { a: "masteries and quests", b: "inventory", c: "perks, production and settings" }[o.k];
+      if (!what) throw new Error("bad");
       const when = new Date(o.at).toLocaleString();
       if (!confirm(`Load the ${what} from ${when}? This replaces the ${what} on this page.`)) return;
-      if (o.k === "b") Object.assign(S, got);
-      else S = { mastery: null, manual: {}, places: {}, hidden: [], ...got, inventory: S.inventory, perks: { ...START_PERKS, ...got.perks } };
+      if (o.k === "c") S = { mastery: S.mastery, inventory: S.inventory, quests: S.quests, questsAt: S.questsAt, manual: {}, places: {}, hidden: [],
+        ...got, perks: { ...START_PERKS, ...got.perks } };
+      else Object.assign(S, got);
       fixQuestKinds(); save(); render(); syncProd();
       saveMsg(`Loaded the ${what} from ${when}.`, true);
     } catch (e) {
