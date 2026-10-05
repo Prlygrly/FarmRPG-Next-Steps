@@ -45,8 +45,8 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries + quests), b (inventory), c (perks, production,
   settings); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
   rounded across a mastery line or the cap), default perks left out. Tested in test/savecode.test.js.
-- `items.js` — every buddy.farm item ID (1,370), from `tools/snapshot-items.js` (crawls item pages from every name the planner
-  knows; `tools/item-seeds.txt` adds items nothing links to, e.g. old event collectibles). Used by savecode.js.
+- `items.js` — every buddy.farm item ID (1,380 of IDs up to 1,613), from `tools/snapshot-items.js` (crawls item pages from every
+  name the planner knows plus buddy.farm's list pages: Exchange Center, level rewards, passwords, cards, Tower, locations, townsfolk; `tools/item-seeds.txt` adds items nothing links to, e.g. old event collectibles). Used by savecode.js.
 - `tools-menu.js` — the ☰ menu linking the FarmRPG tools; the net and bacon planners load it from this site, so edit the list here.
 - `engine.js` — `towerPlan`, `akPlan`, `makeCoster` (gather vs craft, passive items, `forWhat`, `activeEffort`), effort/perk math,
   seasons/places, trips (`tripYield`), outlets (`outletPlan`).

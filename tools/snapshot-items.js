@@ -2,18 +2,19 @@
 // Run: node tools/snapshot-items.js         adds items not in items.js yet (few requests)
 //      node tools/snapshot-items.js --all   recrawls everything (~1,300+ requests, 4 at a time with a short pause)
 // Extra names to start from (items no other page links to, e.g. old event collectibles): tools/item-seeds.txt, one per line.
-// buddy.farm has no "all items" page, so this starts from every item name the planner's data already knows and follows
-// the items each item page mentions (drops, recipes, quests, ...), until no new names turn up.
+// buddy.farm has no "all items" page, so this starts from every item name the planner's data already knows, plus every item
+// on buddy.farm's list pages (Exchange Center, level rewards, passwords, cards, Tower, each location and each townsperson),
+// and follows the items each item page mentions (drops, recipes, quests, ...), until no new names turn up.
 const fs = require("fs"), path = require("path");
 const root = path.join(__dirname, "..");
 const BASE = "https://buddy.farm/page-data/i";
 const slug = name => name.toLowerCase().replace(/[.]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function get(name) {
+async function get(name, page) {
   for (let tries = 0; tries < 3; tries++) {
     try {
-      const r = await fetch(`${BASE}/${slug(name)}/page-data.json`);
+      const r = await fetch(page ? `https://buddy.farm/page-data/${page}/page-data.json` : `${BASE}/${slug(name)}/page-data.json`);
       if (r.ok) return r.json();
       if (r.status === 404) return null;
     } catch (e) {}
@@ -45,12 +46,29 @@ function walk(o, found) {
     const file = path.join(__dirname, f);
     if (fs.existsSync(file)) for (const n of fs.readFileSync(file, "utf8").split(/\r?\n/)) if (n.trim()) names.add(n.trim());
   }
+  // buddy.farm list pages, and one page per location (/l/...) and townsperson (/t/...)
+  const pages = ["exchange-center", "level-rewards", "passwords", "cards", "tower"];
+  for (const idx of ["exploring", "fishing"]) {
+    const p = await get(null, idx);
+    for (const l of (p && p.result.data.farmrpg.locations) || []) pages.push("l/" + slug(l.name));
+  }
+  const tf = await get(null, "townsfolk");
+  for (const n of (tf && tf.result.data.farmrpg.npcs) || []) pages.push("t/" + slug(n.name));
+  const fromPages = [];
+  for (let i = 0; i < pages.length; i += 4) {
+    for (const p of await Promise.all(pages.slice(i, i + 4).map(pg => get(null, pg)))) if (p) walk(p.result && p.result.data, fromPages);
+    await sleep(150);
+  }
+  for (const [n] of fromPages) names.add(n);
+  console.log(`${pages.length} list pages: ${new Set(fromPages.map(([n]) => n)).size} item names`);
+
   const ids = {}, done = new Set();
   for (const [n, x] of Object.entries(R.items)) if (x.id != null) ids[n] = x.id;
   if (!process.argv.includes("--all")) {
     const old = req("items.js") || {};
     for (const [n, id] of Object.entries(old)) { ids[n] = id; done.add(n); }
   }
+  for (const [n, id] of fromPages) if (id != null && ids[n] == null) ids[n] = +id;
   const queue = [...names].filter(n => !done.has(n));
   while (queue.length) {
     const batch = queue.splice(0, 4).filter(n => !done.has(n));
