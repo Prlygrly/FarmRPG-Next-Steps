@@ -43,36 +43,45 @@
     return out;
   }
 
-  // Quests by buddy.farm quest ID: "id.section[.r]" (r = ready); specials and anything with extra details stay as written
+  // Quests by buddy.farm quest ID: "id.section[.r]" (r = ready). Details that differ from buddy.farm's (townsperson, kind,
+  // special-request dates) go in a side list by position; quests buddy.farm doesn't know stay as written.
   function packQuests(list, Q) {
-    const secs = [], short = [], full = [];
+    const secs = [], short = [], extra = {}, full = [];
     for (const q of list) {
       const x = Q && Q.quests[q.name];
-      if (!x || x.id == null || q.npc || q.kind || q.dates) { full.push(q); continue; }
+      if (!x || x.id == null) { full.push(q); continue; }
       if (!secs.includes(q.section)) secs.push(q.section);
+      const e = {};
+      if ((q.npc || null) !== (x.npc || null)) e.n = q.npc;
+      if (q.kind) e.k = q.kind;
+      if (q.dates) e.d = q.dates;
+      if (Object.keys(e).length) extra[short.length] = e;
       short.push(x.id.toString(36) + "." + secs.indexOf(q.section) + (q.ready ? ".r" : ""));
     }
-    return { s: secs, i: short.join(","), f: full };
+    return { s: secs, i: short.join(","), e: extra, f: full };
   }
   function unpackQuests(o, Q) {
     const byId = {};
     for (const [n, x] of Object.entries((Q && Q.quests) || {})) byId[x.id] = n;
     const out = o.f.slice();
-    if (o.i) for (const e of o.i.split(",")) {
+    if (o.i) o.i.split(",").forEach((e, j) => {
       const [id, sec, r] = e.split(".");
       const name = byId[parseInt(id, 36)];
-      if (name) out.push({ name, section: o.s[+sec], npc: null, kind: null, ready: r === "r", dates: null });
-    }
+      if (!name) return;
+      const x = (o.e || {})[j] || {};
+      out.push({ name, section: o.s[+sec], npc: "n" in x ? x.n : Q.quests[name].npc || null, kind: x.k || null, ready: r === "r", dates: x.d || null });
+    });
     return out;
   }
 
   // S -> { a, b } plain objects (either may be null when there's nothing to carry)
-  function pack(S, R, now = Date.now(), Q = root.QUESTS) {
+  function pack(S, R, now = Date.now(), Q = root.QUESTS, defaults = {}) {
     const map = ids(R);
     let a = null, b = null;
     const rest = Object.fromEntries(Object.entries(S).filter(([k, v]) => !DROP.includes(k) && v != null && !/At$/.test(k)));
     if (S.mastery || Object.keys(rest).length) {
       a = { v: 1, k: "a", at: now, s: rest };
+      if (rest.perks) rest.perks = Object.fromEntries(Object.entries(rest.perks).filter(([k, v]) => v !== defaults[k]));  // page fills the rest
       if (Array.isArray(rest.quests)) { a.q = packQuests(rest.quests, Q); delete rest.quests; }
       if (S.mastery) {
         const { items, at, ...m } = S.mastery;

@@ -51,7 +51,7 @@ const pick = n => names.slice().sort(() => rnd() - 0.5).slice(0, n);
 const big = { mastery: { items: {}, tower: { level: 220, ak: 6 }, skills: {}, totals: {} }, inventory: { items: {}, cap: 9850 }, perks: { sellBonus: 70 } };
 for (const n of pick(500)) big.mastery.items[n] = logu(50, 2e6);
 for (const n of pick(600)) big.inventory.items[n] = { count: rnd() < 0.3 ? 9850 : logu(1, 9849) };
-big.quests = Object.keys(Q.quests).slice(100, 160).map((name, i) => ({ name, section: i < 10 ? "main" : "active", npc: null, kind: null, ready: false, dates: null }));
+big.quests = Object.keys(Q.quests).slice(100, 160).map((name, i) => ({ name, section: i < 10 ? "main" : "active", npc: Q.quests[name].npc || null, kind: null, ready: false, dates: null }));
 const chars = o => Math.ceil(zlib.deflateRawSync(Buffer.from(JSON.stringify(o))).length * 4 / 3);
 const p = pack(big, R, Date.now(), Q);
 console.log(`late-game sizes: a ${chars(p.a)} chars, b ${chars(p.b)} chars`);

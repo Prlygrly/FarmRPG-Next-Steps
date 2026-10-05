@@ -42,6 +42,10 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   no `verified` yet: add `verified: { by: human:player, at: … }` once the player has checked one.
 - `index.html` — the whole UI (tabs, rendering, costing glue, quests, trips, saves, themes).
 - `parse.js` — page parsers: Mastery Progress, My Inventory, Help Needed, Orchard, farm page, Perks, Farm Supply; `detectPage()`.
+- `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries, perks, production, quests, settings) and code b
+  (inventory); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
+  rounded across a mastery line or the cap), default perks left out. Tested in test/savecode.test.js.
+- `tools-menu.js` — the ☰ menu linking the FarmRPG tools; the net and bacon planners load it from this site, so edit the list here.
 - `engine.js` — `towerPlan`, `akPlan`, `makeCoster` (gather vs craft, passive items, `forWhat`, `activeEffort`), effort/perk math,
   seasons/places, trips (`tripYield`), outlets (`outletPlan`).
 - Data snapshots (regenerate with `tools/snapshot-*.js`): `tower.js` (wiki Tower Masteries), `drops.js` (buddy.farm explore/fish rates),
@@ -133,22 +137,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
-- **To do: tools menu.** A small, unobtrusive menu (three dots or lines, in a corner) linking the player's other FarmRPG tools:
-  this planner, the Large Net / fishing mastery planner (prlygrly.github.io/buddys-net-planner) and the pig calculator (URL to
-  confirm). Same menu in each tool, so the list should live in one place that's easy to copy or share.
-- **To do: save as a QR code.** Next to "Make a save code", show the save as a QR code the player scans with their phone
-  (the code opens the site with the save in the URL, e.g. `#save=FRP1...`, and the planner loads it). Keep the text save too.
-  Catch: one QR code holds ~2.9 KB, and a full save (pasted inventory, masteries) may be bigger even compressed. Options: a slim
-  save with only what the phone needs, several QR codes in a row, or a "too big for a QR code" note with the text save as backup.
-  Needs a small QR library (cdnjs) or a hand-written encoder.
-  Plan (measured on a made-up late-game save, 500 masteries + 600 items): two codes, masteries and inventory (perks, production,
-  silver and Tower ride on one of them). Store buddy.farm item IDs, not names, written as the gap from the previous ID
-  (~6,300 -> ~2,000 chars). Drop what can be worked out again or isn't needed on the phone (per-item ID/atMax/mastery tags,
-  undo history, UI settings, hidden lists, per-paste times; one date for the code). Counts: `m` = at the inventory cap (exact,
-  robust if the cap changes); under 100 exact; above that 2 significant figures (worst ~5% off, e.g. 105 -> 110). Never round
-  across a mastery line (996,000 must not become 1.0M). Result ~1,300-1,400 chars per code; one QR holds ~2,900, so each is
-  comfortable. Ruled out: % of cap (smallest, but +/-49 items on a 9,850 cap breaks small piles: 30 -> 0); round to 10/100
-  (fixed steps too big for small counts, too small for big ones).
 - **To do: paste feedback + clear button.** When a paste is read, leave the text in the box briefly (~0.6 s), then flash a
   green check over the box as the text fades out, so the box is clearly ready for the next paste. When a paste isn't
   recognised the text stays, with the warning and a "Clear" button next to the box.
@@ -253,3 +241,7 @@ prices.js; sell bonus/crafting silver cut from perks); data/perks.md (every perk
 perk tips (page › section › perk); shorter text everywhere with Condensed/Expanded views and a card grid on Next steps; quests one
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
+2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as two QR codes (savecode.js; Setup > Save
+and load > Show as QR codes; scanning opens `#q=…` and asks before loading; checked with a QR reader); crop plots in sets of 4,
+confirm over 100 with the silver cost, read from the next row's price (rows x10 each, 10T reaches 52) or Plant All, never from the
+seed list.
