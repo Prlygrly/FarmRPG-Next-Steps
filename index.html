@@ -130,6 +130,7 @@ main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: bloc
 .two-col ul { margin: 0; padding-left: 18px; }
 .best-place > summary { cursor: pointer; padding: 6px 0; }
 .tip { cursor: help; color: var(--muted); font-size: .85em; }
+.has-tip { cursor: help; }
 .bites > li.group-head { list-style: none; grid-column: 1 / -1; margin: 8px 0 0; padding: 0; border: 0; background: none; counter-increment: none; }
 .bites > li.group-head::before { content: none; }
 .bite-parts { margin: 2px 0 4px; padding-left: 18px; }
@@ -1007,6 +1008,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
   // Places the player can use this month: auto-detected from the paste, then their own ticks on top
   let W = null, C = null, O = null;
+  // "Tower" tag whose tip (hover or tap) names the Tower levels that still need this item, e.g. "Needed for Tower 235 (Mega Mastery)"
+  const towerTipText = (item, have) => {
+    const all = (O && O.towerUse[item]) || [], open = all.filter(u => (have || 0) < (u.tier === "mm" ? 1e6 : 1e5));
+    const us = (open.length ? open : all).slice().sort((a, b) => a.level - b.level);
+    return us.length ? `Needed for Tower ${us.map(u => `${u.level} (${u.tier === "mm" ? "Mega Mastery" : "Grand Mastery"})`).join(", ")}` : "";
+  };
+  const towerTag = (item, have, cls = " tower") => { const t = towerTipText(item, have);
+    return ` <span class="tag${cls}${t ? ` has-tip" data-tip="${esc(t)}" tabindex="0` : ""}">Tower</span>`; };
   const PLACE_LEVEL = { "Ember Lagoon": ["Exploring", 60], "Whispering Creek": ["Exploring", 70], "Jundland Desert": ["Exploring", 80],
     "Gary's Crushroom": ["Exploring", 90], "Lake Minerva": ["Fishing", 60], "Large Island": ["Fishing", 70], "Pirate's Cove": ["Fishing", 80],
     "Glacier Lake": ["Fishing", 90] };
@@ -1994,7 +2003,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const wb = S.nextDetail === "expanded", bitsC = o => o.bits.map(b => b.replace(/^all /, "")).join(", ");
       if (!wb) {
         const mC = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: ✓ ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${r.towerLevels.length ? ` <span class="tag tower">Tower ${r.towerLevels.join(", ")}</span>` : ""}${r.over ? `<details class="small muted"><summary>extras</summary>${r.over}</details>` : ""}</li>`),
-          ...x.mPart.map(r => `<li>${esc(r.item)}: +${pct(r.pct)} to ${TIER_NAME[r.next]} <span class="small muted">(~${short(r.q)} of ${short(r.left)})</span>${towerItem(r.item) ? ` <span class="tag tower">Tower</span>` : ""}</li>`)];
+          ...x.mPart.map(r => `<li>${esc(r.item)}: +${pct(r.pct)} to ${TIER_NAME[r.next]} <span class="small muted">(~${short(r.q)} of ${short(r.left)})</span>${towerItem(r.item) ? towerTag(r.item, p.items[r.item]) : ""}</li>`)];
         const qC = [...x.qDone.map(o => `<li><b>✓ ${esc(o.name)}</b>${o.main ? ` <span class="tag">main</span>` : ""}${o.step ? ` <span class="small muted">(${o.step} ahead)</span>` : ""}</li>`),
           ...x.qPart.map(o => `<li>${esc(o.name)}: ${pct(o.pct)} <span class="small muted">(${bitsC(o)})${o.step ? ` · ${o.step} ahead` : ""}</span>${o.main ? ` <span class="tag">main</span>` : ""}</li>`)];
         const headC = `${x.done ? `<b>${x.done} finished</b>` : "none finished"}${x.ak ? ` · <b>+${x.ak} AK</b>` : ""}${x.mPart.length + x.qPart.length ? ` · ${x.mPart.length + x.qPart.length} closer` : ""}`;
@@ -2062,7 +2071,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         const need = j.effort && j.effort.passive && j.effort.passive[crop];
         if (!need || need < 1 || j.item === crop) continue;
         const tower = j.tower && j.tower.length;
-        jobs.push({ hours: need / x.perHour, w: tower ? 1.5 : 1, qty: need, name: `${esc(j.item)} ${TIER_LABEL[j.tier] || ""}`, tag: tower ? "Tower" : "" });
+        jobs.push({ hours: need / x.perHour, w: tower ? 1.5 : 1, qty: need, name: `${esc(j.item)} ${TIER_LABEL[j.tier] || ""}`, tag: tower ? "Tower" : "", tip: tower ? towerTipText(j.item, p.items[j.item]) : "" });
       }
       jobs.sort((a, b) => a.hours - b.hours);
       const score = jobs.reduce((s, j) => s + j.w / (1 + j.hours / 24), 0);
@@ -2083,7 +2092,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     // Compact rows: crop, ready time, its best job; the rest folds open
     const tm = h => h < 1 ? `${Math.max(1, Math.ceil(h * 60))} min` : h < 48 ? `${Math.ceil(h)} h` : `${fmt(Math.ceil(h / 24))} d`;
-    const tagHtml = j => j.tag ? ` <span class="tag">${j.tag}</span>` : "";
+    const tagHtml = j => j.tag ? ` <span class="tag${j.tip ? ` has-tip" data-tip="${esc(j.tip)}" tabindex="0` : ""}">${j.tag}</span>` : "";
     const row = (c, how) => { const top = c.jobs[0];
       return `<details class="plant-row"><summary><b>${esc(c.crop)}</b> <span class="muted small">${how(c)}</span> — ${top.name}${tagHtml(top)} <span class="muted small">${
         howJob(c, top)}${c.jobs.length > 1 ? ` · +${c.jobs.length - 1} more` : ""}</span></summary>
@@ -2159,7 +2168,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const c = p.items[o.product] || 0, tu = (O.towerUse[o.product] || []).map(u => TIERS[u.tier === "mm" ? 4 : 3]).filter(t => t > c);
       const target = tu.length ? Math.min(...tu) : TIERS.find(t => t > c);
-      const tag = o.tower ? ` <span class="tag">Tower</span>` : o.goal ? ` <span class="tag">mastery</span>` : "";
+      const tag = o.tower ? towerTag(o.product, c, "") : o.goal ? ` <span class="tag">mastery</span>` : "";
       if (!target) return { n, h: fullIn(n), sum: `${esc(o.product)}${tag}`, detail: `You make about ${short(day)} a day.`, lines: [`~${short(day)} a day`] };
       const pr = RECIPES.items[o.product], made = pr.craft ? saver : 1, crafts = Math.ceil((target - c) / made), need = crafts * o.per;
       // Extras straight from this product's own recipe (asking the outlet picker again at this size can pick a different
@@ -2268,7 +2277,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         : `<span class="muted">Fruit tops out around 9,100 a day (7,000 trees), so the noon drop can't fill a ${short(cap)} cap.</span>`;
     };
     const html = rows.map(r => {
-      const tower = O && (O.towerUse[r.item] || []).length ? ` <span class="tag">Tower</span>` : "";
+      const tower = O && (O.towerUse[r.item] || []).length ? towerTag(r.item, r.have, "") : "";
       const pct = Math.min(100, r.have / r.target * 100);
       // Drinks and nets can be bought or gifted, so the total matters as well as the time
       const hand = {};
@@ -2460,7 +2469,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const cost = e ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") || "nothing to gather" : "can't cost yet";
       return [{ n, m, have, short: short1, tower, make, rounds, mins, cost, e, ap: e ? e.amount : null }];
     }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
-    const tagT = x => x.tower ? ` <span class="tag">Tower</span>` : "";
+    const tagT = x => x.tower ? towerTag(x.n, p.items[x.n], "") : "";
     $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
         x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${S.nextDetail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
         ${S.nextDetail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
@@ -2744,7 +2753,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // Condensed rewards: the items, with only Tower items marked
   const rewardShort = (data, p) => [...data.get.map(([item, qty]) => {
     const tower = O && (O.towerUse[item] || []).some(u => (p.items[item] || 0) < (u.tier === "mm" ? 1e6 : 1e5));
-    return `${short(qty)} ${esc(item)}${tower ? ` <span class="tag tower">Tower</span>` : ""}`;
+    return `${short(qty)} ${esc(item)}${tower ? towerTag(item, p.items[item]) : ""}`;
   }), data.rSilver ? `${short(data.rSilver)} silver` : "", data.rGold ? `${short(data.rGold)} gold` : ""].filter(Boolean).join(", ");
   // Reward tags: things that help the plan above
   function rewardText(data, p) {
@@ -2753,7 +2762,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (O && (O.towerUse[item] || []).some(u => (p.items[item] || 0) < (u.tier === "mm" ? 1e6 : 1e5))) tags.push("Tower item");
       else if (item in p.items && p.items[item] < 1e6) tags.push("mastery");
       if (SUPPLIES.includes(item)) tags.push("supplies");
-      return `${short(qty)} ${esc(item)}${tags.length ? ` <span class="tag${tags[0] === "Tower item" ? " tower" : ""}">${tags.join(", ")}</span>` : ""}`;
+      const tt = tags[0] === "Tower item" ? towerTipText(item, p.items[item]) : "";
+      return `${short(qty)} ${esc(item)}${tags.length ? ` <span class="tag${tags[0] === "Tower item" ? " tower" : ""}${tt ? ` has-tip" data-tip="${esc(tt)}" tabindex="0` : ""}">${tags.join(", ")}</span>` : ""}`;
     });
     if (data.rSilver) out.push(`${short(data.rSilver)} silver`);
     if (data.rGold) out.push(`${fmt(data.rGold)} gold`);
@@ -3101,16 +3111,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     pop.style.top = (r.bottom + scrollY + 6) + "px";
   };
   document.addEventListener("click", e => {
-    const t = e.target.closest(".tip"), pop = $("tip-pop");
+    const t = e.target.closest(".tip, .has-tip"), pop = $("tip-pop");
     if (!t) { pop.hidden = true; return; }
     e.preventDefault(); e.stopPropagation();                  // don't tick a checkbox the ⓘ sits in
     if (!pop.hidden && pop.dataset.for === t.dataset.tip && !t.matches(":hover")) { pop.hidden = true; return; }
     showTip(t);
   }, true);
   // On a computer the same bubble opens on hover (or keyboard focus)
-  document.addEventListener("mouseover", e => { const t = e.target.closest && e.target.closest(".tip"); if (t) showTip(t); });
-  document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip"); if (t && !t.contains(e.relatedTarget)) $("tip-pop").hidden = true; });
-  document.addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("tip")) showTip(e.target); });
+  document.addEventListener("mouseover", e => { const t = e.target.closest && e.target.closest(".tip, .has-tip"); if (t) showTip(t); });
+  document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip, .has-tip"); if (t && !t.contains(e.relatedTarget)) $("tip-pop").hidden = true; });
+  document.addEventListener("focusin", e => { if (e.target.classList && (e.target.classList.contains("tip") || e.target.classList.contains("has-tip"))) showTip(e.target); });
   document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("tip")) $("tip-pop").hidden = true; });
 
   // ---------- Tabs ----------
