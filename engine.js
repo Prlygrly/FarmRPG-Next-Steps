@@ -351,7 +351,32 @@
       for (const n of Object.keys(env.orchard || {})) { const f = fruitPerDay(n); if (f > 0) out[n] = f; }
       return out;
     };
-    return { noonDay, usableRate, fruitPerDay, perDay };
+    // Usable amount a day of one item (buildings and orchard)
+    const usableDay = n => env.orchard && env.orchard[n] ? fruitPerDay(n) : (env.production || {})[n] > 0 ? usableRate(n, env.production[n]) * 24 : 0;
+    return { noonDay, usableRate, fruitPerDay, perDay, usableDay };
+  }
+  // The cap grows every day (Storehouse work), so a drop that voids today voids less later. Days to collect `need` of an
+  // item when day d's cap = cap + capPerDay x d: add up day by day until the cap stops mattering, then the steady rate.
+  // Cumulative totals are cached per item in `cache`.
+  function daysWithGrowingCap(env, capPerDay, item, need, cache = {}) {
+    const pm = cap => productionMath({ ...env, cap }).usableDay(item);
+    const max = pm(Infinity);
+    if (!(max > 0)) return Infinity;
+    if (!(capPerDay > 0) || !(env.cap > 0)) return need / pm(env.cap);
+    const c = cache[item] ||= { cum: [0], steady: null };
+    while (c.cum[c.cum.length - 1] < need && c.steady == null) {
+      const d = c.cum.length - 1, r = pm(env.cap + capPerDay * d);
+      if (r >= max * 0.9999) { c.steady = d; break; }                   // the cap no longer limits it
+      c.cum.push(c.cum[d] + r);
+      if (d > 36500) return Infinity;
+    }
+    const cum = c.cum, last = cum.length - 1;
+    if (cum[last] >= need) {                                            // within the counted days: find the day
+      let lo = 0, hi = last;
+      while (hi - lo > 1) { const m = (lo + hi) >> 1; if (cum[m] >= need) hi = m; else lo = m; }
+      return lo + (need - cum[lo]) / (cum[hi] - cum[lo]);
+    }
+    return last + (need - cum[last]) / max;
   }
 
   // What if: the same production env with some numbers changed. w = { cap, days (project the cap: + capPerDay a day),
@@ -370,9 +395,10 @@
   // ---------- Slow grinds: how long a GM or MM takes, and what holds it back ----------
   // How many of an item your production alone makes a day (e.g. Large Nets from Antlers): the scarcest passive input.
   // null if it needs anything gathered by hand.
-  function makesPerDay(item, coster, perDay) {
+  // ignoreHand: assume the hand-gathered parts are always on hand (Glass, Tea Leaves for the drinks), so only production counts
+  function makesPerDay(item, coster, perDay, ignoreHand = false) {
     const u = coster.unit(item);
-    if (!u || Object.keys(u.byUnit).length || !Object.keys(u.passive).length) return null;
+    if (!u || (!ignoreHand && Object.keys(u.byUnit).length) || !Object.keys(u.passive).length) return null;
     return Math.min(...Object.entries(u.passive).map(([p, q]) => (perDay[p] || 0) / q));
   }
   // ctx = { coster, perDay: {item: usable per day}, budget: {AP, AC, LN: spent per day} }. Production and hand work run
@@ -383,7 +409,11 @@
     const parts = [], untimed = [];
     for (const [p, q] of Object.entries(e.passive || {})) {
       const r = ctx.perDay[p] || 0;
-      parts.push({ item: p, kind: "prod", need: q, days: r > 0 ? q / r : Infinity });
+      // Buildings and orchard with a growing cap: counted day by day (ctx.growth = { env, capPerDay, extra: {item: per day} })
+      // (items with extra typed amounts, e.g. Antlers from exploring, keep the flat rate)
+      const g = ctx.growth, grows = g && g.capPerDay > 0 && r !== Infinity && !(g.extra && g.extra[p]) && productionMath(g.env).usableDay(p) > 0;
+      const days = grows ? daysWithGrowingCap(g.env, g.capPerDay, p, q, (g.cache ||= {})) : r > 0 ? q / r : Infinity;
+      parts.push({ item: p, kind: "prod", need: q, days });
     }
     for (const [u, v] of Object.entries(e.byUnit || {})) {
       const b = (ctx.budget || {})[u];
@@ -401,9 +431,13 @@
     for (const item of names) {
       const have = (counts || {})[item] || 0;
       if (have >= TIER.mm) continue;
-      const tier = have < TIER.gm ? "gm" : "mm", left = TIER[tier] - have;
-      const t = grindTime(item, left, ctx);
       const pinned = always.includes(item);
+      // opts.targetFor(item, have) -> "gm" | "mm" | null (e.g. only what the Tower needs); pinned ones always count
+      let tier = opts.targetFor ? opts.targetFor(item, have) : have < TIER.gm ? "gm" : "mm";
+      if (!tier && pinned) tier = have < TIER.gm ? "gm" : "mm";
+      if (!tier) continue;
+      const left = TIER[tier] - have;
+      const t = grindTime(item, left, ctx);
       if (!pinned && !(t && t.days >= minDays)) continue;
       rows.push({ item, have, tier, target: TIER[tier], left, pinned, ...(t || { days: null, bottleneck: null, parts: [], untimed: [] }) });
     }
@@ -437,7 +471,7 @@
     return rows.filter(x => x.silverDay == null || x.silverDay > 0).sort((a, b) => (b.silverDay ?? -1) - (a.silverDay ?? -1));
   }
 
-  const api = { DROP_HOURS, productionMath, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { DROP_HOURS, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

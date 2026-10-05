@@ -552,6 +552,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="recipes.js"></script>
 <script src="recipes-extra.js"></script>
 <script src="items.js"></script>
+<script src="upgrades.js"></script>
 <script src="savecode.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer></script>
 <script src="seeds.js"></script>
@@ -2207,7 +2208,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   function renderGrinds(p) {
     const F = window.FRP, perDay = grindPerDay(grindEnv());
     const auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, made = {};
-    for (const [k, n] of Object.entries(auto)) made[k] = C ? F.makesPerDay(n, C, perDay) : null;
+    for (const [k, n] of Object.entries(auto)) made[k] = C ? F.makesPerDay(n, C, perDay, true) : null;   // fruit is the limit (Glass, Tea Leaves assumed on hand)
     renderWhatIf();
     $("grind-settings").innerHTML = GRIND_FIELDS.map(([k, label, def, tipText]) => `<label class="field"><span>${label}${tip(tipText)}</span><input type="number" min="0" data-grind="${k}" value="${S.perks[k] ?? ""}" placeholder="${
       def != null ? def : made[k] != null ? `~${short(made[k])}` : ""}" style="width:7em"></label>`).join("");
@@ -2219,14 +2220,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     let alt = null;
     if (whatIfOn()) {
       const pd2 = grindPerDay(F.whatIfEnv(grindEnv(), S.whatIf)), made2 = {};
-      for (const [k, n] of Object.entries(auto)) made2[k] = F.makesPerDay(n, C, pd2);
-      alt = { perDay: pd2, budget: budgetFor(pd2, made2) };
+      for (const [k, n] of Object.entries(auto)) made2[k] = F.makesPerDay(n, C, pd2, true);
+      const env2 = F.whatIfEnv(grindEnv(), S.whatIf);
+      alt = { perDay: pd2, budget: budgetFor(pd2, made2), growth: { env: env2, capPerDay: (S.whatIf || {}).capPerDay > 0 ? S.whatIf.capPerDay : S.perks.capPerDay || 0, extra: S.perks.extraAntlers > 0 ? { Antler: 1 } : {} } };
     }
-    const all = F.grindList(p.items, { coster: C, perDay, budget }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS });
+    // Only what the Tower still needs (its tier), plus the always-on ones; the cap grows by capPerDay every day
+    const growth = { env: grindEnv(), capPerDay: S.perks.capPerDay || 0, extra: S.perks.extraAntlers > 0 ? { Antler: 1 } : {} };
+    const targetFor = (item, have) => {
+      const ts = ((O && O.towerUse[item]) || []).map(u => F.TIER[u.tier]).filter(t => t > have);
+      return ts.length ? (Math.min(...ts) === F.TIER.gm ? "gm" : "mm") : null;
+    };
+    const all = F.grindList(p.items, { coster: C, perDay, budget, growth }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS, targetFor });
     // Ones that need something the farm doesn't make at all aren't grinds yet: one muted count instead
     const rows = all.filter(r => r.pinned || r.days !== Infinity), noProd = all.length - rows.length;
     for (const r of rows) {
-      const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget });
+      const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget, growth: alt.growth });
       r.alt = t && t.days != null && r.days != null && r.days !== Infinity && t.days < r.days * 0.99 ? t.days : null;
       r.saved = r.alt != null ? r.days - r.alt : 0;
     }
@@ -2235,6 +2243,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const wordy = S.nextDetail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
     const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])})` : ""}` : UNIT[x.kind] || esc(x.kind);
+    // Crops: everyone plants one crop in every plot, so a crop need is a number of harvests (and growth time before Veggie Juice)
+    const crops = cropInfo();
+    const cropNote = x => { const c = x.kind === "prod" && crops[x.item]; if (!c || !(c.perRound > 0)) return "";
+      const h = Math.ceil(x.need / c.perRound); return ` <span class="muted">(${fmt(h)} harvests; ${minText(h * c.before)} of growing before Veggie Juice)</span>`; };
+    // Noon bonus (Antler Snare, Tree Shaker): the best is a noon drop as big as the cap, i.e. two full drops a day
+    const NOON = { Antler: ["antlerNoon", "Antler Snare"], Apple: ["orchardNoon", "Tree Shaker"], Orange: ["orchardNoon", "Tree Shaker"], Lemon: ["orchardNoon", "Tree Shaker"] };
+    const noonNote = x => {
+      const n = NOON[x.item]; if (!n) return "";
+      const pct = S.perks[n[0]] || 0, cap = invCap(), made = x.item === "Antler" ? (S.production.Antler || 0) * 24 : ((S.orchard || {})[x.item] || {}).production || 0;
+      if (!pct) return `<span class="muted">No noon bonus yet: the ${n[1]} (artifact perk) adds a second drop of 10% at noon.</span>`;
+      if (cap === Infinity || !made) return "";
+      const full = cap * 100 / pct;
+      return made >= full ? `<span class="muted">Your noon drop already fills the cap: two full drops a day.</span>`
+        : x.item === "Antler" ? `<span class="muted">Two full drops a day (noon bonus = your cap) take ~${short(full)} a day; you make ${short(made)}.</span>`
+        : `<span class="muted">Fruit tops out around 9,100 a day (7,000 trees), so the noon drop can't fill a ${short(cap)} cap.</span>`;
+    };
     const html = rows.map(r => {
       const tower = O && (O.towerUse[r.item] || []).length ? ` <span class="tag">Tower</span>` : "";
       const pct = Math.min(100, r.have / r.target * 100);
@@ -2243,8 +2267,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
       const parts = r.parts.slice().sort((a, b) => b.days - a.days);
       const lines = [`${short(r.left)} to go (${short(r.have)} / ${short(r.target)})`,
-        ...parts.map(x => `${partName(x)}: ${short(x.need)} needed, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
-        ...r.untimed.map(u => `${UNIT[u.unit] || esc(u.unit)}: ${short(u.need)} needed <span class="muted">(set ${UNIT[u.unit] || esc(u.unit)} a day above to time it)</span>`)];
+        ...parts.map(x => `${partName(x)}: ${short(x.need)} needed${cropNote(x)}, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
+        ...r.untimed.map(u => `${UNIT[u.unit] || esc(u.unit)}: ${short(u.need)} needed <span class="muted">(set ${UNIT[u.unit] || esc(u.unit)} a day above to time it)</span>`),
+        ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
       const others = parts.filter(x => x !== r.bottleneck);
       const sentence = `${esc(r.item)} ${TIER_NAME[r.target]}: ${short(r.left)} to go. ${r.bottleneck && r.days !== Infinity ? `The slowest part is ${partName(r.bottleneck)}, ${longText(r.bottleneck.days)} at your current rate${
         others.filter(x => x.days > 0).length ? `; the others: ${others.filter(x => x.days > 0).map(x => `${partName(x)} ${longText(x.days)}`).join(", ")}` : ""}.` : "Nothing you make feeds it yet."}${
@@ -2254,9 +2279,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         lim ? `<br><span class="small muted">${lim}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
         ${wordy ? `<p class="small" style="margin:4px 0 8px">${sentence}</p>` : `<ul class="bite-parts small">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</details>`;
     });
+    // The drinks' hand-gathered parts (Glass, Tea Leaves): how much exploring that takes a day
+    const handLine = Object.entries(auto).map(([k, n]) => {
+      if (S.perks[k] > 0 || !(made[k] > 0)) return "";
+      const u = C.unit(n); if (!u) return "";
+      const by = Object.entries(u.byPlace || {}).map(([pl, v]) => { const [unit, loc] = pl.split("|"); return `~${short(v * made[k])} ${UNIT[unit] || unit} at ${esc(loc)}`; });
+      return by.length ? `${UNIT[auto[k] === "Large Net" ? "LN" : auto[k] === "Arnold Palmer" ? "AP" : "AC"]}: ~${short(made[k])} a day from your fruit, plus ${by.join(" and ")} for the hand-gathered parts` : "";
+    }).filter(Boolean);
+    const hand = handLine.length ? `<p class="small muted">${handLine.join(". ")}.</p>` : "";
     const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Masteries gathered with ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" or ")} aren't timed until you set how many you use a day.</p>` : "";
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
-    $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed;
+    $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
   // ---------- Silver goal ----------
   // Crafting and selling (from daily production, or per Large Net / Arnold Palmer / Apple Cider) and fishing with Large
@@ -2264,7 +2297,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   function silverBudget() {
     const F = window.FRP, perDay = grindPerDay(grindEnv()), auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, b = {};
     const key = { lnPerDay: "LN", apPerDay: "AP", acPerDay: "AC" };
-    for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay)) || 0;
+    for (const [k, n] of Object.entries(auto)) b[key[k]] = S.perks[k] > 0 ? S.perks[k] : (C && F.makesPerDay(n, C, perDay, true)) || 0;
     return { perDay, budget: b };
   }
   function renderSilverGoal(p) {
@@ -2325,12 +2358,24 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       f("prod:" + n, `${esc(n)} ${daily(n) ? "a day" : "an hour"}`, short(daily(n) ? v * 24 : v), "", (w.prod || {})[n] > 0 ? (daily(n) ? w.prod[n] * 24 : w.prod[n]) : null));
     const fruit = Object.entries(S.orchard || {}).filter(([, o]) => o && o.production).map(([n, o]) =>
       f("fruit:" + n, `${esc(n)} at midnight`, short(o.production), "Trees x fruit per tree; the orchard has a tree limit.", (w.fruit || {})[n]));
-    $("whatif-prod").innerHTML = [...prod, ...fruit].join("") || `<span class="muted">Paste your farm page first.</span>`;
+    // Upgrade cost of each building target (upgrades.js: each new unit costs rate x the new amount), in the building's own unit
+    const own = (n, perHour) => { const u = (window.UPGRADES.UPGRADES || {})[n]; return !u ? null : u.per === "day" ? perHour * 24 : u.per === "10 minutes" ? perHour / 6 : perHour; };
+    let total = 0;
+    const costs = Object.entries(w.prod || {}).filter(([n, v]) => v > 0 && n !== "Steel Wire" && (S.production || {})[n] > 0).map(([n, v]) => {
+      const a = own(n, S.production[n]), b = own(n, v), c = a != null ? window.UPGRADES.upgradeCost(n, Math.round(a), Math.round(b)) : null;
+      if (c) total += c;
+      return c ? `${esc(n)} ${short(Math.round(a))} → ${short(Math.round(b))}: ~${short(c)} silver` : a == null ? `${esc(n)}: upgrade price not known yet` : "";
+    }).filter(Boolean);
+    $("whatif-prod").innerHTML = ([...prod, ...fruit].join("") || `<span class="muted">Paste your farm page first.</span>`) +
+      (costs.length ? `<p class="muted" style="flex-basis:100%;margin:6px 0 0">${costs.join("; ")}${total && costs.length > 1 ? `; total ~${short(total)} silver` : ""}.</p>` : "");
   }
   $("whatif-box").addEventListener("change", e => {
     const k = e.target.dataset.wi; if (!k) return;
     const v = +e.target.value || 0, w = S.whatIf = S.whatIf || {};
-    if (k.startsWith("prod:")) { const n = k.slice(5); (w.prod ||= {})[n] = v > 0 ? ((window.FRP.DROP_HOURS[n] || 1) >= 24 ? v / 24 : v) : 0; }
+    if (k.startsWith("prod:")) {
+      const n = k.slice(5); (w.prod ||= {})[n] = v > 0 ? ((window.FRP.DROP_HOURS[n] || 1) >= 24 ? v / 24 : v) : 0;
+      if (n === "Steel") w.prod["Steel Wire"] = v > 0 ? Math.round(v / 3) : 0;          // wire follows steel: Steel / 3, rounded
+    }
     else if (k.startsWith("fruit:")) (w.fruit ||= {})[k.slice(6)] = v;
     else w[k] = v;
     save(); render(false);

@@ -13,8 +13,7 @@ Everything below was built locally and committed, not pushed. Each question note
    (the Orchard page does). OK, or would you rather type trees?
 5. **Building upgrade prices / "Max" preset:** skipped (no price data). If you sample a building's single-unit prices a dozen
    times, I can fit the curve and show "this upgrade costs ~X silver" next to the days saved.
-6. **Try it:** What if → Inventory cap 20,000 shows Large Net MM ~14 → ~9 months, because your daily Antler drop voids past
-   the cap. That might be the most useful single number on the tab.
+6. (Answered: voiding Antlers is fine; the aim is a noon drop as big as the cap. Rows now say what that takes.)
 
 ## Silver goal (Best use tab)
 7. **Fishing per net looks huge:** Glacier Lake comes out ~10M silver a net for you (buddy.farm ~11.7k average per fish x 500
@@ -60,3 +59,25 @@ Run `git log --oneline -12` to see them. Say "push" when you're happy.
 
 ## Still open
 1, 2, 4, 7, 8, 9, 10 above.
+
+## Answered and built 2026-10-05 (second round)
+- **Crops (Q2):** everyone plants one crop in every plot (Plant All), so a crop need is shown as harvests and growth time before
+  Veggie Juice; the days still follow the Veggie Juice / Grape Juice settings. Crop rows only come up for Tower needs now.
+- **Fruit at midnight (Q4):** kept.
+- **Upgrade prices (Q5):** each new unit costs a fixed rate x the new amount (all your samples fit exactly). upgrades.js +
+  knowledge/mechanics/building-upgrades.md; What if shows the silver for each building target (Wood 18k -> 25k ~151B).
+  Steel Wire = Steel / 3 rounded, so a Steel target moves the wire too. Hay Field: your "11,020,000" must be 110,020,000.
+- **Growing cap (Q6):** grinds now count day by day with the cap growing by your daily cap growth (11,464, +18, +36...), until
+  the cap stops limiting the drop. **Paste your Storehouse page** so the planner knows your +18 (it isn't in your save yet).
+- **Tower only:** 57 Tower grinds on your save (the non-Tower ones are gone). Arnold Palmers (~176 a day) and Apple Ciders
+  (~364) now default from fruit, with the Glass / Tea Leaves exploring shown; many explore masteries are timed by Arnold Palmers
+  now, each assuming all ~176 go to it.
+- **Noon:** Antler rows say what two full drops a day take (~114k a day for your cap; you make 53.7k); fruit rows note fruit
+  tops out ~9,100 a day; players without the noon artifact see that it adds a 10% drop at noon.
+
+## New questions
+12. **Which Tower level** gives the Antler Snare and Tree Shaker? I say "artifact perk" without a level for now.
+13. **Max trees:** you said ~7,000 trees and ~9,100 fruit. Your orchard shows 7,018-7,023 trees; is 7,000 the base cap with a
+    few from special items? (Only used in a note.)
+14. Many explore masteries now say "Limited by: Arnold Palmers" (each assuming all your Arnold Palmers). Useful, or would you
+    rather leave explore masteries off this tab?

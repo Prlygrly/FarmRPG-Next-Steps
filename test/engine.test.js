@@ -223,3 +223,41 @@ console.log("engine tests passed");
   assert.strictEqual(rows2.find(r => r.item === "Pipe").limit.by, "Wood");
   assert.strictEqual(rows2.find(r => r.item === "Charm").silverDay, 10 * 1000);   // 40 AP / 4
 }
+
+// Upgrade prices: each new unit costs rate x the new amount (the player's samples)
+{
+  const { upgradeCost } = require("../upgrades.js");
+  assert.strictEqual(upgradeCost("Grapes", 11000, 11001), 22002000);
+  assert.strictEqual(upgradeCost("Grapes", 11000, 11004), 22002000 + 22004000 + 22006000 + 22008000);
+  assert.strictEqual(upgradeCost("Steel", 1250, 1251), 375300000);
+  assert.strictEqual(upgradeCost("Wood", 18000, 18000), 0);
+  assert.strictEqual(upgradeCost("Antler", 1, 2), null);
+}
+
+// Growing cap: day d's cap = cap + capPerDay x d (made-up numbers)
+{
+  const { daysWithGrowingCap, grindTime } = require("../engine.js");
+  const env = { production: { Eggs: 1000 / 24 }, cap: 500, gap: 1 };   // 1,000 Eggs a day in one drop; cap 500
+  assert.strictEqual(daysWithGrowingCap(env, 0, "Eggs", 5000), 10);     // 500 a day, no growth
+  // +100 a day: 500, 600, 700, 800, 900 (= 3,500 in 5 days), then 1,000 a day from day 5: 5,000 needs 1.5 more days
+  assert.strictEqual(daysWithGrowingCap(env, 100, "Eggs", 5000), 6.5);
+  assert.strictEqual(daysWithGrowingCap(env, 100, "Eggs", 1100), 2);    // 500 + 600
+  // Through grindTime: the slowest part uses the growing cap
+  const units = { Nog: { per: 0, byUnit: {}, passive: { Eggs: 1 }, how: "craft" } };
+  const coster = { unit: n => units[n], effort: (n, left) => ({ ...units[n], passive: { Eggs: left } }) };
+  const t = grindTime("Nog", 5000, { coster, perDay: { Eggs: 500 }, growth: { env, capPerDay: 100 } });
+  assert.strictEqual(t.days, 6.5);
+}
+
+// Slow grinds: only Tower targets (targetFor); hand parts ignored for drink budgets
+{
+  const { grindList, makesPerDay } = require("../engine.js");
+  const units = { Chum: { per: 0, byUnit: {}, passive: { Grubs: 1 }, how: "craft" }, Cider: { per: 1, byUnit: { AP: 0.1 }, passive: { Apple: 10 }, how: "craft" } };
+  const coster = { unit: n => units[n] || null, effort: (n, left) => units[n] ? { ...units[n], byUnit: {}, passive: Object.fromEntries(Object.entries(units[n].passive).map(([p, q]) => [p, q * left])) } : null };
+  const perDay = { Grubs: 10, Apple: 1000 };
+  // Chum needs only a GM for the Tower; it's already past the GM -> left out. Cider pinned -> kept.
+  const rows = grindList({ Chum: 200000, Cider: 0 }, { coster, perDay }, { minDays: 1, always: ["Cider"], targetFor: (n, have) => n === "Chum" && have < 100000 ? "gm" : null });
+  assert.deepStrictEqual(rows.map(r => r.item), ["Cider"]);
+  assert.strictEqual(makesPerDay("Cider", coster, perDay), null);       // needs AP for Glass
+  assert.strictEqual(makesPerDay("Cider", coster, perDay, true), 100);  // fruit only: 1,000 Apples / 10
+}
