@@ -170,7 +170,15 @@ header p { margin: 0; color: var(--muted); }
 #qr-box .qr { background: #fff; padding: 8px; border-radius: 8px; max-width: 340px; margin: 0 auto; }
 #qr-box .qr svg { display: block; width: 100%; height: auto; }
 #qr-box figcaption { margin-top: 6px; }
-.head-tools { display: flex; align-items: flex-end; gap: 10px; }
+.head-tools { display: flex; align-items: flex-start; gap: 10px; }
+.quick-col { display: flex; flex-direction: column; gap: 6px; max-width: 260px; }
+.quick-wrap { position: relative; }
+#quick-paste { width: 100%; box-sizing: border-box; height: 2.2em; min-height: 2.2em; resize: none; overflow: hidden; white-space: nowrap; font-size: .85em;
+  padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+#quick-ok { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--good); font-weight: 700; opacity: 0; transition: opacity .15s; pointer-events: none; }
+#quick-ok.show { opacity: 1; }
+#quick-msg { max-width: 260px; }
+#quick-msg .note { margin: 0; }
 :root { --tm-bg: var(--surface); --tm-ink: var(--ink); --tm-line: var(--line); }
 button, input, textarea { font: inherit; color: inherit; }
 button {
@@ -247,6 +255,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <p>Paste your game pages. Get a short list of what to do next.</p>
     </div>
     <div class="head-tools">
+    <div class="quick-col">
     <label class="small muted">Theme
       <select id="theme" aria-label="Page theme">
         <option value="">Auto (match my device)</option>
@@ -259,6 +268,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <option value="paper">Paper</option>
       </select>
     </label>
+    <div class="quick-wrap"><textarea id="quick-paste" rows="1" placeholder="Quick paste: update a page" aria-label="Quick paste: paste any game page to update it without going to Setup"></textarea><span id="quick-ok" aria-hidden="true">✓</span></div>
+    <div id="quick-msg" class="small" hidden></div>
+    </div>
     <span id="tools-menu"></span>
     </div>
   </header>
@@ -645,6 +657,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   };
   // Pasting while the old text is still fading: drop the old text first so the two don't mix
   $("paste").addEventListener("paste", () => { if (pasteT.length) { pasteStop(); $("paste").value = ""; } });
+  // Quick paste (header, every tab): runs the same reader as the Setup paste box, then shows the result next to itself
+  let quickT = null;
+  $("quick-paste").addEventListener("input", () => {
+    const q = $("quick-paste"), text = q.value;
+    if (!text.trim()) return;
+    clearTimeout(quickT);
+    const main = $("paste"); main.value = text; main.dispatchEvent(new Event("input"));
+    const ok = $("paste-ok").classList.contains("show"), msg = $("status").innerHTML;
+    q.value = "";
+    $("quick-ok").classList.toggle("show", ok);
+    $("quick-msg").innerHTML = msg; $("quick-msg").hidden = !msg;              // what was read (or what went wrong)
+    quickT = setTimeout(() => { $("quick-ok").classList.remove("show"); $("quick-msg").hidden = true; }, ok ? 5000 : 10000);
+  });
   $("paste-clear").addEventListener("click", () => { pasteStop(); $("paste").value = ""; $("status").innerHTML = ""; $("paste-clear").hidden = true; $("paste").focus(); });
   $("paste").addEventListener("input", () => {
     const text = $("paste").value;
