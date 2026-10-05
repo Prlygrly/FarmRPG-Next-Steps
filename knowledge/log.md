@@ -19,3 +19,4 @@
 * **Update (2026-10-05, night)**: planner/rules.md takes the README's planner decisions (quest value, outlets, planting, wishing well, overflow, trips, Done ticks); data/drops.md and data/trade.md say how the snapshots are fetched. The README now only covers use, files and running.
 * **Update (2026-10-05, night)**: mechanics/silver.md: Glacier Lake fishing checked in game (~11.4M a net; Shrimp-a-Plenty and Sea Pincher Special x1.10 each).
 * **Update (2026-10-05, late)**: mechanics/tower-artifacts.md: every Tower artifact (floors 10-300) and its perk, from the wiki's Tower Artifacts page; Scythe of Dewstar details. planner/rules.md: budgets are shown whole for each use.
+* **Update (2026-10-05, late)**: building-upgrades.md: Quarry (Stone 15,000 per 10 min, Coal 25,000 per hour) and Ironworks (Iron 10,000 per 3 min, +3 Nails a step); silver.md: 64 fish prices, fishing silver per net from the catch (matches the game).

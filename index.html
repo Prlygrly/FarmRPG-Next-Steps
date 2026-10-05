@@ -2344,19 +2344,24 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("silver-goal-in").placeholder = towerNext ? `${short(towerNext)} (Tower ${p.level + 1})` : "";
     const need = goal ? Math.max(0, goal - (S.silver || 0)) : null;
     const perNetSize = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
-    // Each fish's mastery bonus (x1.1 / x1.2), weighted by how often it's caught; out-of-season fish left out.
-    // Checked in game: Glacier Lake ~11.4M a net, this gives ~12.0M (knowledge/mechanics/silver.md).
-    const fishBonus = loc => {
-      let n = 0, sum = 0;
+    // Silver a net from what it catches: each fish's share of the catch x its base price x its mastery bonus (x1.1 / x1.2),
+    // out-of-season fish left out; rare items with no price drop out. Glacier Lake: 11.38M vs 11.40M in game
+    // (knowledge/mechanics/silver.md). Without prices for most of the catch, buddy.farm's average silver per fish instead.
+    const sellPrices = { ...(S.prices || {}), ...PRICES.sell };
+    const netSilver = (loc, L) => {
+      const bonus = c => c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1;
+      let all = 0, priced = 0, perFish = 0, avg = 0;
       for (const [item, it] of Object.entries(DROPS.items)) {
-        const r = it.drops && it.drops[loc] && it.drops[loc].net;
+        const r = it.drops && it.drops[loc] && it.drops[loc][k.runecube ? "netR" : "net"] || (it.drops && it.drops[loc] && it.drops[loc].net);
         if (!(r > 0) || (W && seasonNote(item, DROPS, W))) continue;
-        const c = p.items[item] || 0;
-        n += 1 / r; sum += (c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1) / r;
+        const w = 1 / r, b = bonus(p.items[item] || 0);
+        all += w; avg += w * b;
+        if (sellPrices[item] != null) { priced += w; perFish += w * sellPrices[item] * b; }
       }
-      return n ? sum / n : 1;
+      if (!all) return 0;
+      const each = priced / all >= 0.9 ? perFish / all : (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * avg / all;
+      return each * perNetSize * (1 + (k.sellBonus ?? 0) / 100);
     };
-    const netSilver = (loc, L) => (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) * fishBonus(loc);
     const fishing = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && W.places[loc])
       .map(([loc, L]) => ({ loc, perNet: netSilver(loc, L) }))
       .filter(f => f.perNet > 0).sort((a, b) => b.perNet - a.perNet).slice(0, 1);       // the best place you can fish
@@ -2412,9 +2417,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const fruit = Object.entries(S.orchard || {}).filter(([, o]) => o && o.production).map(([n, o]) =>
       f("fruit:" + n, `${esc(n)} at midnight`, short(o.production), "Trees x fruit per tree; the orchard has a tree limit.", (w.fruit || {})[n]));
     // Upgrade cost of each building target (upgrades.js: each new unit costs rate x the new amount), in the building's own unit
-    const own = (n, perHour) => { const u = (window.UPGRADES.UPGRADES || {})[n]; return !u ? null : u.per === "day" ? perHour * 24 : u.per === "10 minutes" ? perHour / 6 : perHour; };
+    const own = (n, perHour) => { const u = (window.UPGRADES.UPGRADES || {})[n]; return !u ? null : perHour * (window.UPGRADES.PER_HOURS[u.per] || 1); };
     let total = 0;
-    const costs = Object.entries(wp).filter(([n, v]) => v > 0 && n !== "Steel Wire" && prod()[n] > 0).map(([n, v]) => {
+    const costs = Object.entries(wp).filter(([n, v]) => v > 0 && !["Steel Wire", "Nails", "Sandstone"].includes(n) && prod()[n] > 0).map(([n, v]) => {
       const a = own(n, prod()[n]), b = own(n, v), c = a != null ? window.UPGRADES.upgradeCost(n, Math.round(a), Math.round(b)) : null;
       if (c) total += c;
       return c ? `${esc(n)} ${short(Math.round(a))} → ${short(Math.round(b))}: ~${short(c)} silver` : a == null ? `${esc(n)}: upgrade price not known yet` : "";
@@ -2428,6 +2433,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (k.startsWith("prod:")) {
       const n = k.slice(5), per = window.FRP.unitOf(n); (w.prod ||= {})[n] = { n: v > 0 ? v : 0, per };   // as typed
       if (n === "Steel") w.prod["Steel Wire"] = { n: v > 0 ? Math.round(v / 3) : 0, per: "hour" };          // wire follows steel: Steel / 3, rounded
+      if (n === "Iron") w.prod.Nails = { n: v > 0 ? v * 3 : 0, per };                                    // Ironworks: 3 Nails per Iron
+      if (n === "Stone") w.prod.Sandstone = { n: v > 0 ? v : 0, per };                                    // Quarry: Sandstone with Stone
     }
     else if (k.startsWith("fruit:")) (w.fruit ||= {})[k.slice(6)] = v;
     else w[k] = v;

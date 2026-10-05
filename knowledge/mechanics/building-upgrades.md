@@ -35,9 +35,13 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T12:00:00Z }
   | Trout | 150 | per day | 6,001 = 900,150 |
   | Grubs | 1,000 | per hour | 5,001 = 5,001,000 |
   | Minnows | 5,000 | per hour | 5,001 = 25,005,000 |
+  | Stone (Quarry) | 15,000 | per 10 minutes | 2,001 = 30,015,000 |
+  | Coal (Quarry) | 25,000 | per hour | 1,501 = 37,525,000; 1,502 = 37,550,000 |
+  | Iron (Ironworks) | 10,000 | per 3 minutes | 501 = 5,010,000 |
 
 - Steel Wire isn't bought: it follows Steel, **Steel / 3 rounded** (1,250 -> 417, 1,253 -> 418, 1,256 -> 419).[^player]
-- Not sampled yet: Quarry (stone, coal), Ironworks, Coop, Pasture, Raptor Pen (animals, not amounts), Orchard (trees).
+- Followers: Sandstone comes with Stone; each Ironworks step adds 1 Iron and 3 Nails (500 Iron + 1,500 Nails every 3 minutes).[^player]
+- Not sampled yet: Coop, Pasture, Raptor Pen (animals, not amounts), Orchard (trees).
 - Some buildings have a **hard limit**. The orchard's tree count maxes out (a few special items, possibly the Tree of Life,
   raise it slightly; the effect looks small unless a player has many).[^player]
 

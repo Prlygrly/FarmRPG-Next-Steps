@@ -275,3 +275,11 @@ console.log("engine tests passed");
   assert.deepStrictEqual(migrateRates({ Antler: 1000, Wood: { n: 500, per: "hour" } }), stored);   // old saves: bare numbers per hour
   assert.strictEqual(perHourOf({ n: 54210, per: "day" }), 2258.75);       // a daily drop is never read as hourly
 }
+
+// Quarry and Ironworks upgrade prices (the player's samples): rate x the new amount
+{
+  const { upgradeCost } = require("../upgrades.js");
+  assert.strictEqual(upgradeCost("Stone", 2000, 2001), 30015000);
+  assert.strictEqual(upgradeCost("Coal", 1501, 1502), 37550000);
+  assert.strictEqual(upgradeCost("Iron", 500, 501), 5010000);
+}

@@ -12,15 +12,20 @@
     Steel: { rate: 300000, per: "hour" },        // Steelworks (Steel Wire = Steel / 3, rounded)
     Trout: { rate: 150, per: "day" },            // Trout / Bait Farm
     Grubs: { rate: 1000, per: "hour" },
-    Minnows: { rate: 5000, per: "hour" }
+    Minnows: { rate: 5000, per: "hour" },
+    Stone: { rate: 15000, per: "10 minutes" },   // Quarry (Sandstone follows Stone)
+    Coal: { rate: 25000, per: "hour" },
+    Iron: { rate: 10000, per: "3 minutes" }      // Ironworks: each step is +1 Iron and +3 Nails
   };
+  // Hours in each unit, for converting a per-hour rate into the building's own unit
+  const PER_HOURS = { day: 24, hour: 1, "10 minutes": 1 / 6, "3 minutes": 1 / 20 };
   // Silver to go from `from` to `to` units (in the building's own unit)
   const upgradeCost = (item, from, to) => {
     const u = UPGRADES[item];
     if (!u || !(to > from)) return u ? 0 : null;
     return u.rate * (to * (to + 1) - from * (from + 1)) / 2;
   };
-  const api = { UPGRADES, upgradeCost };
+  const api = { UPGRADES, PER_HOURS, upgradeCost };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.UPGRADES = api;
 })(typeof window !== "undefined" ? window : globalThis);

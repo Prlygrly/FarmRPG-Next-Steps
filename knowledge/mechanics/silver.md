@@ -41,7 +41,8 @@ Silver is hugely valuable until "The Smell of a Fun Guy" is done and Truffles ar
 Base prices are the same for every player, so they're built into the site: `prices.js` holds 84 (2026-10-05), worked out
 from one Market paste and an Inventory paste taken at the same moment (every result a whole number, and all matching the
 hand-kept ones). Examples: Iron Cup 165, Lantern 40,000, Linked Lantern 100,000, Crossbow 125,000, Butter 60,000,
-Fancy Violin 1,500,000, Grand Piano 2,000,000, Concord Grape Pie 25,000,000. A Market paste can add missing items.
+Fancy Violin 1,500,000, Grand Piano 2,000,000, Concord Grape Pie 25,000,000. 64 fish and shells added the same way (148 in
+all), plus Crab 8,500, Fish Bones 2, Flier 250, Small Prawn 20 from the player. A Market paste can add missing items.
 Which items are worth selling is a planner rule (sell end products, not their parts: see planner/rules.md).[^player]
 
 # Fishing for silver
@@ -52,8 +53,10 @@ Which items are worth selling is a planner rule (sell end products, not their pa
 - Checked in game (2026-10-05, Glacier Lake, 70% sell perks, Reinforced Netting + Fishing Trawl): single nets 10.20M-10.44M
   with four items locked; 50 nets with everything sold 569.8M = ~11.4M a net. Shrimp-a-Plenty x1.10 (626.2M); Sea Pincher
   Special on top x1.10 (690.1M: 10% more fish per net), so ~13.8M a net with both. The formula above gives ~10.0M (12% low);
-  with each fish's mastery bonus (x1.1 / x1.2, weighted by catch share, out-of-season fish left out) ~12.0M, which the
-  planner now uses (5% high).[^player]
+  with each fish's mastery bonus ~12.0M (5% high). With per-fish base prices (each fish's catch share x price x mastery
+  bonus, rare unpriced items left out) 11.38M: what the planner uses, falling back to buddy.farm's average where most of
+  the catch has no price. Glacier Lake fish prices are all 10% above round numbers (Sea Crest 12,100, Ice Shark 14,300);
+  they match the in-game total, so they're taken as real.[^player]
 - Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
 
 # Sawmill Silver (from Crafting 20)

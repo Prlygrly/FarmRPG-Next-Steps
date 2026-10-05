@@ -59,7 +59,6 @@ with a source.
 
 ## Roadmap
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
-- Fishing silver per net leaving out rare fish (needs per-fish prices).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.
 - Ideas: "if you maxed this building" on building-limited goals; count crafted quest items in Spend my…; a plan-by-place view;
   mining costs; Compass via Magna Core in the well as a crafting loop.
