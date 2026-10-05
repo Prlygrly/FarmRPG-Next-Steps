@@ -560,7 +560,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -655,7 +655,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     } else if (kind === "inventory") {
       const r = parseInventory(text);
       if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
-      else { S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = []; }
+      else {
+        S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = [];
+        // A Market paste waiting for counts: work its prices out now
+        if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
+      }
     } else if (kind === "farm") {
       const r = parseFarm(text);
       if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
@@ -687,6 +691,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
       else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
         done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+    } else if (kind === "market") {
+      // The Farmer's Market: base prices = stack value / count. Needs My Inventory for the counts.
+      const m = parseMarket(text), n = Object.keys(m.items).length;
+      if (!n) msg = warn("No items with prices were found. Copy the whole Farmer's Market page and try again.");
+      else if (!S.inventory) { S.market = m.items; msg = warn("Market read. Paste My Inventory too: prices are worked out from your item counts."); done = true; }
+      else {
+        const got = marketPrices(m, Object.fromEntries(Object.entries(S.inventory.items).map(([k, v]) => [k, v.count])), S.inventory.cap);
+        S.prices = { ...(S.prices || {}), ...got }; S.pricesAt = Date.now(); delete S.market; done = true;
+        if (m.perks != null) S.perks.sellBonus = m.perks;
+        msg = `<div class="note" style="border-color:var(--good)">Base sell prices read for ${fmt(Object.keys(got).length)} of ${fmt(n)} items${m.perks != null ? `; sell perks ${m.perks}%` : ""}.</div>`;
+      }
     } else if (kind === "building") {
       // One building's own page: merge its output into production (players without the home-page output perk)
       const b = parseBuilding(text), n = Object.keys(b.rates);
@@ -1854,7 +1869,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // ---------- Making silver (before Fun Guy) ----------
   // Sell price = base x (1 + sell perks) x mastery bonus (x1.1 Mastered, x1.2 Grand Mastered; MM adds nothing more)
   const sellPrice = (item, p) => {
-    const base = PRICES.sell[item];
+    const base = PRICES.sell[item] ?? (S.prices || {})[item];      // hand-kept first, then from a Market paste
     if (base == null) return null;
     const c = (p.items || {})[item] || 0;
     return Math.round(base * (1 + (S.perks.sellBonus ?? 0) / 100) * (c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1));
