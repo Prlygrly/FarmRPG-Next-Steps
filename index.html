@@ -776,9 +776,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         if (Object.keys(f).length) { S.production = window.FRP.storeRates(f); if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
       }
     } else if (kind === "quests") {
-      const r = parseQuests(text).filter(q => q.section !== "personal");
+      const all = parseQuests(text), r = all.filter(q => q.section !== "personal");
       if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
-      else { S.quests = r; S.questsAt = Date.now(); S.changes = []; }
+      else {
+        S.quests = r; S.questsAt = Date.now(); S.changes = [];
+        // A pasted request Help Needed no longer lists is done (or gone)
+        for (const [key, q] of Object.entries(S.requests || {})) if (!all.some(x => x.name === q.name && (!x.npc || !q.npc || x.npc === q.npc))) delete S.requests[key];
+      }
     } else {
       msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
     }
@@ -1006,7 +1010,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("next-empty").hidden = !!ready;
     $("trips").hidden = true;
     $("quests").hidden = true;
-    $("quests-empty").hidden = !!(ready && S.quests);
+    $("quests-empty").hidden = !!(ready && questList().length);
     if (!ready) { $("best-note").textContent = "Paste your Mastery Progress page in the Setup tab first."; $("best-list").innerHTML = ""; return; }
 
     const tp = towerPlan({ level: p.level, ak: p.ak, items: p.items, mmCount: p.mm }, TOWER, 30);
@@ -1040,8 +1044,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderGrinds(p);
     renderSilverGoal(p);
     renderKitchen(p);
-    $("quests").hidden = !S.quests;
-    if (S.quests) renderQuests(p);
+    $("quests").hidden = !questList().length;
+    if (questList().length) renderQuests(p);
     renderWW(p);
   }
   // Places the player can use this month: auto-detected from the paste, then their own ticks on top
@@ -1187,8 +1191,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
     const hidden = new Set(S.questHidden || []);
-    for (const q of S.quests || []) {
-      const data = QUESTS.quests[q.name];
+    for (const q of questList()) {
+      const data = questData(q);
       if (!data || hidden.has(q.name)) continue;
       const n = questNeeds(data, p), val = questValue(data, p);
       const main = q.kind === "main";
@@ -2367,14 +2371,27 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("silver-goal-in").placeholder = towerNext ? `${short(towerNext)} (Tower ${p.level + 1})` : "";
     const need = goal ? Math.max(0, goal - (S.silver || 0)) : null;
     const perNetSize = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
+    // Each fish's mastery bonus (x1.1 / x1.2), weighted by how often it's caught; out-of-season fish left out.
+    // Checked in game: Glacier Lake ~11.4M a net, this gives ~12.0M (knowledge/mechanics/silver.md).
+    const fishBonus = loc => {
+      let n = 0, sum = 0;
+      for (const [item, it] of Object.entries(DROPS.items)) {
+        const r = it.drops && it.drops[loc] && it.drops[loc].net;
+        if (!(r > 0) || (W && seasonNote(item, DROPS, W))) continue;
+        const c = p.items[item] || 0;
+        n += 1 / r; sum += (c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1) / r;
+      }
+      return n ? sum / n : 1;
+    };
+    const netSilver = (loc, L) => (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) * fishBonus(loc);
     const fishing = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && W.places[loc])
-      .map(([loc, L]) => ({ loc, perNet: (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) }))
+      .map(([loc, L]) => ({ loc, perNet: netSilver(loc, L) }))
       .filter(f => f.perNet > 0).sort((a, b) => b.perNet - a.perNet).slice(0, 1);       // the best place you can fish
     // The best fishing place still locked, if it pays more per net: what unlocks it (knowledge/mechanics/locked-places.md)
     const UNLOCK = { "Lake Minerva": ["Lava Sphere", 60], "Large Island": ["Tribal Mask", 70], "Pirate's Cove": ["Mapping Compass", 80],
       "Glacier Lake": ["Water Orb (\"A Wall in the Way\")", 90], "Sinking Swamp": ["the swamp puzzle", 0] };
     const nextPlace = Object.entries(DROPS.locs).filter(([loc, L]) => L.type === "fishing" && L.silver && W && !W.places[loc] && UNLOCK[loc])
-      .map(([loc, L]) => ({ loc, perNet: (L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net) * perNetSize * (1 + (k.sellBonus ?? 0) / 100) }))
+      .map(([loc, L]) => ({ loc, perNet: netSilver(loc, L) }))
       .filter(f => !fishing[0] || f.perNet > fishing[0].perNet).sort((a, b) => a.perNet - b.perNet)[0];   // the nearest step up
     const kept = [];
     const keep = n => { const k = keepFor(n, p); if (k) kept.push([n, k]); return !!k; };
@@ -2385,7 +2402,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const wordy = S.nextDetail === "expanded";
     const timed = rows.filter(r => r.silverDay != null).slice(0, 6);
     const line = r => r.kind === "fish"
-      ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish.</span></li>`
+      ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish. Shrimp-a-Plenty (+10% silver) and Sea Pincher Special (+10% fish) while netting: ~${short(r.perUnit.LN * 1.21)} a net.</span></li>`
       : `<li><b>Craft ${esc(r.item)}</b> and sell: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">${fmt(r.price)} each x ~${short(r.perDay)} a day, limited by ${by(r.limit)}${
         wordy ? `; uses ${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries` : ""}.${sellNote(r.item, p)}</span></li>`;
     // Per drink or net, for crafts that need hand-gathered parts (compare with fishing per net)
@@ -2731,6 +2748,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return end ? Math.max(0, Math.ceil((end - now) / 864e5)) : null;
   }
   // What a quest still needs and what that costs: { missing: [{item, need, have, left, effort}], cost, uncosted, levels }
+  // Pasted request pages (S.requests): personal requests and specials buddy.farm doesn't know, shaped like quest data
+  const reqData = r => ({ npc: r.npc, need: r.need, get: r.get, rSilver: r.silver || 0, rGold: r.gold || 0, request: true });
+  const matchReq = q => Object.entries(S.requests || {}).find(([, r]) => r.name === q.name && (!q.npc || !r.npc || r.npc === q.npc));
+  // Your quests from Help Needed, plus pasted requests it doesn't list (personal ones never come from Help Needed)
+  function questList() {
+    const used = new Set();
+    const list = (S.quests || []).map(q => {
+      const m = !QUESTS.quests[q.name] && matchReq(q);
+      if (m) used.add(m[0]);
+      return m ? { ...q, req: m[0] } : q;
+    });
+    for (const [key, r] of Object.entries(S.requests || {})) if (!used.has(key))
+      list.push({ name: r.name || "Request", section: "personal", npc: r.npc, kind: null, ready: false, req: key });
+    return list;
+  }
+  const questData = q => q.req && S.requests && S.requests[q.req] ? reqData(S.requests[q.req]) : QUESTS.quests[q.name];
   function questNeeds(data, p) {
     const onHand = O ? O.onHand : {};
     const missing = [], byPlace = {}, forWhat = {}, passive = {};
@@ -2844,8 +2877,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   function renderQuests(p) {
     const hidden = new Set(S.questHidden || []);
-    const cards = S.quests.map(q => {
-      const data = QUESTS.quests[q.name];
+    const cards = questList().map(q => {
+      const data = questData(q);
       if (!data) return { q, html: `<li><strong>${esc(q.name)}</strong><span class="small muted">Not in the quest data (it may have ended).</span></li>`, rank: 9 };
       const n = questNeeds(data, p);
       const ready = !n.missing.length && !n.levels.length;
@@ -3073,9 +3106,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     tick("tower", `Climbed to Tower level ${level}`, () => { bump("level", 1); bump("ak", -TOWER.akPerLevel); });
   }
   function doneQuest(name) {
-    const data = QUESTS.quests[name];
-    const q = (S.quests || []).find(x => x.name === name);
+    const q = questList().find(x => x.name === name);
     if (!q) return;
+    const data = questData(q);
     tick("quest", `Quest: ${name}`, () => {
       const inv = S.inventory ? S.inventory.items : null, cap = S.inventory && S.inventory.cap || Infinity;
       if (data && inv) {
@@ -3084,7 +3117,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       }
       // Rewards count toward mastery (any gain except mail does)
       if (data && S.mastery) for (const [item, n] of data.get) if (item in S.mastery.items) S.mastery.items[item] += n;
-      S.quests = S.quests.filter(x => x.name !== name);
+      S.quests = (S.quests || []).filter(x => x.name !== name);
+      if (q.req && S.requests) delete S.requests[q.req];
       // The next quest(s) in the chain, if their level, Tower and date requirements are met
       const p = player(), today = new Date().toISOString().slice(0, 10);
       for (const nx of (data && data.next) || []) {
