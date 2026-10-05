@@ -43,6 +43,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   certain) for the longest. Ignore the rare, expensive mixed-planting item entirely.[^player]
 - Silver goal: blank goal = the next Tower level; ways = crafting from production, per drink/net, and Large Nets at the best
   unlocked fishing place; the next better locked place says what unlocks it.[^player]
+- Sell end products, not their parts: an item is never suggested for sale while anything made from it isn't Mega Mastered
+  (sell the Butter, not the Butter Churn; tables, boxes and shields, not Wood, Boards or Planks). Items used exploring or
+  fishing (Explosive, nets, drinks, Chum) aren't sold either. 1:1 recipes with the crafting bonus (Leather Helmet ->
+  Reinforced Helmet): MM the top item first, then the lower one; only then is selling the lower one sensible.[^player]
 - A single request's page (quest.php: special and personal requests, e.g. "Items Wanted", "Lost Items") lists "Items Requested"
   (item, "You have N", "Nx") and "Rewards" (Silver amount, items "Nx"); parser still to build.[^player]
 - Full list of decisions and the batch history: the README.[^readme]
