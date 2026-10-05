@@ -121,6 +121,7 @@ main[data-tab="next"] > section[data-tab="next"]:not([hidden]),
 main[data-tab="quests"] > section[data-tab="quests"]:not([hidden]),
 main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
 main[data-tab="trips"] > section[data-tab="trips"]:not([hidden]),
+main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
 main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
 /* Spend my…: each place's masteries and quests side by side (stacked on phones) */
@@ -258,6 +259,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <button type="button" role="tab" data-go="next" title="Your short list: quests ready to hand in, then the quickest masteries and quests, the next Tower level and your main quests. Also the Tower and AK tables.">Next steps</button>
     <button type="button" role="tab" data-go="quests" title="Every quest from your Help Needed paste: what it still needs and costs, what the reward is worth to you, and what comes next in the chain. Plus today's wishing well tosses.">Quests</button>
     <button type="button" role="tab" data-go="best" title="Where to spend a pile of Large Nets, Arnold Palmers or Apple Ciders; what to plant now; what your farm will soon overflow with; and what to cook.">Best use</button>
+    <button type="button" role="tab" data-go="grinds" title="The masteries that take months at your production: how long each takes, what holds it back, and the year-long ones to keep going every day.">Slow grinds</button>
     <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
     <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
@@ -300,6 +302,20 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <h2 id="h-overflow">Daily overflow</h2>
     <p class="small muted">What your farm makes, what fills up first, and what to turn it into. Tap one for more.</p>
     <div id="overflow-list"></div>
+  </section>
+  <section class="card" data-tab="grinds" id="grinds" aria-labelledby="h-grinds">
+    <div class="row" style="justify-content:space-between;align-items:center;margin:0">
+      <h2 id="h-grinds" style="margin:0">Slow grinds</h2>
+      <span class="small">
+        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+        <button type="button" data-detail="expanded" title="Full sentences with the reasons.">Expanded</button>
+      </span>
+    </div>
+    <p class="small muted">Masteries that take months at your production, longest first. Tap one for more.</p>
+    <details class="small" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
+      <div class="row" id="grind-settings" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
+    <div id="grind-list"></div>
+    <div id="grind-standing"></div>
   </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
@@ -945,6 +961,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderPlant(p, ap);
     renderVJ();
     renderOverflow(p);
+    renderGrinds(p);
     renderKitchen(p);
     $("quests").hidden = !S.quests;
     if (S.quests) renderQuests(p);
@@ -2122,10 +2139,72 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : minText(x.h * 60)}`).join(" · ")}</span></summary>
       <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h)})</span> → ${x.sum}${
         S.nextDetail === "expanded" ? `<br>${x.detail}` : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
-    $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
+    $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<p class="small muted" style="margin:10px 0 0">${Object.keys(STANDING).filter(n => perDay[n]).map(esc).join(", ")}: see <a href="#" data-go="grinds">Slow grinds</a>.</p>` : "");
+    $("grind-standing").innerHTML = (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
         Object.keys(STANDING).filter(n => perDay[n]).map(n => `${esc(n)} → ${esc(STANDING[n][STANDING[n].length - 1])}`).join(" · ")}</span></summary>
       <p class="small muted" style="margin:2px 0 6px">Year-long Mega Masteries: keep these going every day.</p><ul style="margin:0 0 6px;padding-left:20px">${standing.join("")}</ul></details>` : "");
   }
+
+  // ---------- Slow grinds ----------
+  // Masteries that take months at this player's production (plus a few always-on ones until MM'd). Large Nets, Arnold
+  // Palmers and Apple Ciders a day default to what production makes; each row assumes it gets the whole budget.
+  const GRIND_ALWAYS = ["Orange Juice", "Lemonade", "Large Net", "White Parchment", "Beet"];
+  const longText = d => d < 60 ? `${fmt(Math.max(1, Math.round(d)))} day${Math.round(d) === 1 ? "" : "s"}` : d < 730 ? `${fmt(Math.round(d / 30.4))} months` : `${(d / 365).toFixed(1)} years`;
+  const GRIND_FIELDS = [["grindDays", "Slower than (days)", 180, "Masteries faster than this are left out (the always-on ones stay)."],
+    ["lnPerDay", "Large Nets a day", null, "Blank: the nets your production makes."], ["apPerDay", "Arnold Palmers a day", null, "Blank: what your production makes."],
+    ["acPerDay", "Apple Ciders a day", null, "Blank: what your production makes."], ["extraAntlers", "Extra Antlers a day", null, "Antlers you also gather exploring; they go into Large Nets."]];
+  function grindPerDay() {
+    const perDay = {};
+    for (const [n, v] of Object.entries(allProd())) if (v > 0) perDay[n] = v * 24;
+    for (const n of Object.keys(S.orchard || {})) { const f = fruitPerDay(n); if (f > 0) perDay[n] = f; }
+    if (S.perks.autoBuyIronNails) { perDay.Iron = Infinity; perDay.Nails = Infinity; }   // bought as needed: never the limit
+    if (S.perks.extraAntlers > 0) perDay.Antler = (perDay.Antler || 0) + S.perks.extraAntlers;
+    return perDay;
+  }
+  function renderGrinds(p) {
+    const F = window.FRP, perDay = grindPerDay();
+    const auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, made = {};
+    for (const [k, n] of Object.entries(auto)) made[k] = C ? F.makesPerDay(n, C, perDay) : null;
+    $("grind-settings").innerHTML = GRIND_FIELDS.map(([k, label, def, tipText]) => `<label class="field"><span>${label}${tip(tipText)}</span><input type="number" min="0" data-grind="${k}" value="${S.perks[k] ?? ""}" placeholder="${
+      def != null ? def : made[k] != null ? `~${short(made[k])}` : ""}" style="width:7em"></label>`).join("");
+    if (!S.mastery || !C) { $("grind-list").innerHTML = `<p class="small muted">Paste Mastery Progress (and your farm page) in Setup to see your slow grinds.</p>`; return; }
+    if (!Object.keys(perDay).length) { $("grind-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to time your grinds.</p>`; return; }
+    const val = k => S.perks[k] > 0 ? S.perks[k] : made[k] || 0;
+    const budget = { LN: val("lnPerDay"), AP: val("apPerDay"), AC: val("acPerDay") };
+    const all = F.grindList(p.items, { coster: C, perDay, budget }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS });
+    // Ones that need something the farm doesn't make at all aren't grinds yet: one muted count instead
+    const rows = all.filter(r => r.pinned || r.days !== Infinity), noProd = all.length - rows.length;
+    const wordy = S.nextDetail === "expanded";
+    const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
+    const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])})` : ""}` : UNIT[x.kind] || esc(x.kind);
+    const html = rows.map(r => {
+      const tower = O && (O.towerUse[r.item] || []).length ? ` <span class="tag">Tower</span>` : "";
+      const pct = Math.min(100, r.have / r.target * 100);
+      const time = r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}`;
+      const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
+      const parts = r.parts.slice().sort((a, b) => b.days - a.days);
+      const lines = [`${short(r.left)} to go (${short(r.have)} / ${short(r.target)})`,
+        ...parts.map(x => `${partName(x)}: ${short(x.need)} needed, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
+        ...r.untimed.map(u => `${UNIT[u.unit] || esc(u.unit)}: ${short(u.need)} needed <span class="muted">(set ${UNIT[u.unit] || esc(u.unit)} a day above to time it)</span>`)];
+      const others = parts.filter(x => x !== r.bottleneck);
+      const sentence = `${esc(r.item)} ${TIER_NAME[r.target]}: ${short(r.left)} to go. ${r.bottleneck && r.days !== Infinity ? `The slowest part is ${partName(r.bottleneck)}, ${longText(r.bottleneck.days)} at your current rate${
+        others.filter(x => x.days > 0).length ? `; the others: ${others.filter(x => x.days > 0).map(x => `${partName(x)} ${longText(x.days)}`).join(", ")}` : ""}.` : "Nothing you make feeds it yet."}${
+        r.untimed.length ? ` It also needs ${r.untimed.map(u => `${short(u.need)} ${UNIT[u.unit] || esc(u.unit)}`).join(" and ")}, not timed until that budget is set.` : ""}${
+        parts.some(x => x.kind !== "prod") ? " This assumes all your Large Nets, Arnold Palmers or Apple Ciders go to it." : ""}`;
+      return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
+        lim ? `<br><span class="small muted">${lim}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
+        ${wordy ? `<p class="small" style="margin:4px 0 8px">${sentence}</p>` : `<ul class="bite-parts small">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</details>`;
+    });
+    const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Masteries gathered with ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" or ")} aren't timed until you set how many you use a day.</p>` : "";
+    const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
+    $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed;
+  }
+  $("grind-settings").addEventListener("change", e => {
+    const k = e.target.dataset.grind; if (!k) return;
+    const v = e.target.value.trim();
+    if (v === "") delete S.perks[k]; else S.perks[k] = Math.max(0, +v || 0);
+    save(); render(false);
+  });
 
   // ---------- Best use: kitchen ----------
   // Meals ranked by what finishing them does: their own next tier (Tower tier if needed), quest needs down each chain.

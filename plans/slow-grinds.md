@@ -58,3 +58,6 @@ Updated batches: as section 5, with the threshold set to ~180 days (setting), th
 - Batch 2 done (2026-10-05): `grindTime`, `grindList`, `makesPerDay` in engine.js with tests. Rows assume each item gets the
   whole LN/AP budget. Items needing an unset budget (AP) can't be timed and are left out unless pinned; batch 3 should show
   them as a muted count. Large Nets a day default = `makesPerDay("Large Net")`.
+- Batch 3 done (2026-10-05): the tab (Condensed/Expanded rows, progress bar, Limited by, Tower tag), "Your numbers" (threshold,
+  Large Nets / Arnold Palmers / Apple Ciders a day, extra Antlers), Set and forget moved here, no-production items counted.
+  Next: batch 4, the What if card (cap, cap growth, trees, building output targets) and days saved.

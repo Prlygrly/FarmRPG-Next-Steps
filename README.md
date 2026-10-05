@@ -109,6 +109,12 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   first stir at 1 min, then every 15 min, each −10% of the time left — matches the wiki's full-perk table to the second. Taste = bonus
   mastery (+1, +1 per 30 min base), Season = random XP: not modelled. Cooking level +
   "Recipes I don't have" filter. One meal per oven (wiki).
+- **Slow grinds** — masteries that take longer than "Slower than" (default 180 days) at your production, plus Orange Juice,
+  Lemonade, Large Net, White Parchment and Beet until MM'd. Each row: next GM/MM, time (~days/months/years), progress bar,
+  "Limited by" (the slowest input: a building, crops, or Large Nets / Arnold Palmers / Apple Ciders a day). Those budgets default
+  to what production makes (`makesPerDay`); typed values win; "Extra Antlers a day" feeds Large Nets. Each row assumes it gets
+  the whole budget and, for crops, all plots. Items needing something the farm doesn't make collapse into one count. "Set and
+  forget" (year-long chains) moved here from Daily overflow. Engine: `productionMath`, `grindTime`, `grindList` (engine.js).
 - **Veggie Juice** — cycle card: juice on hand, how many you can craft now + limiting item, "Next:" step of the player's loop (grow
   Tomato + Watermelon until full → Breakfast Boost the five quick crops until full → Grape Juice the Beets and craft until Tomato/
   Watermelon run out), "also top up" for Twine/Horn/Glass Bottle that would run out first, full-cycle size (cap ÷ 2, set by Tomato +
