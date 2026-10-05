@@ -142,7 +142,13 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - **To do: paste production buildings one at a time.** The home page lists every building's output only with the perk that
   shows it there. Without it, let players paste each building's own page (Sawmill, Hay Field, Quarry, Ironworks, Steelworks,
   Coop, Pasture, Raptor Pen, Trout Farm, Vineyard, Worm Habitat, Orchard) and merge each into production, like the farm page.
-  Needs one example paste per building page.
+  Example pastes received 2026-10-05 (Coop, Pasture, Pig Pen, Storehouse, Farmhouse, Raptor Pen, Wine Cellar, Worm Habitat, Orchard,
+  Trout Farm; still needed: Sawmill, Ironworks, Steelworks, Hay Field, Quarry, Vineyard). Each page ends with its own sentence:
+  "your chicken coop is producing N eggs and N feathers per day", "cow pasture is producing N milk per day", "Raptor Pen is
+  producing N antlers and N steak kabobs per day", Worm Habitat "Currently generating N per hour" x3 (worms, gummy worms,
+  mealworms, in that order), Trout Farm "generating N per day" (trout) then grubs and minnows "N per hour", Orchard "N Apple
+  Trees / N Production", Storehouse "increase by N each time" and "MAX Inventory is N". Upgrade costs are on the pages too
+  (e.g. Worm Habitat "At least N Silver needed"), useful for Slow grinds what-ifs. Fixtures must be trimmed (chat removed).
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
@@ -241,6 +247,7 @@ perk tips (page › section › perk); shorter text everywhere with Condensed/Ex
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
 2026-10-04: paste feedback (read pastes fade out under a green check after ~0.6 s; unread ones keep a Clear button).
+2026-10-05: grubs and minnows are hourly (were read as daily, 24x too low); a read paste clears even with a warning.
 2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as three QR codes (savecode.js + items.js; Setup >
 Save and load > Show as QR codes; scanning opens `#q=…` and asks before loading; a code too big says so). Checked on a real late-game
 save (443 masteries, 885 items, 18 quests): codes ~1,950 / 2,050 / 950 chars, all decoded by a QR reader; round trip lost nothing,

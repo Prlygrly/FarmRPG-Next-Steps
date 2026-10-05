@@ -625,6 +625,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         S.mastery = { items: r.items, tower: r.tower, skills: r.skills, totals: r.totals, at: Date.now() };
         S.changes = [];                                                  // real numbers replace any Done ticks
         S.manual = {};
+        done = true;                                                     // read: clear the box even if a warning follows
         if (r.collapsed.length) msg = warn(`Some tiers were folded shut when you copied: ${esc(r.collapsed.join(", "))}. Open them and copy again for the full list.`);
       }
     } else if (kind === "inventory") {
@@ -635,7 +636,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const r = parseFarm(text);
       if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
       else {
-        S.production = r;
+        S.production = r; done = true;
         if (r.plots && r.plots <= PLOT_SOFT_MAX && r.plots % 4 === 0) S.perks.plots = r.plots;
         else if (r.plots) msg = warn(`Plant All showed ${fmt(r.plots)}, which can't be your crop plots, so they were left at ${fmt(S.perks.plots || 0)}. Check them in Your perks.`);
         S.productionAt = Date.now();
@@ -1256,7 +1257,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // autocrafting runs after the drop, so it can't use the excess either. Between two of your checks you can use at most
   // one inventory's worth, so the usable rate is min(made per gap, cap) / gap, where the gap is the drop interval or the
   // time between your checks, whichever is longer. (Straw every 10 minutes, emptied each time, really can be 6 caps an hour.)
-  const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grubs: 24, Minnows: 24, Grapes: 24,
+  const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
     Straw: 1 / 6, Stone: 1 / 6, Coal: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };   // everything else hourly
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);

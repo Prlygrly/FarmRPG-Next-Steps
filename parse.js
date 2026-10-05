@@ -124,7 +124,8 @@
     { at: "Raise Raptors to hunt daily", per: 24 * 60, items: [["Antlers", "Antler"], ["Kabobs", "Steak Kabob"]] },
     { at: "Worm Habitat", per: 60, items: [["Worms", "Worms"], ["Gummies", "Gummy Worms"], ["Mealworms", "Mealworms"]] },
     { at: "Plant trees to produce fruit daily", per: 24 * 60, items: [["Apples", "Apple"], ["Oranges", "Orange"], ["Lemons", "Lemon"]] },
-    { at: "Produces Trout & Bait daily", per: 24 * 60, items: [["Trout", "Trout"], ["Grubs", "Grubs"], ["Minnows", "Minnows"]] },
+    { at: "Produces Trout & Bait daily", per: 24 * 60, items: [["Trout", "Trout"]] },
+    { at: "Produces Trout & Bait daily", per: 60, items: [["Grubs", "Grubs"], ["Minnows", "Minnows"]] },   // grubs and minnows drop hourly
     { at: "Grow grapes for wine making", per: 24 * 60, items: [["Grapes", "Grapes"]] },
     { at: "Produces Boards/Wood hourly", per: 60, items: [["Boards", "Board"], ["Wood", "Wood"]] },
     { at: "Produces Iron/Nails every 3 mins", per: 3, items: [["Iron", "Iron"], ["Nails", "Nails"]] },

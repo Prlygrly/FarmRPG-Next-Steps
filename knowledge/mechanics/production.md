@@ -18,7 +18,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 | Cow Pasture | Milk (daily) |
 | Raptor Pen | Antlers, Steak Kabobs (daily) |
 | Worm Habitat | Worms, Gummy Worms, Mealworms (hourly) |
-| Trout / Bait Farm | Trout, Grubs, Minnows (daily) |
+| Trout / Bait Farm | Trout (daily); Grubs, Minnows (hourly, per the Trout Farm page: "produces grubs every hour") |
 | Vineyard | Grapes (daily) |
 | Sawmill | Boards, Wood (hourly) |
 | Ironworks | Iron, Nails (every 3 min) |

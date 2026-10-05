@@ -36,6 +36,10 @@ const { parseFarm } = require("../parse.js");
 const farmText = fs.readFileSync(path.join(__dirname, "fixtures", "farm-trimmed.txt"), "utf8");
 assert.strictEqual(detectPage(farmText), "farm");
 const farm = parseFarm(farmText);
+// Trout Farm: trout drop daily, grubs and minnows hourly (stored per hour: 4,800 a day = 200/h; 4,000 an hour)
+assert.strictEqual(farm.Trout, 200);
+assert.strictEqual(farm.Grubs, 4000);
+assert.strictEqual(farm.Minnows, 4000);
 assert.strictEqual(farm.Iron, 10000);             // 500 every 3 minutes
 assert.strictEqual(farm.Nails, 30000);
 assert.strictEqual(farm.Straw, 52800);            // the "Hourly" figure, not the 10-minute one
