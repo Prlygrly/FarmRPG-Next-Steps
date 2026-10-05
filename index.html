@@ -743,7 +743,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const r = parseRequest(text);
       if (!r) msg = warn("No requested items were found. Copy the whole request page and try again.");
       else {
-        S.requests = { ...(S.requests || {}), [r.id || r.name]: { ...r, at: Date.now() } }; done = true;
+        const old = Object.keys(S.requests || {}).filter(k => S.requests[k].name === r.name && S.requests[k].npc === r.npc && k !== (r.id || r.name));   // handed in
+        const keep = Object.fromEntries(Object.entries(S.requests || {}).filter(([k]) => !old.includes(k)));
+        S.questHidden = (S.questHidden || []).filter(h => !old.some(k => h === "req:" + k));
+        S.requests = { ...keep, [r.id || r.name]: { ...r, at: Date.now() } }; done = true;
         msg = `<div class="note" style="border-color:var(--good)">Read the request ${esc(r.name || "")}${r.npc ? ` from ${esc(r.npc)}` : ""}: ${r.need.length} items wanted.</div>`;
       }
     } else if (kind === "market") {
@@ -780,8 +783,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
       else {
         S.quests = r; S.questsAt = Date.now(); S.changes = [];
-        // A pasted request Help Needed no longer lists is done (or gone)
-        for (const [key, q] of Object.entries(S.requests || {})) if (!all.some(x => x.name === q.name && (!x.npc || !q.npc || x.npc === q.npc))) delete S.requests[key];
+        // A pasted request Help Needed no longer lists is done (or gone). Match by id when the copy has links: names repeat
+        const ids = new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1]));
+        for (const [key, q] of Object.entries(S.requests || {})) {
+          const listed = ids.size && q.id ? ids.has(q.id) : all.some(x => x.name === q.name && (!x.npc || !q.npc || x.npc === q.npc));
+          if (!listed) { delete S.requests[key]; S.questHidden = (S.questHidden || []).filter(h => h !== "req:" + key); }
+        }
       }
     } else {
       msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
@@ -1193,7 +1200,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const hidden = new Set(S.questHidden || []);
     for (const q of questList()) {
       const data = questData(q);
-      if (!data || hidden.has(q.name)) continue;
+      if (!data || hidden.has(qkey(q))) continue;
       const n = questNeeds(data, p), val = questValue(data, p);
       const main = q.kind === "main";
       // Main quests always make the list (at the bottom if slow or not fully costable); others only if worthwhile
@@ -1214,7 +1221,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
             n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
           + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
-        done: doneBtn("quest", { name: q.name })
+        done: doneBtn("quest", { name: qkey(q) })
       });
     }
     // Effort in minutes of play (knowledge/planner/rules.md)
@@ -2763,6 +2770,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       list.push({ name: r.name || "Request", section: "personal", npc: r.npc, kind: null, ready: false, req: key });
     return list;
   }
+  // Hide and Done key: a request's own id (every personal request is generated fresh, even with the same name), else the name
+  const qkey = q => q.req ? "req:" + q.req : q.name;
   const questData = q => q.req && S.requests && S.requests[q.req] ? reqData(S.requests[q.req]) : QUESTS.quests[q.name];
   function questNeeds(data, p) {
     const onHand = O ? O.onHand : {};
@@ -2915,7 +2924,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         : n.cost + n.stockCost < 10 ? `<span class="tag ok">costs almost no AP, mostly waiting; reward worth about ${short(val.value)} AP</span>`
         : `<span class="tag${eff >= 0.5 ? " ok" : ""}">reward worth about ${pct(eff)} of its cost${chainV >= 5 ? ", counting the next quests" : ""}</span>`;
       const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ${endsText(days)}` : ""}</span>` : "";
-      const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: q.name })} ${hidden.has(q.name) ? `<button type="button" class="small" data-qshow="${esc(q.name)}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(q.name)}">Hide</button>`}</span>`;
+      const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: qkey(q) })} ${hidden.has(qkey(q)) ? `<button type="button" class="small" data-qshow="${esc(qkey(q))}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(qkey(q))}">Hide</button>`}</span>`;
       // Condensed: a short verdict, the to-do lines, the reward items, and the next quest names
       const shortVerdict = unknown ? "" : little ? (val.special.length ? "reward can't be valued" : "little value")
         : ready && !n.stockCost ? `reward ~${short(val.value)} AP`
@@ -2936,7 +2945,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       // Order: ready quests (most valuable first), then best share of cost returned; main quests get a 1.5x bump.
       // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
       const bump = q.kind === "main" ? 1.5 : 1;
-      const rank = hidden.has(q.name) ? 8 : unknown ? 4 : little ? 3 : ready ? 0 : 2;
+      const rank = hidden.has(qkey(q)) ? 8 : unknown ? 4 : little ? 3 : ready ? 0 : 2;
       return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump };
     }).sort((a, b) => a.rank - b.rank || b.score - a.score);
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
@@ -3106,9 +3115,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     tick("tower", `Climbed to Tower level ${level}`, () => { bump("level", 1); bump("ak", -TOWER.akPerLevel); });
   }
   function doneQuest(name) {
-    const q = questList().find(x => x.name === name);
+    const q = questList().find(x => qkey(x) === name);
     if (!q) return;
     const data = questData(q);
+    name = q.name;
     tick("quest", `Quest: ${name}`, () => {
       const inv = S.inventory ? S.inventory.items : null, cap = S.inventory && S.inventory.cap || Infinity;
       if (data && inv) {

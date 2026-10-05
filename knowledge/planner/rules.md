@@ -52,7 +52,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   so selling them is fine short term (say the next step pays more). An item at the cap that can't be made into anything
   right now (another part is missing) may be sold.[^player]
 - A single request's page (quest.php: special and personal requests, e.g. "Items Wanted", "Lost Items") lists "Items Requested"
-  (item, "You have N", "Nx") and "Rewards" (Silver amount, items "Nx"); parser still to build.[^player]
+  (item, "You have N", "Nx") and "Rewards" (Silver amount, items "Nx").[^player]
+- Every personal request is generated fresh, even with the same name and townsperson: requests are keyed by their own id
+  (quest_id) for Hide, Done and clean-up; a Help Needed paste drops any request whose id it no longer links; a new request
+  with the same name and townsperson replaces the old one.[^player]
 - Saved production carries its own unit, as the game states it: `{ n: 54210, per: "day" }` for daily drops (Antler,
   Eggs, Milk, Trout…), `{ n: 18002, per: "hour" }` for the rest. The math converts to per hour in one place
   (`ratesPerHour` in engine.js); never store or quote a daily drop as an hourly rate.[^player]
