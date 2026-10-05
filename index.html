@@ -625,14 +625,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (f.size > 30e6) { $("status").innerHTML = warn("That file is too big. Save just the one game page and try again."); return; }
     f.text().then(raw => { $("paste").value = savedPageToText(raw); $("paste").dispatchEvent(new Event("input")); });
   });
-  // After a good read: the text stays ~0.6 s, then fades under a check mark and the box empties. A new paste cancels it.
+  // After a good read: a check mark shows at once, the text stays ~0.6 s, then fades and the box empties. A new paste cancels it.
   let pasteT = [];
   const pasteStop = () => { pasteT.forEach(clearTimeout); pasteT = []; $("paste").classList.remove("fading"); $("paste-ok").classList.remove("show"); };
   const pasteDone = () => {
     pasteStop();
     const ta = $("paste"), ok = $("paste-ok"), calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (calm) { ta.value = ""; ok.classList.add("show"); pasteT = [setTimeout(pasteStop, 600)]; return; }
-    pasteT = [setTimeout(() => { ta.classList.add("fading"); ok.classList.add("show"); }, 600),
+    ok.classList.add("show");                                            // the check shows right away
+    pasteT = [setTimeout(() => ta.classList.add("fading"), 600),
               setTimeout(() => { ta.value = ""; pasteStop(); }, 1000)];
   };
   // Pasting while the old text is still fading: drop the old text first so the two don't mix
@@ -2262,6 +2263,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const html = rows.map(r => {
       const tower = O && (O.towerUse[r.item] || []).length ? ` <span class="tag">Tower</span>` : "";
       const pct = Math.min(100, r.have / r.target * 100);
+      // Drinks and nets can be bought or gifted, so the total matters as well as the time
+      const hand = {};
+      for (const x of r.parts) if (x.kind !== "prod") hand[x.kind] = (hand[x.kind] || 0) + x.need;
+      for (const u of r.untimed) hand[u.unit] = (hand[u.unit] || 0) + u.need;
+      const handTxt = Object.entries(hand).map(([u, v]) => `~${short(v)} ${UNIT[u] || esc(u)}`).join(" + ");
       const time = (r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}`) +
         (r.alt != null ? ` <span class="good">→ ~${longText(r.alt)} (${longText(r.saved)} sooner)</span>` : "");
       const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
@@ -2276,7 +2282,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         r.untimed.length ? ` It also needs ${r.untimed.map(u => `${short(u.need)} ${UNIT[u.unit] || esc(u.unit)}`).join(" and ")}, not timed until that budget is set.` : ""}${
         parts.some(x => x.kind !== "prod") ? " This assumes all your Large Nets, Arnold Palmers or Apple Ciders go to it." : ""}`;
       return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
-        lim ? `<br><span class="small muted">${lim}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
+        lim || handTxt ? `<br><span class="small muted">${[lim, handTxt ? `${handTxt} in all` : ""].filter(Boolean).join(" · ")}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
         ${wordy ? `<p class="small" style="margin:4px 0 8px">${sentence}</p>` : `<ul class="bite-parts small">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</details>`;
     });
     // The drinks' hand-gathered parts (Glass, Tea Leaves): how much exploring that takes a day
