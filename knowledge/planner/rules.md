@@ -59,6 +59,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Saved production carries its own unit, as the game states it: `{ n: 54210, per: "day" }` for daily drops (Antler,
   Eggs, Milk, Trout…), `{ n: 18002, per: "hour" }` for the rest. The math converts to per hour in one place
   (`ratesPerHour` in engine.js); never store or quote a daily drop as an hourly rate.[^player]
+- Home, Farm and building pastes update only the items they show and keep the rest (a copy can miss a building); clearing a
+  box in Setup removes an item.[^player]
 - Quest value = max(craft/gather cost, trade price), x2 if it helps the plan, x0.1 otherwise; silver and gold not counted;
   chests = contents - key cost. Ready isn't free (stock used is shown and costed). Chain look-ahead x0.7 a step, main x1.5.[^player]
 - Outlets (where a pile goes): one that earns a mastery or Tower need is always offered with its cost; others only if cheaper
