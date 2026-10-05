@@ -2295,7 +2295,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const hand = handLine.length ? `<p class="small muted">${handLine.join(". ")}.</p>` : "";
     const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Masteries gathered with ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" or ")} aren't timed until you set how many you use a day.</p>` : "";
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
-    $("grind-list").innerHTML = (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
+    // No Storehouse data: times use today's cap for good, which overstates them
+    const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page (or set Cap growth a day in What if).</div>` : "";
+    $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
   // ---------- Silver goal ----------
   // Crafting and selling (from daily production, or per Large Net / Arnold Palmer / Apple Cider) and fishing with Large
