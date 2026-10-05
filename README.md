@@ -159,8 +159,9 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   friendship need and the 2 cheapest gifts (Cursed Effigy Hair -> "Effigy of Friendship", Buddy 90); leftovers nothing is crafted
   from are gifted to someone who loves/likes them before selling. Still to do: read the Friendship Levels page (current levels, gifts
   to the next level); Cursed Effigy Head and Body sources unknown.
-- **Small follow-ups:** Tower silver only checks the next level (add up several levels); fishing silver per net can't leave out
-  rare fish yet (needs per-fish prices); Daily overflow "full in X" means little for once-a-day drops (Antlers arrive at midnight).
+- **Small follow-ups:** fishing silver per net can't leave out rare fish yet (needs per-fish prices). Done 2026-10-05: Tower table
+  shows silver still needed per level (cumulative); once-a-day drops say "full at the next drop" / "in N days"; Silver goal names
+  the next better fishing place and what unlocks it.
 - **Parked (player thinking it over) — Veggie Juice rounds:** show Grape Juices in days of the daily limit (the Grape Juice perk, 14);
   Beets in cap-sized chunks per Grape Juice round (+ Craftworks tip). Cookies: NEVER recommend (personal strategy); maybe an optional
   "Cookies I use (0–3)" setting (default 0; ×3 per cookie, applies to every crop incl. Boost crops). Player's own routine: cookies → Grape
@@ -250,6 +251,9 @@ perk tips (page › section › perk); shorter text everywhere with Condensed/Ex
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
 2026-10-04: paste feedback (read pastes fade out under a green check after ~0.6 s; unread ones keep a Clear button).
+2026-10-05 (overnight, local only): Slow grinds tab (batches 1-4: productionMath, grindTime/grindList, the tab, What if);
+Silver goal (Market page -> base prices, silverWays, card on Best use, next fishing place to unlock); Tower silver column;
+whole-drop wording for daily drops. Questions in plans/questions-for-morning.md.
 2026-10-05: building pages can be pasted one at a time (parseBuilding: Coop, Pasture, Raptor Pen, Worm Habitat, Trout Farm,
 Vineyard, Sawmill, Ironworks, Steelworks, Hay Field, Quarry; Storehouse gives the cap); coal is hourly and the Quarry also makes
 Sandstone; grubs and minnows are hourly (were read as daily, 24x too low); a read paste clears even with a warning.

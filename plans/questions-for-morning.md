@@ -26,4 +26,20 @@ Everything below was built locally and committed, not pushed. Each question note
    Runestones…). I left that as a note rather than splitting the budget. OK?
 10. The old "Making silver" card (Next steps, only before Fun Guy) is still there; the new card is on Best use for everyone.
     Remove the old one, or keep both?
+11. **Next fishing place** says Sinking Swamp (~11.2M a net vs Glacier Lake ~10.0M), unlock "the swamp puzzle". If you already
+    fish there, the planner doesn't know it yet: it decides which places you have from your mastery/inventory evidence.
+    Setup → Places can mark it unlocked.
+
+## Small follow-ups (done)
+- Tower table: new column "Silver still needed (total)" per level, counting from your silver.
+- Daily overflow: once-a-day drops say "full at the next drop" / "full in 3 days" instead of "full in 2.4 days".
+
+## Not done (needs you)
+- Rare fish in per-net silver: needs per-fish prices (a Market paste with fish in it would give them).
+- Building upgrade price curve (Slow grinds batch 5).
+- "Paste a special request": needs one example quest page.
+
+## Overnight commits (all local, nothing pushed)
+Slow grinds batches 1-4, Silver goal batches 1-3 + next fishing place, Tower silver column, daily-drop wording.
+Run `git log --oneline -12` to see them. Say "push" when you're happy.
 
