@@ -55,3 +55,6 @@ Updated batches: as section 5, with the threshold set to ~180 days (setting), th
 ## Progress
 - Batch 1 done (2026-10-05): `productionMath(env)` in engine.js (usableRate, noonDay, fruitPerDay, perDay) with tests;
   index.html wrappers delegate. Storehouse page gives cap growth (`S.perks.capPerDay`). Cap upgrades: each +2 costs 10x the last.
+- Batch 2 done (2026-10-05): `grindTime`, `grindList`, `makesPerDay` in engine.js with tests. Rows assume each item gets the
+  whole LN/AP budget. Items needing an unset budget (AP) can't be timed and are left out unless pinned; batch 3 should show
+  them as a muted count. Large Nets a day default = `makesPerDay("Large Net")`.

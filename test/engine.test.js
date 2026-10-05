@@ -155,3 +155,37 @@ console.log("engine tests passed");
   // No cap known: nothing is lost
   assert.strictEqual(productionMath({ gap: 1 }).usableRate("Wood", 600), 600);
 }
+
+// Slow grinds (made-up coster and numbers): the slowest part sets the time
+{
+  const { grindTime, grindList, makesPerDay } = require("../engine.js");
+  // Chum-like: 1 each of Worms, Grubs, Minnows per craft; Lure-like: AP only; Net-like: 25 Antlers each
+  const units = {
+    Chum: { per: 0, byUnit: {}, passive: { Worms: 1, Grubs: 1, Minnows: 1 }, how: "craft" },
+    Lure: { per: 2, byUnit: { AP: 2 }, passive: {}, how: "drop" },
+    Net: { per: 0, byUnit: {}, passive: { Antler: 25 }, how: "craft" },
+    Mix: { per: 1, byUnit: { AP: 1 }, passive: { Wood: 10 }, how: "craft" }
+  };
+  const coster = { unit: n => units[n] || null,
+    effort: (n, left) => units[n] ? { ...units[n], byUnit: Object.fromEntries(Object.entries(units[n].byUnit).map(([u, v]) => [u, v * left])),
+      passive: Object.fromEntries(Object.entries(units[n].passive).map(([p, q]) => [p, q * left])) } : null };
+  const perDay = { Worms: 1000, Grubs: 100, Minnows: 500, Antler: 2500, Wood: 1000 };
+  const t = grindTime("Chum", 10000, { coster, perDay });
+  assert.strictEqual(t.days, 100);                                       // Grubs: 10,000 / 100 a day
+  assert.strictEqual(t.bottleneck.item, "Grubs");
+  // AP with no budget: can't be timed, but still listed
+  const l = grindTime("Lure", 1000, { coster, perDay });
+  assert.strictEqual(l.days, null);
+  assert.deepStrictEqual(l.untimed, [{ unit: "AP", need: 2000 }]);
+  assert.strictEqual(grindTime("Lure", 1000, { coster, perDay, budget: { AP: 500 } }).days, 4);
+  // Mixed: production 10 days, AP 1,000 / 50 = 20 days -> AP is the bottleneck
+  const m = grindTime("Mix", 1000, { coster, perDay, budget: { AP: 50 } });
+  assert.strictEqual(m.days, 20);
+  assert.strictEqual(m.bottleneck.kind, "AP");
+  assert.strictEqual(makesPerDay("Net", coster, perDay), 100);           // 2,500 Antlers / 25
+  assert.strictEqual(makesPerDay("Lure", coster, perDay), null);
+  // The list: Chum at 0 -> GM (100k) = 1,000 days, kept; Net at 990k -> MM, 10k left = 100 days, dropped unless pinned
+  const rows = grindList({ Chum: 0, Net: 990000, Done: 1000000 }, { coster, perDay }, { minDays: 180, always: ["Net"] });
+  assert.deepStrictEqual(rows.map(r => [r.item, r.tier, r.left, r.days, r.pinned]), [["Chum", "gm", 100000, 1000, false], ["Net", "mm", 10000, 100, true]]);
+  assert.strictEqual(grindList({ Net: 990000 }, { coster, perDay }).length, 0);   // fast and not pinned
+}

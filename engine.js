@@ -354,7 +354,50 @@
     return { noonDay, usableRate, fruitPerDay, perDay };
   }
 
-  const api = { DROP_HOURS, productionMath, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Slow grinds: how long a GM or MM takes, and what holds it back ----------
+  // How many of an item your production alone makes a day (e.g. Large Nets from Antlers): the scarcest passive input.
+  // null if it needs anything gathered by hand.
+  function makesPerDay(item, coster, perDay) {
+    const u = coster.unit(item);
+    if (!u || Object.keys(u.byUnit).length || !Object.keys(u.passive).length) return null;
+    return Math.min(...Object.entries(u.passive).map(([p, q]) => (perDay[p] || 0) / q));
+  }
+  // ctx = { coster, perDay: {item: usable per day}, budget: {AP, AC, LN: spent per day} }. Production and hand work run
+  // side by side, so the slowest part sets the time. Parts with no budget (e.g. AP not set) can't be timed: listed in `untimed`.
+  function grindTime(item, left, ctx) {
+    const e = ctx.coster.effort(item, left);
+    if (!e) return null;
+    const parts = [], untimed = [];
+    for (const [p, q] of Object.entries(e.passive || {})) {
+      const r = ctx.perDay[p] || 0;
+      parts.push({ item: p, kind: "prod", need: q, days: r > 0 ? q / r : Infinity });
+    }
+    for (const [u, v] of Object.entries(e.byUnit || {})) {
+      const b = (ctx.budget || {})[u];
+      if (b > 0) parts.push({ item: u, kind: u, need: v, days: v / b }); else untimed.push({ unit: u, need: v });
+    }
+    const bottleneck = parts.reduce((a, x) => (!a || x.days > a.days ? x : a), null);
+    return { days: bottleneck ? bottleneck.days : null, bottleneck, parts, untimed, how: e.how };
+  }
+  // Which grinds to show: every unfinished mastery slower than minDays, plus the `always` list until it's MM'd.
+  // Target = the next GM, then the MM. Longest first; ones that can't be timed go last.
+  function grindList(counts, ctx, opts = {}) {
+    const minDays = opts.minDays ?? 180, always = opts.always || [];
+    const names = new Set([...Object.keys(counts || {}), ...always]);
+    const rows = [];
+    for (const item of names) {
+      const have = (counts || {})[item] || 0;
+      if (have >= TIER.mm) continue;
+      const tier = have < TIER.gm ? "gm" : "mm", left = TIER[tier] - have;
+      const t = grindTime(item, left, ctx);
+      const pinned = always.includes(item);
+      if (!pinned && !(t && t.days >= minDays)) continue;
+      rows.push({ item, have, tier, target: TIER[tier], left, pinned, ...(t || { days: null, bottleneck: null, parts: [], untimed: [] }) });
+    }
+    return rows.sort((a, b) => (b.days ?? -1) - (a.days ?? -1));
+  }
+
+  const api = { DROP_HOURS, productionMath, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
