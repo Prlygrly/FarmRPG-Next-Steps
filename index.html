@@ -2328,6 +2328,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // history (10th and 90th percentile) or, without one, from a 90-day / 24-hour sample.
   const TRUFFLE_LINES = { White: { great: 190e6, sell: 185e6, need: 175e6 }, Black: { great: 610e6, sell: 600e6, need: 580e6 } };
   const SWING_LINES = { steak: { buy: 46000, sell: 55000 }, kabob: { buy: 9600, sell: 10300 } };
+  // How far Steaks usually move in each market state (wiki)
+  const STEAK_STATE = { Stable: "49k-51k", Unstable: "47.5k-52.5k", Risky: "40k-60k", Wild: "25k-75k" };
   // Prices change at the game's reset (midnight, US Central time); Kabobs at the top of every hour
   const gameDay = t => new Date(t).toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
   function renderSteak() {
@@ -2356,7 +2358,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (m.steak && m.steak.price) {
         const L = lines("steak", SWING_LINES.steak), v = m.steak.price;
         const say = v <= L.buy && m.steak.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.steak.owned > 0 ? ["good", "sell"] : ["", "hold"];
-        out.push(`<li><b>Steaks: ${fmt(v)}</b>${m.steak.market ? ` (${esc(m.steak.market)})` : ""} <span class="tag ${say[0]}">${say[1]}</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
+        out.push(`<li><b>Steaks: ${fmt(v)}</b>${m.steak.market ? ` (${esc(m.steak.market)}${STEAK_STATE[m.steak.market] ? `: usually ${STEAK_STATE[m.steak.market]}` : ""})` : ""} <span class="tag ${say[0]}">${say[1]}</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
           m.steak.owned ? `; you have ${fmt(m.steak.owned)}` : ""}${m.steak.canBuy ? `, can buy ${fmt(m.steak.canBuy)} more` : ""}</span></li>`);
       }
     }

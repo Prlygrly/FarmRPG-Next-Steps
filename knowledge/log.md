@@ -21,3 +21,4 @@
 * **Update (2026-10-05, late)**: mechanics/tower-artifacts.md: every Tower artifact (floors 10-300) and its perk, from the wiki's Tower Artifacts page; Scythe of Dewstar details. planner/rules.md: budgets are shown whole for each use.
 * **Update (2026-10-05, late)**: building-upgrades.md: Quarry (Stone 15,000 per 10 min, Coal 25,000 per hour) and Ironworks (Iron 10,000 per 3 min, +3 Nails a step); silver.md: 64 fish prices, fishing silver per net from the catch (matches the game).
 * **Update (2026-10-05, late)**: mechanics/steak-market.md: the Steak Market page, Truffle sell lines, Steak and Kabob price spreads from the player's history pages.
+* **Update (2026-10-05, late)**: mechanics/steak-market.md: the wiki's Steak market, Beef Tips and Truffles pages (reset at midnight Central, steak market states, kabob range, getting Truffles, Black record 619.9M).
