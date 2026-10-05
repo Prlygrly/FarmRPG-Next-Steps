@@ -56,12 +56,4 @@ Large Net, Orange Juice and Lemonade Mega Masteries take a year or more even at 
 - Each page states its output in one sentence (see `parseBuilding` in parse.js), so a player without the home-page output perk
   can paste the pages one by one. The Storehouse page states the max inventory ("Currently your MAX Inventory is N").
 - Trout Farm: every 10,000 trout a day also makes 1 Mega Trout.
-- Steel and Steel Wire can also be **crafted**, so they aren't limited by the Steelworks alone.[^player]
-
-## Noon bonus strategy (Antlers, fruit)
-- Voiding at midnight is fine and expected. The best setup is a noon bonus (10% of production) as big as the cap: two full
-  drops a day (200% of the cap) instead of 100% + 10%. For Antlers that needs production >= 10 x cap.[^player]
-- Fruit tops out around 9,100 a day (about 7,000 trees, the base limit; special items add a few), so fruit can't reach that;
-  once the cap is above the fruit drop, every fruit counts.[^player]
-- Without the noon artifact (Antler Snare / Tree Shaker) there is no noon drop at all; getting it adds a 10% drop at noon.
 

@@ -293,46 +293,12 @@
       if (!buildings.includes(b)) buildings.push(b);
       for (const [item, g, daily] of items) rates[item] = toInt(m[g]) / (daily ? 24 : 1);
     }
-    const cap = flat.match(/Currently your MAX Inventory is ([\d,]+)/i);   // the Storehouse page: cap and its daily growth
-    const grow = flat.match(/it will increase by ([\d,]+) each time you work/i);
-    return { buildings, rates, cap: cap ? toInt(cap[1]) : null, capPerDay: grow ? toInt(grow[1]) : null };
-  }
-
-  // The Farmer's Market: each unlocked item's whole-stack value at BASE price ("* Iron Cup / − + / [MAX ON HAND] /
-  // 1,589,940 Silver"). Base price = value / count, so it needs the inventory count (or the cap for MAX ON HAND).
-  // Returns { items: {name: {value, max}}, perks: % from "extra N% due to your unlocked perks" }.
-  function parseMarket(text) {
-    const lines = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim());
-    const items = {};
-    let name = null, max = false, on = false;
-    for (const l of lines) {
-      if (/UNLOCKED INVENTORY/i.test(l)) { on = true; continue; }       // the item list starts here (skips menus and chat)
-      if (!on) continue;
-      const it = l.match(/^\*\s+(.+)$/);
-      if (it) { name = it[1].trim(); max = false; continue; }
-      if (!name) continue;
-      if (/^MAX ON HAND$/i.test(l)) { max = true; continue; }
-      const v = l.match(/^([\d,]+) Silver\b/i);
-      if (v) { items[name] = { value: toInt(v[1]), max }; name = null; }
-    }
-    const pk = String(text).match(/extra (\d+)% due to your unlocked perks/i);
-    return { items, perks: pk ? +pk[1] : null };
-  }
-  // Base prices from a Market paste and inventory counts (cap for MAX ON HAND); whole numbers only (the game's prices are)
-  function marketPrices(market, counts, cap) {
-    const out = {};
-    for (const [n, { value, max }] of Object.entries(market.items)) {
-      const c = max ? cap : counts[n];
-      if (!(c > 0)) continue;
-      const base = value / c;
-      if (Math.abs(base - Math.round(base)) < 0.01 && base >= 1) out[n] = Math.round(base);
-    }
-    return out;
+    const cap = flat.match(/Currently your MAX Inventory is ([\d,]+)/i);   // the Storehouse page
+    return { buildings, rates, cap: cap ? toInt(cap[1]) : null };
   }
 
   function detectPage(text) {
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
-    if (/due to your unlocked perks/i.test(text) && /UNLOCKED INVENTORY/i.test(text)) return "market";
     if (/^\s*Current Levels\s*$/im.test(text) && /Townsfolk/i.test(text)) return "friends";
     if (/^\s*Friendship Levels\s*$/im.test(text) && /^\s*Game Stats\s*$/im.test(text)) return "friends";      // a profile page
     if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
@@ -381,7 +347,7 @@
   const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
-    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseFriends: noChat(parseFriends), perkSettings,
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseFriends: noChat(parseFriends), perkSettings,
     detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);

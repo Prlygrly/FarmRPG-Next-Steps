@@ -29,22 +29,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Pastes: chat is stripped before anything is read; headings match in any case (the Steam app copies in capitals); the Steam Orchard page also carries the farm list, and both are read.[^player]
 - Veggie Juice on crops is a setting (none / as much as helps / N each / down to X min), 10% per juice or 20% after "A Better Juice" ([Veggie Juice](/mechanics/veggie-juice.md)).[^player]
 - Kitchen is a pantry list (quest needs, then lowest stock); cook time = perks + your usual stirs, never perfect ([cooking](/mechanics/cooking.md)).[^player]
-- Keep on-screen text short and formal; no superlatives ("the most useful…").[^player]
-- **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
-  and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
-  budget.[^player]
-- Grind times count the cap growing every day (cap + daily growth x day), not today's cap forever.[^player]
-- Drinks and nets (Arnold Palmers, Apple Ciders, Lemonade, Large Nets) default from fruit / Antlers only: the hand-gathered parts
-  (Glass, Tea Leaves) are easy and assumed on hand; show the exploring they take as a side note.[^player]
-- Always state the **total** Arnold Palmers / Apple Ciders / Large Nets a mastery takes, not just the time: they can be bought
-  or gifted, so a small total can be done in a day.[^player]
-- Crops: players plant one crop in every plot (Plant All), then the next crop. Show crop needs as harvests and growth time before
-  Veggie Juice; the Veggie Juice setting then decides the days. Breakfast Boost for very short crops, Grape Juice likely (not
-  certain) for the longest. Ignore the rare, expensive mixed-planting item entirely.[^player]
-- Silver goal: blank goal = the next Tower level; ways = crafting from production, per drink/net, and Large Nets at the best
-  unlocked fishing place; the next better locked place says what unlocks it.[^player]
-- A single request's page (quest.php: special and personal requests, e.g. "Items Wanted", "Lost Items") lists "Items Requested"
-  (item, "You have N", "Nx") and "Rewards" (Silver amount, items "Nx"); parser still to build.[^player]
+- Keep on-screen text short.[^player]
 - Full list of decisions and the batch history: the README.[^readme]
 
 [^player]: Player confirmation

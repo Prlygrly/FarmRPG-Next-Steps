@@ -45,7 +45,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
 - `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries + quests), b (inventory), c (perks, production,
   settings); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
   rounded across a mastery line or the cap), default perks left out. Tested in test/savecode.test.js.
-- `upgrades.js` — building upgrade prices (each new unit costs rate x the new amount; player's samples) and `upgradeCost`.
 - `items.js` — every buddy.farm item ID (1,380 of IDs up to 1,613), from `tools/snapshot-items.js` (crawls item pages from every
   name the planner knows plus buddy.farm's list pages: Exchange Center, level rewards, passwords, cards, Tower, locations, townsfolk; `tools/item-seeds.txt` adds items nothing links to, e.g. old event collectibles). Used by savecode.js.
 - `tools-menu.js` — the ☰ menu linking the FarmRPG tools; the net and bacon planners load it from this site, so edit the list here.
@@ -110,19 +109,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   first stir at 1 min, then every 15 min, each −10% of the time left — matches the wiki's full-perk table to the second. Taste = bonus
   mastery (+1, +1 per 30 min base), Season = random XP: not modelled. Cooking level +
   "Recipes I don't have" filter. One meal per oven (wiki).
-- **Silver goal** (Best use) — "Saving up" (blank = next Tower level), your silver, and the best ways to earn it: crafting and
-  selling (crafts a day from production and budgets, x your sell price; limited-by shown) and Large Nets at your best unlocked
-  fishing place (per net x nets a day), each with days to the goal; plus silver per Arnold Palmer / Apple Cider / Large Net for
-  crafts with hand-gathered parts. A Farmer's Market paste (with My Inventory) adds base prices for everything it lists
-  (`parseMarket`, `marketPrices`; `S.prices`, hand-kept PRICES win). Engine: `silverWays` (engine.js).
-- **Slow grinds** — masteries that take longer than "Slower than" (default 180 days) at your production, plus Orange Juice,
-  Lemonade, Large Net, White Parchment and Beet until MM'd. Each row: next GM/MM, time (~days/months/years), progress bar,
-  "Limited by" (the slowest input: a building, crops, or Large Nets / Arnold Palmers / Apple Ciders a day). Those budgets default
-  to what production makes (`makesPerDay`); typed values win; "Extra Antlers a day" feeds Large Nets. Each row assumes it gets
-  the whole budget and, for crops, all plots. Items needing something the farm doesn't make collapse into one count. "Set and
-  forget" (year-long chains) moved here from Daily overflow. Engine: `productionMath`, `grindTime`, `grindList` (engine.js).
-  **What if** card: inventory cap, days from now (cap grows by cap growth a day), cap growth, and a target output per building
-  and fruit; each row shows "→ ~new time (N sooner)", sortable by most saved (`whatIfEnv` in engine.js).
 - **Veggie Juice** — cycle card: juice on hand, how many you can craft now + limiting item, "Next:" step of the player's loop (grow
   Tomato + Watermelon until full → Breakfast Boost the five quick crops until full → Grape Juice the Beets and craft until Tomato/
   Watermelon run out), "also top up" for Twine/Horn/Glass Bottle that would run out first, full-cycle size (cap ÷ 2, set by Tomato +
@@ -153,16 +139,15 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
-- **Done (2026-10-05): silver goal** (see Tabs). Old note: A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
+- **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
 - **Friendship (started):** npcs.js has every townsperson's loves/likes. Done: items only another quest gives point to it with its
   friendship need and the 2 cheapest gifts (Cursed Effigy Hair -> "Effigy of Friendship", Buddy 90); leftovers nothing is crafted
   from are gifted to someone who loves/likes them before selling. Still to do: read the Friendship Levels page (current levels, gifts
   to the next level); Cursed Effigy Head and Body sources unknown.
-- **Small follow-ups:** fishing silver per net can't leave out rare fish yet (needs per-fish prices). Done 2026-10-05: Tower table
-  shows silver still needed per level (cumulative); once-a-day drops say "full at the next drop" / "in N days"; Silver goal names
-  the next better fishing place and what unlocks it.
+- **Small follow-ups:** Tower silver only checks the next level (add up several levels); fishing silver per net can't leave out
+  rare fish yet (needs per-fish prices); Daily overflow "full in X" means little for once-a-day drops (Antlers arrive at midnight).
 - **Parked (player thinking it over) — Veggie Juice rounds:** show Grape Juices in days of the daily limit (the Grape Juice perk, 14);
   Beets in cap-sized chunks per Grape Juice round (+ Craftworks tip). Cookies: NEVER recommend (personal strategy); maybe an optional
   "Cookies I use (0–3)" setting (default 0; ×3 per cookie, applies to every crop incl. Boost crops). Player's own routine: cookies → Grape
@@ -252,9 +237,6 @@ perk tips (page › section › perk); shorter text everywhere with Condensed/Ex
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
 2026-10-04: paste feedback (read pastes fade out under a green check after ~0.6 s; unread ones keep a Clear button).
-2026-10-05 (overnight, local only): Slow grinds tab (batches 1-4: productionMath, grindTime/grindList, the tab, What if);
-Silver goal (Market page -> base prices, silverWays, card on Best use, next fishing place to unlock); Tower silver column;
-whole-drop wording for daily drops. Questions in plans/questions-for-morning.md.
 2026-10-05: building pages can be pasted one at a time (parseBuilding: Coop, Pasture, Raptor Pen, Worm Habitat, Trout Farm,
 Vineyard, Sawmill, Ironworks, Steelworks, Hay Field, Quarry; Storehouse gives the cap); coal is hourly and the Quarry also makes
 Sandstone; grubs and minnows are hourly (were read as daily, 24x too low); a read paste clears even with a warning.

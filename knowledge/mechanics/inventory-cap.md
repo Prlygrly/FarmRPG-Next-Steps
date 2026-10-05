@@ -18,12 +18,6 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Craftworks is instant and crafts to exactly the limit.[^player]
 - "MAX ON HAND" on the inventory page carries no intent; it only means you can't craft more into it.[^player]
 
-# Daily growth
-
-- The cap grows every day by the Storehouse amount (starts around +2; perks and +2 purchases raise it; each +2 costs 10x the
-  last: +18 -> +20 is 10T). See [building upgrades](/mechanics/building-upgrades.md).[^player]
-- Long projections count it: day 1 = cap, day 2 = cap + growth, day 3 = cap + 2 x growth, and so on.[^player]
-
 # Planner implications
 
 No plan should rely on voiding: show where the extra goes, and for leftovers bigger than the cap say how soon the cap fills and to use or sell as you go.

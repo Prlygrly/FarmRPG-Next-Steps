@@ -64,21 +64,6 @@ assert.deepStrictEqual(col.collapsed, ["Tier III (M)"]);
   const store = side + "Right now, it will increase by 5 each time you work. Currently your MAX Inventory is 1,234.";
   assert.strictEqual(detectPage(store), "building");
   assert.strictEqual(parseBuilding(store).cap, 1234);
-  assert.strictEqual(parseBuilding(store).capPerDay, 5);
-}
-
-// Farmer's Market: stack values at base price -> base = value / count (made-up numbers)
-{
-  const { parseMarket, marketPrices, detectPage } = require("../parse.js");
-  const page = ["You are getting an extra 55% due to your unlocked perks.", "UNLOCKED INVENTORY", "",
-    "* Iron Cup", "− +", "330,000 Silver unlock_fill", "* Emerald Ring", "− +", "MAX ON HAND", "25,000,000 Silver unlock_fill",
-    "* Odd Thing", "− +", "1,000 Silver unlock_fill"].join("\n");
-  assert.strictEqual(detectPage(page), "market");
-  const m = parseMarket(page);
-  assert.deepStrictEqual(m.items["Emerald Ring"], { value: 25000000, max: true });
-  assert.strictEqual(m.perks, 55);
-  // Iron Cup 2,000 on hand -> 165; Emerald Ring at the cap (10,000) -> 2,500; Odd Thing 3 on hand -> 333.3, not whole: skipped
-  assert.deepStrictEqual(marketPrices(m, { "Iron Cup": 2000, "Odd Thing": 3 }, 10000), { "Iron Cup": 165, "Emerald Ring": 2500 });
 }
 
 console.log("parse tests passed");
