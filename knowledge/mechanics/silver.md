@@ -60,6 +60,8 @@ Which items are worth selling is a planner rule (sell end products, not their pa
 - Players who reach Sinking Swamp have Truffles, which beat any gathering for silver, so fishing silver there doesn't
   matter. Truffle sell prices vary by day; there's no public source to read them from (the game's pages need a login,
   buddy.farm has no prices, Reddit posts are the community's signal).[^player]
+- Rare catches like Seaweed and Sea Dragon are kept for quests, not sold; by the time they're common enough to sell, players
+  have Truffles. Leaving unpriced items out of the per-net silver is therefore right, not a gap.[^player]
 - Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
 
 # Sawmill Silver (from Crafting 20)
