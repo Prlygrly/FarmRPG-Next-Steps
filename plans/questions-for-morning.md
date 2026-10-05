@@ -6,4 +6,3 @@ Answered questions are removed; their answers live in knowledge/.
 (none open)
 
 ## Waiting on data
-- Optional: Blue Crab, Seaweed, Shrimp and Sea Dragon prices (locked in the player's Market) would complete Small Island and Vast Ocean.
