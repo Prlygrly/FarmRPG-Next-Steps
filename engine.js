@@ -410,7 +410,34 @@
     return rows.sort((a, b) => (b.days ?? -1) - (a.days ?? -1));
   }
 
-  const api = { DROP_HOURS, productionMath, whatIfEnv, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Silver goal: ways to earn silver, best first ----------
+  // ctx = { coster, perDay, recipes, price: item -> your sell price (null if unknown), craftLevel, budget: {LN, AP, AC},
+  //         fishing: [{ loc, perNet }] (unlocked places, silver per Large Net after perks) }.
+  // Crafts: how many a day production (and the budgets) allow, x your price. Fishing: silver per net x Large Nets a day.
+  function silverWays(ctx) {
+    const rows = [], budget = ctx.budget || {};
+    for (const [item, r] of Object.entries(ctx.recipes.items)) {
+      if (!r.craft || !r.recipe || (r.level || 1) > (ctx.craftLevel || 1)) continue;
+      const price = ctx.price(item);
+      if (!(price > 0)) continue;
+      const u = ctx.coster.unit(item);
+      if (!u) continue;
+      // Crafts a day: each passive input and each budget is a limit; the tightest wins
+      const lim = [];
+      for (const [p, q] of Object.entries(u.passive)) lim.push({ by: p, kind: "prod", n: (ctx.perDay[p] || 0) / q });
+      for (const [k, v] of Object.entries(u.byUnit)) lim.push({ by: k, kind: k, n: budget[k] > 0 ? budget[k] / v : null });
+      const timed = lim.filter(x => x.n != null), worst = timed.reduce((a, x) => (!a || x.n < a.n ? x : a), null);
+      const perUnit = Object.fromEntries(Object.entries(u.byUnit).map(([k, v]) => [k, price / v]));
+      const untimed = lim.some(x => x.n == null);
+      const perDay = worst && !untimed ? worst.n : null;
+      rows.push({ kind: "craft", item, price, perDay, silverDay: perDay != null ? perDay * price : null, limit: worst, perUnit,
+        uses: u.passive, units: u.byUnit, level: r.level || 1 });
+    }
+    for (const f of ctx.fishing || []) rows.push({ kind: "fish", loc: f.loc, perUnit: { LN: f.perNet }, silverDay: budget.LN > 0 ? budget.LN * f.perNet : null });
+    return rows.filter(x => x.silverDay == null || x.silverDay > 0).sort((a, b) => (b.silverDay ?? -1) - (a.silverDay ?? -1));
+  }
+
+  const api = { DROP_HOURS, productionMath, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

@@ -204,3 +204,22 @@ console.log("engine tests passed");
   assert.strictEqual(pm.fruitPerDay("Apple"), 1000 + 150);
   assert.strictEqual(env.production.Wood, 600);                          // the original is untouched
 }
+
+// Silver ways (made-up recipes, prices and production): crafts limited by the scarcest input; fishing = per net x nets a day
+{
+  const { silverWays } = require("../engine.js");
+  const recipes = { items: { Shield: { craft: true, level: 20, recipe: [["Plank", 2]] }, Pipe: { craft: true, level: 46, recipe: [["Wood", 1]] },
+    Charm: { craft: true, level: 1, recipe: [["Gem", 1]] }, Soup: { cook: true, craft: false, level: 1, recipe: [["Wood", 1]] } } };
+  const units = { Shield: { byUnit: {}, passive: { Board: 6 } }, Pipe: { byUnit: {}, passive: { Wood: 10, Stone: 2 } }, Charm: { byUnit: { AP: 4 }, passive: {} } };
+  const coster = { unit: n => units[n] || null };
+  const price = n => ({ Shield: 6800, Pipe: 8500, Charm: 1000, Soup: 50 })[n];
+  const ctx = { coster, recipes, price, craftLevel: 30, perDay: { Board: 6000, Wood: 1000, Stone: 1000 }, budget: { LN: 100 }, fishing: [{ loc: "Lake", perNet: 300 }] };
+  const rows = silverWays(ctx);
+  // Shield: 6,000 Boards / 6 = 1,000 a day x 6,800; Pipe is level 46 (too high); Charm needs AP (no budget): untimed, last
+  assert.deepStrictEqual(rows.map(r => [r.kind, r.item || r.loc, r.silverDay]), [["craft", "Shield", 6800000], ["fish", "Lake", 30000], ["craft", "Charm", null]]);
+  assert.strictEqual(rows[2].perUnit.AP, 250);
+  const rows2 = silverWays({ ...ctx, craftLevel: 50, budget: { LN: 100, AP: 40 } });
+  assert.strictEqual(rows2.find(r => r.item === "Pipe").silverDay, 100 * 8500);   // Wood: 1,000 / 10 = 100 a day
+  assert.strictEqual(rows2.find(r => r.item === "Pipe").limit.by, "Wood");
+  assert.strictEqual(rows2.find(r => r.item === "Charm").silverDay, 10 * 1000);   // 40 AP / 4
+}
