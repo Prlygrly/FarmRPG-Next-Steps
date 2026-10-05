@@ -34,6 +34,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
   budget.[^player]
 - Grind times count the cap growing every day (cap + daily growth x day), not today's cap forever.[^player]
+- Steel and Steel Wire are produced and craftable: when one is the slowest part of a grind, enough is crafted (Carbon Sphere +
+  Glass Orb + Iron; Carbon Sphere + Iron + Stone) that the Steelworks and the crafting finish together; the crafting's
+  drinks and parts count in that grind's totals.[^player]
 - Drinks and nets (Arnold Palmers, Apple Ciders, Lemonade, Large Nets) default from fruit / Antlers only: the hand-gathered parts
   (Glass, Tea Leaves) are easy and assumed on hand; show the exploring they take as a side note.[^player]
 - Always state the **total** Arnold Palmers / Apple Ciders / Large Nets a mastery takes, not just the time: they can be bought

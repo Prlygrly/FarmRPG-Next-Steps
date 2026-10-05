@@ -283,3 +283,18 @@ console.log("engine tests passed");
   assert.strictEqual(upgradeCost("Coal", 1501, 1502), 37550000);
   assert.strictEqual(upgradeCost("Iron", 500, 501), 5010000);
 }
+
+// Produced items with a crafting route (Steel): the budget's crafts a day add to the building's rate
+{
+  const { grindTime } = require("../engine.js");
+  const units = { Crossbow: { byUnit: {}, passive: { Steel: 2 } } };
+  const coster = { effort: (n, left) => ({ byUnit: {}, passive: { Steel: 2 * left }, how: "craft" }), unit: n => units[n],
+    active: n => n === "Steel" ? { byUnit: { AP: 5 }, passive: { Iron: 10 } } : null };
+  const ctx = { coster, perDay: { Steel: 100, Iron: Infinity }, budget: { AP: 500 } };
+  assert.strictEqual(grindTime("Crossbow", 1000, ctx).days, 2000 / 100);                          // Steelworks only
+  // Steel is the slowest part: craft x so Steelworks (2,000 - x at 100 a day) and the AP (5x at 500 a day) finish together:
+  // (2000 - x) / 100 = 5x / 500 -> x = 1000, 10 days; the AP spent shows up as the job's own AP part
+  const t = grindTime("Crossbow", 1000, { ...ctx, craftToo: ["Steel"] });
+  assert.ok(Math.abs(t.days - 10) < 0.01 && Math.abs(t.parts[0].crafted - 1000) < 1);
+  assert.ok(Math.abs(t.parts.find(x => x.kind === "AP").need - 5000) < 5);
+}

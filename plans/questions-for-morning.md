@@ -3,7 +3,7 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
-(none open: Steel's crafting route is being built)
+(none open)
 
 ## Waiting on data
 - Upgrade prices for the animal buildings and the orchard (Quarry and Ironworks done).

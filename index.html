@@ -2186,6 +2186,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // Tower masteries that take months (knowledge/planner/rules.md).
   const GRIND_ALWAYS = ["Orange Juice", "Lemonade", "Large Net", "White Parchment", "Beet"];
   const longText = d => d < 60 ? `${fmt(Math.max(1, Math.round(d)))} day${Math.round(d) === 1 ? "" : "s"}` : d < 730 ? `${fmt(Math.round(d / 30.4))} months` : `${(d / 365).toFixed(1)} years`;
+  // Produced items that can also be crafted: grinds count both (Steel from Carbon Sphere + Glass Orb + Iron)
+  const CRAFT_TOO = ["Steel", "Steel Wire"];
   const GRIND_FIELDS = [["grindDays", "Slower than (days)", 180, "Masteries faster than this are left out (the always-on ones stay)."],
     ["lnPerDay", "Large Nets a day", null, "Blank: the nets your production makes."], ["apPerDay", "Arnold Palmers a day", null, "Blank: what your production makes."],
     ["acPerDay", "Apple Ciders a day", null, "Blank: what your production makes."], ["extraAntlers", "Extra Antlers a day", null, "Antlers you also gather exploring; they go into Large Nets."],
@@ -2227,11 +2229,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const ts = ((O && O.towerUse[item]) || []).map(u => F.TIER[u.tier]).filter(t => t > have);
       return ts.length ? (Math.min(...ts) === F.TIER.gm ? "gm" : "mm") : null;
     };
-    const all = F.grindList(p.items, { coster: C, perDay, budget, growth }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS, targetFor });
+    const all = F.grindList(p.items, { coster: C, perDay, budget, growth, craftToo: CRAFT_TOO }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS, targetFor });
     // Ones that need something the farm doesn't make at all aren't grinds yet: one muted count instead
     const rows = all.filter(r => r.pinned || r.days !== Infinity), noProd = all.length - rows.length;
     for (const r of rows) {
-      const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget, growth: alt.growth });
+      const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget, growth: alt.growth, craftToo: CRAFT_TOO });
       r.alt = t && t.days != null && r.days != null && r.days !== Infinity && t.days < r.days * 0.99 ? t.days : null;
       r.saved = r.alt != null ? r.days - r.alt : 0;
     }
@@ -2246,7 +2248,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("whatif-sort").innerHTML = "";
     const wordy = S.nextDetail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
-    const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])})` : ""}` : UNIT[x.kind] || esc(x.kind);
+    const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])}${x.craftedPerDay ? ` + ~${short(x.craftedPerDay)} crafted a day` : ""})` : ""}` : UNIT[x.kind] || esc(x.kind);
     // Crops: everyone plants one crop in every plot, so a crop need is a number of harvests (and growth time before Veggie Juice)
     const crops = cropInfo();
     const cropNote = x => { const c = x.kind === "prod" && crops[x.item]; if (!c || !(c.perRound > 0)) return "";

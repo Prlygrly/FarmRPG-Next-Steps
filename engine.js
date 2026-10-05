@@ -399,6 +399,37 @@
   }
   // ctx = { coster, perDay: {item: usable per day}, budget: {AP, AC, LN: spent per day} }. Production and hand work run
   // side by side, so the slowest part sets the time. Parts with no budget (e.g. AP not set) can't be timed: listed in `untimed`.
+  // The slowest part is produced but also craftable (ctx.craftToo: Steel from Carbon Sphere + Glass Orb + Iron): craft x of
+  // it so the building and the crafting finish together. The crafting's drinks and parts are added to this job's own, so
+  // the budgets aren't counted twice. Returns the new slowest part, or null if crafting can't help.
+  function craftTopUp(part, parts, ctx) {
+    const a = ctx.coster.active && ctx.coster.active(part.item);
+    if (!a) return null;
+    const rate = (ctx.perDay[part.item] || 0), uses = [];
+    for (const [u, k] of Object.entries(a.byUnit || {})) {
+      const b = (ctx.budget || {})[u]; if (!(b > 0)) return null;
+      const own = parts.find(x => x.kind === u);
+      uses.push({ key: u, kind: u, k, per: b, base: own ? own.need : 0, own });
+    }
+    for (const [p, k] of Object.entries(a.passive || {})) {
+      const r = ctx.perDay[p] || 0; if (!(r > 0)) return null;
+      const own = parts.find(x => x.kind === "prod" && x.item === p);
+      uses.push({ key: p, kind: "prod", item: p, k, per: r, base: own ? own.need : 0, own });
+    }
+    const others = parts.filter(x => x !== part && !uses.some(u => u.own === x)).reduce((m, x) => Math.max(m, x.days), 0);
+    const T = x => Math.max((part.need - x) / rate, ...uses.map(u => (u.base + x * u.k) / u.per), others);
+    let lo = 0, hi = part.need;                                         // T falls then rises in x: find the bottom
+    for (let i = 0; i < 60; i++) { const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3; if (T(m1) <= T(m2)) hi = m2; else lo = m1; }
+    const x = (lo + hi) / 2;
+    if (!(x > 0.5) || T(x) >= part.days * 0.999) return null;
+    const days = T(x);
+    part.days = (part.need - x) / rate; part.crafted = x; part.craftedPerDay = x / days;
+    for (const u of uses) {
+      if (u.own) { u.own.need += x * u.k; u.own.days = u.own.need / u.per; }
+      else parts.push({ item: u.item || u.key, kind: u.kind, need: x * u.k, days: x * u.k / u.per, forCraft: part.item });
+    }
+    return parts.reduce((m, p) => (!m || p.days > m.days ? p : m), null);
+  }
   function grindTime(item, left, ctx) {
     const e = ctx.coster.effort(item, left);
     if (!e) return null;
@@ -414,7 +445,8 @@
       const b = (ctx.budget || {})[u];
       if (b > 0) parts.push({ item: u, kind: u, need: v, days: v / b }); else untimed.push({ unit: u, need: v });
     }
-    const bottleneck = parts.reduce((a, x) => (!a || x.days > a.days ? x : a), null);
+    let bottleneck = parts.reduce((a, x) => (!a || x.days > a.days ? x : a), null);
+    if (bottleneck && bottleneck.kind === "prod" && (ctx.craftToo || []).includes(bottleneck.item)) bottleneck = craftTopUp(bottleneck, parts, ctx) || bottleneck;
     return { days: bottleneck ? bottleneck.days : null, bottleneck, parts, untimed, how: e.how };
   }
   // Which grinds to show: every unfinished mastery slower than minDays, plus the `always` list until it's MM'd.
