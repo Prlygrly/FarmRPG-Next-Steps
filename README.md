@@ -139,9 +139,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
-- **To do: paste feedback + clear button.** When a paste is read, leave the text in the box briefly (~0.6 s), then flash a
-  green check over the box as the text fades out, so the box is clearly ready for the next paste. When a paste isn't
-  recognised the text stays, with the warning and a "Clear" button next to the box.
 - **To do: paste production buildings one at a time.** The home page lists every building's output only with the perk that
   shows it there. Without it, let players paste each building's own page (Sawmill, Hay Field, Quarry, Ironworks, Steelworks,
   Coop, Pasture, Raptor Pen, Trout Farm, Vineyard, Worm Habitat, Orchard) and merge each into production, like the farm page.
@@ -243,6 +240,7 @@ prices.js; sell bonus/crafting silver cut from perks); data/perks.md (every perk
 perk tips (page › section › perk); shorter text everywhere with Condensed/Expanded views and a card grid on Next steps; quests one
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
+2026-10-04: paste feedback (read pastes fade out under a green check after ~0.6 s; unread ones keep a Clear button).
 2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as three QR codes (savecode.js + items.js; Setup >
 Save and load > Show as QR codes; scanning opens `#q=…` and asks before loading; a code too big says so). Checked on a real late-game
 save (443 masteries, 885 items, 18 quests): codes ~1,950 / 2,050 / 950 chars, all decoded by a QR reader; round trip lost nothing,

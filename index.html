@@ -188,6 +188,12 @@ textarea {
 .loaded { list-style: none; padding: 0; margin: 10px 0 0; }
 .loaded li::before { content: "✓ "; color: var(--good); font-weight: 700; }
 .loaded li.missing::before { content: "○ "; color: var(--muted); }
+.paste-wrap { position: relative; }
+#paste { transition: color .4s; }
+#paste.fading { color: transparent; }
+#paste-ok { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 2.4rem; font-weight: 700;
+  color: var(--good); opacity: 0; transform: scale(.8); transition: opacity .2s, transform .2s; }
+#paste-ok.show { opacity: 1; transform: none; }
 .note { border-left: 4px solid var(--warn); padding: 6px 10px; background: var(--surface-2); border-radius: 6px; margin-top: 10px; }
 label.field, span.field { display: flex; flex-direction: column; font-size: .9rem; color: var(--muted); }
 #theme { max-width: 100%; }
@@ -321,8 +327,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div id="paste-summary" class="small" hidden></div>
     <div id="paste-body">
     <p class="small muted">Open a game page, press <b>Ctrl+A</b> then <b>Ctrl+C</b>, and paste it here, one page at a time. <span class="tip" data-tip="Pages that work:&#10;• Mastery Progress (open every tier first)&#10;• My Inventory&#10;• Help Needed&#10;• the Orchard&#10;• your farm page&#10;• Perks and Farm Supply (fill in Your perks)&#10;Each is remembered on this device." aria-label="Pages that work: • Mastery Progress (open every tier first) • My Inventory • Help Needed • the Orchard • your farm page • Perks and Farm Supply (fill in Your perks) Each is remembered on this device." tabindex="0">ⓘ</span></p>
-    <textarea id="paste" placeholder="Paste here…" aria-label="Paste a game page"></textarea>
+    <div class="paste-wrap"><textarea id="paste" placeholder="Paste here…" aria-label="Paste a game page"></textarea><span id="paste-ok" aria-hidden="true">✓</span></div>
     <div class="row" style="margin:6px 0 0;align-items:center">
+      <button id="paste-clear" type="button" hidden>Clear</button>
       <button id="file-btn" type="button">Upload a saved page</button>
       <input type="file" id="file-in" accept=".mht,.mhtml,.webarchive,.html,.htm,multipart/related,message/rfc822,application/x-webarchive,text/html" hidden>
       <span class="small muted">Phone: save the game page (Chrome: ⋮ → Download), then upload it.</span>
@@ -587,11 +594,26 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (f.size > 30e6) { $("status").innerHTML = warn("That file is too big. Save just the one game page and try again."); return; }
     f.text().then(raw => { $("paste").value = savedPageToText(raw); $("paste").dispatchEvent(new Event("input")); });
   });
+  // After a good read: the text stays ~0.6 s, then fades under a check mark and the box empties. A new paste cancels it.
+  let pasteT = [];
+  const pasteStop = () => { pasteT.forEach(clearTimeout); pasteT = []; $("paste").classList.remove("fading"); $("paste-ok").classList.remove("show"); };
+  const pasteDone = () => {
+    pasteStop();
+    const ta = $("paste"), ok = $("paste-ok"), calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (calm) { ta.value = ""; ok.classList.add("show"); pasteT = [setTimeout(pasteStop, 600)]; return; }
+    pasteT = [setTimeout(() => { ta.classList.add("fading"); ok.classList.add("show"); }, 600),
+              setTimeout(() => { ta.value = ""; pasteStop(); }, 1000)];
+  };
+  // Pasting while the old text is still fading: drop the old text first so the two don't mix
+  $("paste").addEventListener("paste", () => { if (pasteT.length) { pasteStop(); $("paste").value = ""; } });
+  $("paste-clear").addEventListener("click", () => { pasteStop(); $("paste").value = ""; $("status").innerHTML = ""; $("paste-clear").hidden = true; $("paste").focus(); });
   $("paste").addEventListener("input", () => {
     const text = $("paste").value;
+    pasteStop();
+    $("paste-clear").hidden = !text.trim();
     if (!text.trim()) return;
     const kind = detectPage(text);
-    let msg = "";
+    let msg = "", done = false;
     // Any page copied with the top bar carries your silver: keep the newest
     const cash = parseSilver(text);
     if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); $("f-silver").value = S.silver; }
@@ -631,7 +653,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       { const omg = add("omg"), mult = (1 + add("friendPrimer") / 100) * (omg >= 2 ? 1.75 : omg === 1 ? 1.37 : 1); S.perks.friendBonus = Math.round((mult - 1) * 100); }
       S.perkPagesAt = Date.now();
       S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
-      $("paste").value = "";
+      done = true;
       const other = kind === "perks" ? "supply" : "perks";
       msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
     } else if (kind === "friends") {
@@ -639,7 +661,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const f = parseFriends(text);
       if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
       else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
-        $("paste").value = ""; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+        done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
     } else if (kind === "orchard") {
       const r = parseOrchard(text);
       if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
@@ -658,7 +680,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
     }
     $("status").innerHTML = msg;
-    if (!msg) $("paste").value = "";
+    if (!msg || done) { pasteDone(); $("paste-clear").hidden = true; }
     save();
     render();
   });
