@@ -234,6 +234,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 </head>
 <body>
 <main>
+  <div id="oops" class="note" role="alert" hidden>Something went wrong drawing this page. Try a hard refresh (Ctrl+Shift+R; on a phone, reload the page).</div>
+  <script>
+    // Any script error (or a script file that fails to load) shows the note above instead of a silently empty card
+    addEventListener("error", e => { const o = document.getElementById("oops"); if (o && (e.error || (e.target && e.target.tagName === "SCRIPT"))) o.hidden = false; }, true);
+    addEventListener("unhandledrejection", () => { const o = document.getElementById("oops"); if (o) o.hidden = false; });
+  </script>
   <header>
     <div>
       <h1>FarmRPG Next Steps</h1>
@@ -544,27 +550,27 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </footer>
 </main>
 
-<script src="tools-menu.js" defer></script>
-<script src="tower.js"></script>
-<script src="parse.js"></script>
-<script src="drops.js"></script>
-<script src="seasons.js"></script>
-<script src="recipes.js"></script>
-<script src="recipes-extra.js"></script>
-<script src="items.js"></script>
-<script src="upgrades.js"></script>
-<script src="savecode.js"></script>
+<script src="tools-menu.js?v=202610051849" defer></script>
+<script src="tower.js?v=202610051849"></script>
+<script src="parse.js?v=202610051849"></script>
+<script src="drops.js?v=202610051849"></script>
+<script src="seasons.js?v=202610051849"></script>
+<script src="recipes.js?v=202610051849"></script>
+<script src="recipes-extra.js?v=202610051849"></script>
+<script src="items.js?v=202610051849"></script>
+<script src="upgrades.js?v=202610051849"></script>
+<script src="savecode.js?v=202610051849"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" defer></script>
-<script src="seeds.js"></script>
-<script src="meals.js"></script>
-<script src="ww.js"></script>
-<script src="levels.js"></script>
-<script src="quests.js"></script>
-<script src="loot.js"></script>
-<script src="trade.js"></script>
-<script src="prices.js"></script>
-<script src="npcs.js"></script>
-<script src="engine.js"></script>
+<script src="seeds.js?v=202610051849"></script>
+<script src="meals.js?v=202610051849"></script>
+<script src="ww.js?v=202610051849"></script>
+<script src="levels.js?v=202610051849"></script>
+<script src="quests.js?v=202610051849"></script>
+<script src="loot.js?v=202610051849"></script>
+<script src="trade.js?v=202610051849"></script>
+<script src="prices.js?v=202610051849"></script>
+<script src="npcs.js?v=202610051849"></script>
+<script src="engine.js?v=202610051849"></script>
 <script>
 (function () {
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;

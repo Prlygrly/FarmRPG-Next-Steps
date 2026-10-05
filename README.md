@@ -25,7 +25,7 @@ Game knowledge used by the planner is written up in [`knowledge/`](knowledge/ind
 
 Plain static site: `index.html` + JS files, no build step. Everything is costed in **AP** (1 Apple Cider = 1 Large Net = 1 AP) plus
 **time waiting on daily production**. Nothing player-specific is hardcoded; all player data comes from pastes or typed fields.
-GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\Claude\CLAUDE.md on the owner's machine).
+GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\Claude\CLAUDE.md on the owner's machine). Before each push run `node tools/bump-version.js` (stamps the script tags so browsers never mix old and new files).
 
 ## Run / test
 - Preview: `farmrpg-planner` entry in `D:\Claude\.claude\launch.json` → `node test/serve.js` → http://localhost:5174
