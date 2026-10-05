@@ -41,6 +41,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Crops: players plant one crop in every plot (Plant All), then the next crop. Show crop needs as harvests and growth time before
   Veggie Juice; the Veggie Juice setting then decides the days. Breakfast Boost for very short crops, Grape Juice likely (not
   certain) for the longest. Ignore the rare, expensive mixed-planting item entirely.[^player]
+- Each view spends the whole budget its own way (all Large Nets on fishing in Silver goal, all on masteries in Slow grinds):
+  it's math for the player, not an allocation, so budgets aren't split between views.[^player]
 - Silver goal: blank goal = the next Tower level; ways = crafting from production, per drink/net, and Large Nets at the best
   unlocked fishing place; the next better locked place says what unlocks it.[^player]
 - Sell end products, not their parts: an item is never suggested for sale while anything made from it isn't Mega Mastered

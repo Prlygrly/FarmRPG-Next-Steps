@@ -427,12 +427,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div id="leveling-list"></div>
   </section>
 
-  <section class="card" data-tab="next" id="silver-card" aria-labelledby="h-silver" hidden>
-    <h2 id="h-silver" style="margin-top:0">Making silver</h2>
-    <p class="small muted" style="margin:0 0 6px">Silver matters most until Truffles (after The Smell of a Fun Guy). Prices include your sell perks and masteries.</p>
-    <div id="silver-list"></div>
-  </section>
-
   <section class="card" data-tab="next" id="plan" aria-labelledby="h-next" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-next" style="margin:0">Do these next</h2>
@@ -1039,7 +1033,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("d-tower").hidden = !!p.noTower;
     if ($("d-ak")) $("d-ak").hidden = !!p.noTower;
     renderLeveling(p);
-    renderSilver(p);
     renderAK(ap, akTarget);
     renderStock();
     $("trips").hidden = false;
@@ -1181,7 +1174,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (p.noTower) { /* nothing to climb yet */ }
     else if (next.unmet.length) fixed = wallBite(next, true);
     else if (silverShort(next.level) > 0) fixed = { t: `Save up silver for Tower level ${next.level}`,
-      d: `It costs ${short(tSilver(next.level))} silver; you're ${short(silverShort(next.level))} short.${funGuyDone(p) ? "" : " See Making silver."}` };
+      d: `It costs ${short(tSilver(next.level))} silver; you're ${short(silverShort(next.level))} short. See Silver goal on Best use.` };
     else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs${silverNote(next.level)}.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }) });
     else {
       const k = ap.known.find(x => x.ak >= need);
@@ -1921,7 +1914,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("leveling-list").innerHTML = `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>`;
   }
 
-  // ---------- Making silver (before Fun Guy) ----------
+  // ---------- Silver ----------
   // Sell price: knowledge/mechanics/silver.md
   const sellPrice = (item, p) => {
     const base = PRICES.sell[item] ?? (S.prices || {})[item];      // hand-kept first, then from a Market paste
@@ -1929,42 +1922,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const c = (p.items || {})[item] || 0;
     return Math.round(base * (1 + (S.perks.sellBonus ?? 0) / 100) * (c >= 1e5 ? 1.2 : c >= 1e4 ? 1.1 : 1));
   };
-  // Fun Guy needs 4x99; once done, Truffles show up in your pastes
-  function funGuyDone(p) {
-    const sk = p.skills || {};
-    if (!MAIN_SKILLS.every(k => sk[k] >= 99)) return false;
-    if ((S.quests || []).some(q => /Smell of a Fun Guy/i.test(q.name))) return false;
-    const inv = S.inventory ? S.inventory.items : {};
-    return ["Black Truffle", "White Truffle"].some(n => (p.items || {})[n] || inv[n]);
-  }
-  const SILVER_HOW = { "Sturdy Shield": "Sawmill Boards → Wooden Planks → Shields; put the silver back into more Boards per hour",
-    "Fancy Pipe": "Sawmill Wood + Quarry Stone; Boards still go to Sturdy Shields", "Lantern": "needs Glass from exploring" };
-  const SILVER_CRAFTS = [[1, "Iron Cup"], [11, "Awl"], [11, "Wooden Button"], [20, "Sturdy Shield"], [46, "Fancy Pipe"], [70, "Lantern"]];
-  function renderSilver(p) {
-    const show = !!S.mastery && !funGuyDone(p);
-    $("silver-card").hidden = !show;
-    if (!show) return;
-    const lv = (p.skills || {}).Crafting ?? 1, rows = [];
-    // Crafting: the best pick at your level, and the next one to aim for
-    const open = SILVER_CRAFTS.filter(([l]) => lv >= l), top = open[open.length - 1], next = SILVER_CRAFTS.find(([l]) => l > lv);
-    if (top) rows.push(`<li><b>Craft ${esc(top[1])}s and sell them</b>: ${fmt(sellPrice(top[1], p))} silver each for you${
-      SILVER_HOW[top[1]] ? ` (${SILVER_HOW[top[1]]})` : ""}.${
-      next ? ` <span class="muted small">At Crafting ${next[0]}: ${esc(next[1])}s, ${fmt(sellPrice(next[1], p))} each.</span>` : ""}</li>`);
-    // Fishing: the best spot you can fish, per Large Net thrown
-    const k = S.perks, perNet = 250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0);
-    let spot = null;
-    for (const [loc, L] of Object.entries(DROPS.locs)) {
-      if (L.type !== "fishing" || !L.silver || !W || !W.places[loc]) continue;
-      const each = L.silver[k.runecube ? "netR" : "net"] ?? L.silver.net;
-      if (each && (!spot || each > spot.each)) spot = { loc, each };
-    }
-    if (spot) rows.push(`<li><b>Large Nets at ${esc(spot.loc)}, then sell the fish</b>: about ${short(spot.each * perNet * (1 + (k.sellBonus ?? 0) / 100))} silver a net for you, if you sell the catch <span class="muted small">(less if you keep rare or cooking fish)</span>.</li>`);
-    if (!p.noTower && p.level != null) {
-      const L = p.level + 1, cost = tSilver(L);
-      if (cost) rows.push(`<li>Your next Tower level (${L}) costs <b>${short(cost)}</b> silver${S.silver != null ? ` (you have ${short(S.silver)})` : ""}.</li>`);
-    }
-    $("silver-list").innerHTML = rows.length ? `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>` : `<p class="small muted">Paste your Mastery page to see picks for your level.</p>`;
-  }
 
   // ---------- Best use: "Spend my…" ----------
   // Each usable place: the masteries and quests (active + 5 ahead) it finishes or moves closer.
@@ -2295,11 +2252,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const cropNote = x => { const c = x.kind === "prod" && crops[x.item]; if (!c || !(c.perRound > 0)) return "";
       const h = Math.ceil(x.need / c.perRound); return ` <span class="muted">(${fmt(h)} harvests; ${minText(h * c.before)} of growing before Veggie Juice)</span>`; };
     // Noon bonus (Antler Snare, Tree Shaker): the best is a noon drop as big as the cap, i.e. two full drops a day
-    const NOON = { Antler: ["antlerNoon", "Antler Snare"], Apple: ["orchardNoon", "Tree Shaker"], Orange: ["orchardNoon", "Tree Shaker"], Lemon: ["orchardNoon", "Tree Shaker"] };
+    const NOON = { Antler: ["antlerNoon", "Antler Snare", 160], Apple: ["orchardNoon", "Tree Shaker", 170], Orange: ["orchardNoon", "Tree Shaker", 170], Lemon: ["orchardNoon", "Tree Shaker", 170] };   // knowledge/mechanics/tower-artifacts.md
     const noonNote = x => {
       const n = NOON[x.item]; if (!n) return "";
       const pct = S.perks[n[0]] || 0, cap = invCap(), made = x.item === "Antler" ? (prod().Antler || 0) * 24 : ((S.orchard || {})[x.item] || {}).production || 0;
-      if (!pct) return `<span class="muted">No noon bonus yet: the ${n[1]} (artifact perk) adds a second drop of 10% at noon.</span>`;
+      if (!pct) return `<span class="muted">No noon bonus yet: the ${n[1]} perk (Tower ${n[2]} artifact) adds a second drop of 10% at noon.</span>`;
       if (cap === Infinity || !made) return "";
       const full = cap * 100 / pct;
       return made >= full ? `<span class="muted">Your noon drop already fills the cap: two full drops a day.</span>`
@@ -2817,7 +2774,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (data.silver) {
       const have = S.silver;
       if (have == null) levels.push(`${short(data.silver)} silver (type your silver in Setup)`);
-      else if (have < data.silver) levels.push(`${short(data.silver)} silver (you're ${short(data.silver - have)} short${funGuyDone(p) ? "" : "; see Making silver"})`);
+      else if (have < data.silver) levels.push(`${short(data.silver)} silver (you're ${short(data.silver - have)} short; see Silver goal on Best use)`);
       else stock.push({ item: "silver", used: data.silver, have, share: data.silver / have, costed: false });
     }
     return { missing, cost, byPlace, forWhat, passive, uncosted, levels, stock, stockCost };
