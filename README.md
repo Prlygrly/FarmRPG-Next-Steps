@@ -25,14 +25,13 @@ Game knowledge used by the planner is written up in [`knowledge/`](knowledge/ind
 
 Plain static site: `index.html` + JS files, no build step. Everything is costed in **AP** (1 Apple Cider = 1 Large Net = 1 AP) plus
 **time waiting on daily production**. Nothing player-specific is hardcoded; all player data comes from pastes or typed fields.
-GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\Claude\CLAUDE.md on the owner's machine). Before each push run `node tools/bump-version.js` (stamps the script tags so browsers never mix old and new files).
+GitHub Pages serves `main` from the root, so a push to `main` goes live. Before each push run `node tools/bump-version.js` (stamps the script tags so browsers never mix old and new files).
 
 ## Run / test
-- Preview: `farmrpg-planner` entry in `D:\Claude\.claude\launch.json` → `node test/serve.js` → http://localhost:5174
+- Preview: `node test/serve.js`, then open http://localhost:5174 (any static server works).
 - Tests: `for t in test/*.test.js; do node $t; done` (parse, inventory/pages, engine).
 - Fixtures (`test/fixtures/*-trimmed.txt`) use made-up numbers and no chat/usernames — keep it that way (the repo is public-bound).
-- Debug in the page: `__planner.state()`, `__planner.last()` (latest tower + AK plan), `__planner.render()`.
-- Tooling note: backslashes inside `node - <<'EOF'` edits get stripped by the shell tool here — use the Edit tool for regexes / `\n`.
+- Debug in the page: `__planner.state()`, `__planner.last()` (latest tower + AK plan), `__planner.render()`, `__planner.coster()`.
 
 ## Files
 - `knowledge/` — **game knowledge bundle** in Google's [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
