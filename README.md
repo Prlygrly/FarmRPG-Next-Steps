@@ -41,7 +41,7 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   changes. **Read the relevant concept before changing game rules in code**, and add new mechanics there (with a source). Concepts have
   no `verified` yet: add `verified: { by: human:player, at: … }` once the player has checked one.
 - `index.html` — the whole UI (tabs, rendering, costing glue, quests, trips, saves, themes).
-- `parse.js` — page parsers: Mastery Progress, My Inventory, Help Needed, Orchard, farm page, Perks, Farm Supply; `detectPage()`.
+- `parse.js` — page parsers: Mastery Progress, My Inventory, Help Needed, Orchard, farm page, building pages, Perks, Farm Supply; `detectPage()`.
 - `savecode.js` — compact save for QR codes: `pack(S)` -> code a (masteries + quests), b (inventory), c (perks, production,
   settings); item and quest IDs instead of names, counts to 2 significant figures (exact under 100, `m` = at the cap, never
   rounded across a mastery line or the cap), default perks left out. Tested in test/savecode.test.js.
@@ -139,16 +139,6 @@ GitHub Pages serves `main` from the root. Ask the owner before pushing (see D:\C
   (Large Net, Orange Juice, Lemonade, Chum, Tower walls…): how long each takes at the player's current production, and at projected
   production (e.g. a building upgraded, more trees, a bigger inventory), so players see where an upgrade pays off. Builds on Daily
   overflow's "Mega Mastery in N days" and the "if you maxed this building" idea.
-- **To do: paste production buildings one at a time.** The home page lists every building's output only with the perk that
-  shows it there. Without it, let players paste each building's own page (Sawmill, Hay Field, Quarry, Ironworks, Steelworks,
-  Coop, Pasture, Raptor Pen, Trout Farm, Vineyard, Worm Habitat, Orchard) and merge each into production, like the farm page.
-  Example pastes received 2026-10-05 (Coop, Pasture, Pig Pen, Storehouse, Farmhouse, Raptor Pen, Wine Cellar, Worm Habitat, Orchard,
-  Trout Farm; still needed: Sawmill, Ironworks, Steelworks, Hay Field, Quarry, Vineyard). Each page ends with its own sentence:
-  "your chicken coop is producing N eggs and N feathers per day", "cow pasture is producing N milk per day", "Raptor Pen is
-  producing N antlers and N steak kabobs per day", Worm Habitat "Currently generating N per hour" x3 (worms, gummy worms,
-  mealworms, in that order), Trout Farm "generating N per day" (trout) then grubs and minnows "N per hour", Orchard "N Apple
-  Trees / N Production", Storehouse "increase by N each time" and "MAX Inventory is N". Upgrade costs are on the pages too
-  (e.g. Worm Habitat "At least N Silver needed"), useful for Slow grinds what-ifs. Fixtures must be trimmed (chat removed).
 - **Then: silver goal.** A setting "I'm saving up N silver" that values crafted-and-sold / fished-and-sold items by silver while the
   goal is open (mainly before Truffles). Base sell prices now in prices.js (15 items, from the player's Market page); sell price
   = base x (1 + sell perks) x mastery. Making silver card, quest and Tower silver checks are done.
@@ -247,7 +237,9 @@ perk tips (page › section › perk); shorter text everywhere with Condensed/Ex
 column; Veggie Juice calculator in h + min; no cooking as an outlet for piles; townsfolk (npcs.js, cheap gifts ❤️/👍, gift leftovers,
 quest-only items point to their quest, optional friendship paste, friendship gift bonus); recipes-extra.js (Spooky Scarecrow).
 2026-10-04: paste feedback (read pastes fade out under a green check after ~0.6 s; unread ones keep a Clear button).
-2026-10-05: grubs and minnows are hourly (were read as daily, 24x too low); a read paste clears even with a warning.
+2026-10-05: building pages can be pasted one at a time (parseBuilding: Coop, Pasture, Raptor Pen, Worm Habitat, Trout Farm,
+Vineyard, Sawmill, Ironworks, Steelworks, Hay Field, Quarry; Storehouse gives the cap); coal is hourly and the Quarry also makes
+Sandstone; grubs and minnows are hourly (were read as daily, 24x too low); a read paste clears even with a warning.
 2026-10-02/04: tools menu (tools-menu.js, shared with the net and bacon planners); save as three QR codes (savecode.js + items.js; Setup >
 Save and load > Show as QR codes; scanning opens `#q=…` and asks before loading; a code too big says so). Checked on a real late-game
 save (443 masteries, 885 items, 18 quests): codes ~1,950 / 2,050 / 950 chars, all decoded by a QR reader; round trip lost nothing,

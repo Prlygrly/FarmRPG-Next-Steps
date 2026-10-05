@@ -47,3 +47,13 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 Large Net, Orange Juice and Lemonade Mega Masteries take a year or more even at full production; keep Antlers -> Fishing Nets -> Large Nets, Oranges -> Orange Juice and Lemons -> Lemonade going every day.[^player]
 
 [^player]: Player confirmation
+
+## Building pages (source: the player's building pages, 2026-10-05)
+- Drop timing stated on each page: Sawmill boards and wood every hour; Ironworks iron and nails every 3 minutes; Steelworks
+  steel and wire every 60 minutes; Hay Field straw every 10 minutes; Quarry stone **and sandstone** every 10 minutes (same
+  amount), coal **every hour**; Worm Habitat worms, gummy worms and mealworms every hour; Trout Farm trout daily, grubs and
+  minnows every hour; Coop, Pasture, Raptor Pen, Vineyard daily.
+- Each page states its output in one sentence (see `parseBuilding` in parse.js), so a player without the home-page output perk
+  can paste the pages one by one. The Storehouse page states the max inventory ("Currently your MAX Inventory is N").
+- Trout Farm: every 10,000 trout a day also makes 1 Mega Trout.
+

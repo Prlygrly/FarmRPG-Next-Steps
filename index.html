@@ -536,7 +536,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="engine.js"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -663,6 +663,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
       else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
         done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+    } else if (kind === "building") {
+      // One building's own page: merge its output into production (players without the home-page output perk)
+      const b = parseBuilding(text), n = Object.keys(b.rates);
+      if (n.length) { S.production = { ...(S.production || {}), ...b.rates }; S.productionAt = Date.now(); }
+      if (b.cap && S.inventory) S.inventory.cap = b.cap;
+      done = true;
+      msg = `<div class="note" style="border-color:var(--good)">${b.buildings.length ? `Read the ${esc(b.buildings.join(", "))}: ${esc(n.join(", "))}.` : ""}${b.cap ? ` Inventory cap: ${fmt(b.cap)}.` : ""}</div>`;
     } else if (kind === "orchard") {
       const r = parseOrchard(text);
       if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
@@ -1258,7 +1265,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // one inventory's worth, so the usable rate is min(made per gap, cap) / gap, where the gap is the drop interval or the
   // time between your checks, whichever is longer. (Straw every 10 minutes, emptied each time, really can be 6 caps an hour.)
   const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
-    Straw: 1 / 6, Stone: 1 / 6, Coal: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };   // everything else hourly
+    Straw: 1 / 6, Stone: 1 / 6, Sandstone: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };   // coal is hourly (Quarry page)   // everything else hourly
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
   const usableRate = (n, perHour) => {
@@ -2059,7 +2066,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const BUILDING = { Eggs: "Chicken Coop", Feathers: "Chicken Coop", Milk: "Cow Pasture", Antler: "Raptor Pen", "Steak Kabob": "Raptor Pen",
     Worms: "Worm Habitat", "Gummy Worms": "Worm Habitat", Mealworms: "Worm Habitat", Trout: "Trout / Bait Farm", Grubs: "Trout / Bait Farm",
     Minnows: "Trout / Bait Farm", Grapes: "Vineyard", Board: "Sawmill", Wood: "Sawmill", Iron: "Ironworks", Nails: "Ironworks", Steel: "Steelworks",
-    "Steel Wire": "Steelworks", Straw: "Hay Field", Stone: "Quarry", Coal: "Quarry", Apple: "Orchard", Orange: "Orchard", Lemon: "Orchard" };
+    "Steel Wire": "Steelworks", Straw: "Hay Field", Stone: "Quarry", Sandstone: "Quarry", Coal: "Quarry", Apple: "Orchard", Orange: "Orchard", Lemon: "Orchard" };
   const STANDING = { Antler: ["Fishing Net", "Large Net"], Orange: ["Orange Juice"], Lemon: ["Lemonade"], Apple: ["Apple Cider"] };
   function renderOverflow(p) {
     if (!O || O.cap === Infinity) { $("overflow-list").innerHTML = `<p class="small muted">Paste My Inventory to see what's filling up.</p>`; return; }

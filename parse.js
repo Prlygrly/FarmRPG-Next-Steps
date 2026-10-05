@@ -131,7 +131,7 @@
     { at: "Produces Iron/Nails every 3 mins", per: 3, items: [["Iron", "Iron"], ["Nails", "Nails"]] },
     { at: "Produces Steel/Wire hourly", per: 60, items: [["Steel", "Steel"], ["Wire", "Steel Wire"]] },
     { at: "Produces Straw every 10 mins", per: 60, items: [["Hourly", "Straw"]] },
-    { at: "Stone/Gems every 10 mins", per: 60, items: [["Stone Hourly", "Stone"], ["Coal Hourly", "Coal"]] }
+    { at: "Stone/Gems every 10 mins", per: 60, items: [["Stone Hourly", "Stone"], ["Stone Hourly", "Sandstone"], ["Coal Hourly", "Coal"]] }   // sandstone drops with stone
   ];
   function parseFarm(text) {
     const flat = text.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
@@ -263,6 +263,40 @@
   }
 
   // Which page was pasted? Checked most specific first.
+  // One production building's own page (for players whose home page doesn't list output). Each page ends with its own
+  // sentence; amounts are stored per hour like parseFarm (daily ones / 24). [building, regex, [[item, group, perDay?]]]
+  const BUILDING_PAGES = [
+    ["Chicken Coop", /chicken coop is producing ([\d,]+) eggs and ([\d,]+) feathers per day/i, [["Eggs", 1, 1], ["Feathers", 2, 1]]],
+    ["Cow Pasture", /cow pasture is producing ([\d,]+) milk per day/i, [["Milk", 1, 1]]],
+    ["Raptor Pen", /Raptor Pen is producing ([\d,]+) antlers and ([\d,]+) steak kabobs per day/i, [["Antler", 1, 1], ["Steak Kabob", 2, 1]]],
+    ["Worm Habitat", /generate fishing bait every hour\. Currently generating ([\d,]+) per hour/i, [["Worms", 1]]],
+    ["Worm Habitat", /generate gummy worms every hour\. Currently generating ([\d,]+) per hour/i, [["Gummy Worms", 1]]],
+    ["Worm Habitat", /generate Mealworms every hour\. Currently generating ([\d,]+) per hour/i, [["Mealworms", 1]]],
+    ["Trout / Bait Farm", /generate trout every day\. Currently generating ([\d,]+) per day/i, [["Trout", 1, 1]]],
+    ["Trout / Bait Farm", /produces grubs every hour[^.]*\. Currently generating ([\d,]+) per hour/i, [["Grubs", 1]]],
+    ["Trout / Bait Farm", /produces minnows every hour[^.]*\. Currently generating ([\d,]+) per hour/i, [["Minnows", 1]]],
+    ["Vineyard", /generate grapes every day\. Currently generating ([\d,]+) per day/i, [["Grapes", 1, 1]]],
+    ["Sawmill", /generate boards every hour\. Currently generating ([\d,]+) per hour/i, [["Board", 1]]],
+    ["Sawmill", /generate wood every hour\. Currently generating ([\d,]+) per hour/i, [["Wood", 1]]],
+    ["Ironworks", /\(([\d,]+) Iron and ([\d,]+) Nails hourly\)/i, [["Iron", 1], ["Nails", 2]]],
+    ["Steelworks", /Currently generating ([\d,]+) Steel and ([\d,]+) Steel Wire every 60 minutes/i, [["Steel", 1], ["Steel Wire", 2]]],
+    ["Hay Field", /\(([\d,]+) Straw hourly\)/i, [["Straw", 1]]],
+    ["Quarry", /stone and sandstone every 10 minutes\. Currently generating [\d,]+ every 10 minutes\. \(([\d,]+) hourly\)/i, [["Stone", 1], ["Sandstone", 1]]],
+    ["Quarry", /generate coal every hour\. Currently generating ([\d,]+) per hour/i, [["Coal", 1]]]
+  ];
+  const flatText = text => String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
+  function parseBuilding(text) {
+    const flat = flatText(text), rates = {}, buildings = [];
+    for (const [b, re, items] of BUILDING_PAGES) {
+      const m = flat.match(re);
+      if (!m) continue;
+      if (!buildings.includes(b)) buildings.push(b);
+      for (const [item, g, daily] of items) rates[item] = toInt(m[g]) / (daily ? 24 : 1);
+    }
+    const cap = flat.match(/Currently your MAX Inventory is ([\d,]+)/i);   // the Storehouse page
+    return { buildings, rates, cap: cap ? toInt(cap[1]) : null };
+  }
+
   function detectPage(text) {
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
     if (/^\s*Current Levels\s*$/im.test(text) && /Townsfolk/i.test(text)) return "friends";
@@ -270,6 +304,8 @@
     if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
     // The orchard first: in the Steam app the Orchard page also lists the whole farm ("Around Your Farm")
     if (/About the orchard/i.test(text)) return "orchard";
+    // A building's own page also carries the farm sidebar, so check for its sentence first
+    { const b = parseBuilding(text); if (b.buildings.length || b.cap) return "building"; }
     if (/Around Your Farm/i.test(text)) return "farm";
     if (/cannot have more than [\d,]+ of any single thing|Inventory Stats/.test(text)) return "inventory";
     if (/[\d,]+\s*\/\s*([\d,]+|∞)\s*Progress/.test(text)) return "mastery";
@@ -311,7 +347,7 @@
   const noChat = f => (text, ...rest) => f(stripChat(text), ...rest);
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
-    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseFriends: noChat(parseFriends), perkSettings,
+    parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseFriends: noChat(parseFriends), perkSettings,
     detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
