@@ -3119,7 +3119,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   showTab(S.mastery ? startTab : "setup");
 
   let LAST = null;
-  window.__planner = { state: () => S, render, last: () => LAST };
+  window.__planner = { state: () => S, render, last: () => LAST, coster: () => C };
   render();
   loadQr();
   addEventListener("hashchange", loadQr);
