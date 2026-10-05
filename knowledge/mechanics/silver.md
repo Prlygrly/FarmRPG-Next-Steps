@@ -51,8 +51,9 @@ Which items are worth selling is a planner rule (sell end products, not their pa
 - Per Large Net = silver per fish x fish per Large Net (250, +150 Reinforced Netting, +100 Fishing Trawl), then x (1 + sell bonus).
 - Checked in game (2026-10-05, Glacier Lake, 70% sell perks, Reinforced Netting + Fishing Trawl): single nets 10.20M-10.44M
   with four items locked; 50 nets with everything sold 569.8M = ~11.4M a net. Shrimp-a-Plenty x1.10 (626.2M); Sea Pincher
-  Special on top x1.10 (690.1M: 10% more fish per net), so ~13.8M a net with both. The formula above gives ~10.0M: about 12%
-  low, probably because it leaves out the fish's mastery bonus (x1.1 / x1.2).[^player]
+  Special on top x1.10 (690.1M: 10% more fish per net), so ~13.8M a net with both. The formula above gives ~10.0M (12% low);
+  with each fish's mastery bonus (x1.1 / x1.2, weighted by catch share, out-of-season fish left out) ~12.0M, which the
+  planner now uses (5% high).[^player]
 - Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
 
 # Sawmill Silver (from Crafting 20)
