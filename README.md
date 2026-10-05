@@ -58,8 +58,6 @@ with a source.
 - **Setup**: pastes, settings, places, production, save codes.
 
 ## Roadmap
-- Shorter on-screen text (intros, tips, card descriptions).
-- Paste a single special or personal request page (quest.php: "Items Requested", "Rewards") and plan it like any quest.
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
 - Fishing silver per net leaving out rare fish (needs per-fish prices).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.

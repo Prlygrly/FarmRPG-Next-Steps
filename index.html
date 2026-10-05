@@ -287,7 +287,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <div id="stale-banner" class="small" hidden></div>
   <details id="changes" class="card" hidden style="padding:10px 14px">
     <summary id="changes-sum"></summary>
-    <p class="small muted" style="margin:6px 0">Marked done since your last paste. Your next paste replaces them with real numbers. <span class="tip" data-tip="Undo puts things back as they were before that tick, and undoes any ticks after it." aria-label="Undo puts things back as they were before that tick, and undoes any ticks after it." tabindex="0">ⓘ</span></p>
+    <p class="small muted" style="margin:6px 0">Ticked since your last paste; the next paste replaces them. <span class="tip" data-tip="Undo puts things back as they were before that tick, and undoes any ticks after it." aria-label="Undo puts things back as they were before that tick, and undoes any ticks after it." tabindex="0">ⓘ</span></p>
     <ol id="changes-list" class="small" style="margin:0;padding-left:20px"></ol>
   </details>
 
@@ -305,7 +305,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
       </div>
     </div>
-    <p class="small muted">Where a pile of Large Nets, Arnold Palmers or Apple Ciders does the most. Places that finish the most come first.</p>
+    <p class="small muted">Where your Large Nets, Arnold Palmers or Apple Ciders finish the most.</p>
     <div class="row">
       <label class="field">Using <select id="best-unit" style="width:auto"><option value="LN">Large Nets</option><option value="AP">Arnold Palmers</option><option value="AC">Apple Ciders</option></select></label>
       <label class="field">Amount <input id="best-amt" type="number" min="1" inputmode="numeric"></label>
@@ -315,12 +315,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="best" id="plant" aria-labelledby="h-plant">
     <h2 id="h-plant">What to plant now</h2>
-    <p class="small muted">The best crop for your plots right now. Tap one for more.</p>
+    <p class="small muted">What to plant next, by what it finishes. Tap one for more.</p>
     <div id="plant-list"></div>
   </section>
   <section class="card" data-tab="best" id="overflow" aria-labelledby="h-overflow">
     <h2 id="h-overflow">Daily overflow</h2>
-    <p class="small muted">What your farm makes, what fills up first, and what to turn it into. Tap one for more.</p>
+    <p class="small muted">What fills up first, and what to turn it into.</p>
     <div id="overflow-list"></div>
   </section>
   <section class="card" data-tab="grinds" id="grinds" aria-labelledby="h-grinds">
@@ -331,7 +331,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <button type="button" data-detail="expanded" title="Full sentences with the reasons.">Expanded</button>
       </span>
     </div>
-    <p class="small muted">Masteries that take months at your production, longest first. Tap one for more.</p>
+    <p class="small muted">Tower masteries that take months, longest first.</p>
     <details class="small" id="grind-numbers" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
       <div class="row" id="grind-settings" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
     <details class="small" id="whatif-box" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">What if <span id="whatif-on"></span></summary>
@@ -346,13 +346,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="best" id="silver-goal" aria-labelledby="h-silver-goal">
     <h2 id="h-silver-goal" style="margin:0 0 4px">Silver goal</h2>
-    <p class="small muted" style="margin:0 0 6px">The best ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
+    <p class="small muted" style="margin:0 0 6px">Ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
     <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
     <div id="silver-goal-list"></div>
   </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
-    <p class="small muted">Refill your pantry: meals your quests need first, then what you're lowest on. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
+    <p class="small muted">Meals to cook: quest needs first, then lowest stock. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
     <label class="field">Recipes I don't have <input id="kitchen-missing" type="text" placeholder="e.g. Cabbage Stew, Acorn Pie" style="min-width:240px"></label>
     <div id="kitchen-list" style="margin-top:8px"></div>
   </section>
@@ -375,7 +375,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </div>
     <div id="paste-summary" class="small" hidden></div>
     <div id="paste-body">
-    <p class="small muted">Open a game page, press <b>Ctrl+A</b> then <b>Ctrl+C</b>, and paste it here, one page at a time. <span class="tip" data-tip="Pages that work:&#10;• Mastery Progress (open every tier first)&#10;• My Inventory&#10;• Help Needed&#10;• the Orchard&#10;• your farm page&#10;• Perks and Farm Supply (fill in Your perks)&#10;Each is remembered on this device." aria-label="Pages that work: • Mastery Progress (open every tier first) • My Inventory • Help Needed • the Orchard • your farm page • Perks and Farm Supply (fill in Your perks) Each is remembered on this device." tabindex="0">ⓘ</span></p>
+    <p class="small muted">Open a game page, press <b>Ctrl+A</b> then <b>Ctrl+C</b>, and paste it here, one page at a time. <span class="tip" data-tip="Pages that work:&#10;• Mastery Progress (open every tier first)&#10;• My Inventory&#10;• Help Needed, and a single request's page&#10;• your farm page, building pages, the Orchard&#10;• Perks and Farm Supply&#10;• Farmer's Market (optional)&#10;Each is remembered on this device." aria-label="Pages that work: • Mastery Progress (open every tier first) • My Inventory • Help Needed • the Orchard • your farm page • Perks and Farm Supply (fill in Your perks) Each is remembered on this device." tabindex="0">ⓘ</span></p>
     <div class="paste-wrap"><textarea id="paste" placeholder="Paste here…" aria-label="Paste a game page"></textarea><span id="paste-ok" aria-hidden="true">✓</span></div>
     <div class="row" style="margin:6px 0 0;align-items:center">
       <button id="paste-clear" type="button" hidden>Clear</button>
@@ -392,7 +392,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <label class="field">Silver <input id="f-silver" type="number" min="0" inputmode="numeric"></label>
       <button id="clear" type="button">Forget my pastes</button>
     </div>
-    <p class="small muted" style="margin:6px 0 0">Filled in from your pastes; type to change. <span class="tip" data-tip="Tower level, AK and Mega Masteries come from your Mastery paste. Silver comes from any page copied in the Steam app (Chrome copies don't include it).&#10;AK (Ascension Knowledge): each Tower level costs 100." aria-label="Tower level, AK and Mega Masteries come from your Mastery paste. Silver comes from any page copied in the Steam app (Chrome copies don't include it). AK (Ascension Knowledge): each Tower level costs 100." tabindex="0">ⓘ</span></p>
+    <p class="small muted" style="margin:6px 0 0">Filled in from your pastes; type to change. <span class="tip" data-tip="Tower level, AK and Mega Masteries come from your Mastery paste; silver from pages copied in the Steam app.&#10;Each Tower level costs 100 AK." aria-label="Tower level, AK and Mega Masteries come from your Mastery paste. Silver comes from any page copied in the Steam app (Chrome copies don't include it). AK (Ascension Knowledge): each Tower level costs 100." tabindex="0">ⓘ</span></p>
     </div>
   </section>
 
@@ -410,19 +410,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </details>
     <details id="d-places">
       <summary>Places I can use</summary>
-      <p class="small muted">Ticked places are used for effort. They tick themselves from your Mastery paste. <span class="tip" data-tip="A place counts as open once you've gathered at least half of the things found only there. Change any you like.&#10;Event places (like Apple Bobbing) start unticked: tick one while its event is on." aria-label="A place counts as open once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked: tick one while its event is on." tabindex="0">ⓘ</span></p>
+      <p class="small muted">Places you can use; ticked automatically from your pastes. <span class="tip" data-tip="A place counts as open once you've gathered at least half of the things found only there. Change any you like.&#10;Event places (like Apple Bobbing) start unticked: tick one while its event is on." aria-label="A place counts as open once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked: tick one while its event is on." tabindex="0">ⓘ</span></p>
       <div id="places"></div>
     </details>
     <details id="d-prod">
       <summary>Daily production</summary>
-      <p class="small muted">Filled in from your farm, building and Orchard pages; a paste updates only what it shows. Clear a box to remove an item.</p>
+      <p class="small muted">Filled in from your pastes; each updates only what it shows. Clear a box to remove an item.</p>
       <div class="row" id="prod"></div>
     </details>
   </section>
 
   <section class="card" data-tab="next" id="leveling" aria-labelledby="h-leveling" hidden>
     <h2 id="h-leveling" style="margin-top:0">Leveling up</h2>
-    <p class="small muted" style="margin:0 0 6px">90 in Farming, Fishing, Crafting and Exploring opens big questlines; 99 in all four (4x99) opens the major ones. <span class="tip" data-tip="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." aria-label="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." tabindex="0">ⓘ</span></p>
+    <p class="small muted" style="margin:0 0 6px">4x90 (Farming, Fishing, Crafting, Exploring) opens big questlines; 4x99 the major ones. <span class="tip" data-tip="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." aria-label="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." tabindex="0">ⓘ</span></p>
     <div id="leveling-list"></div>
   </section>
 
@@ -504,7 +504,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
       </div>
     </div>
-    <p class="small muted">Going somewhere a lot anyway, like the Forest for Antlers? Add it to see what else the trip brings home. <span class="tip" data-tip="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." aria-label="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." tabindex="0">ⓘ</span></p>
+    <p class="small muted">Places you visit anyway (the Forest for Antlers): what else they bring home. <span class="tip" data-tip="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." aria-label="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." tabindex="0">ⓘ</span></p>
     <div class="row">
       <label class="field">Place <select id="trip-loc"></select></label>
       <label class="field">Plan
@@ -526,19 +526,18 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
       </div>
     </div>
-    <p class="small muted">From your Help Needed paste. Hide quests you're skipping; they move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
+    <p class="small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
     <div id="quest-list"></div>
   </section>
   <section class="card" data-tab="quests" id="ww" aria-labelledby="h-ww" hidden>
     <h2 id="h-ww">Wishing well</h2>
-    <p class="small muted">What your quests need that the well can give, using today's free tosses. <span class="tip" data-tip="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." aria-label="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." tabindex="0">ⓘ</span></p>
+    <p class="small muted">Today's free tosses, for what your quests need. <span class="tip" data-tip="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." aria-label="Covers each quest and up to 5 steps ahead in its chain, and only items you're short of." tabindex="0">ⓘ</span></p>
     <div id="ww-list"></div>
   </section>
 
   <section class="card" data-tab="setup" id="saves" aria-labelledby="h-saves">
     <h2 id="h-saves">Save and load</h2>
-    <p class="small muted">Everything you've pasted and typed is kept in this browser, but clearing site data or switching devices loses it.
-      Keep a save code somewhere safe (a note, an email to yourself) and load it here any time.</p>
+    <p class="small muted">Kept in this browser only. Keep a save code somewhere safe to restore it or move devices.</p>
     <div class="row">
       <button id="save-make" type="button">Make a save code</button>
       <button id="save-copy" type="button" hidden>Copy it</button>
@@ -2132,7 +2131,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const promote = boost.length && (!timed.length || vjLow);
     const boostHtml = !boost.length ? "" : `<details class="boost"${promote ? " open" : ""} style="margin-top:10px"><summary><strong>Breakfast Boost crops</strong> <span class="small muted">${
         next.length ? `next Boost finishes ${next.length}${nextAk ? ` (+${nextAk} AK)` : ""}` : "each job needs more than one Boost"}${vjLow ? ` · Veggie Juice low (${short(vj)})` : ""}</span></summary>
-      <p class="small muted" style="margin:4px 0">Crops that officially grow in 5 minutes or less, done together under Breakfast Boost; ${fmt(rounds)} harvests per Boost (Setup → Your perks).</p>
+      <p class="small muted" style="margin:4px 0">Crops of 5 minutes or less, under one Breakfast Boost: ${fmt(rounds)} harvests per Boost.</p>
       ${boostRows}</details>`;
     if (!crops.length) { $("plant-list").innerHTML = `<p class="small muted">No crop feeds anything in your plan or quests right now.</p>`; return; }
     $("plant-list").innerHTML = promote ? boostHtml + timedHtml : timedHtml + boostHtml;
@@ -2330,7 +2329,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return by.length ? `${UNIT[auto[k] === "Large Net" ? "LN" : auto[k] === "Arnold Palmer" ? "AP" : "AC"]}: ~${short(made[k])} a day from your fruit, plus ${by.join(" and ")} for the hand-gathered parts` : "";
     }).filter(Boolean);
     const hand = handLine.length ? `<p class="small muted">${handLine.join(". ")}.</p>` : "";
-    const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Masteries gathered with ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" or ")} aren't timed until you set how many you use a day.</p>` : "";
+    const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Set ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" and ")} a day to time the masteries that need them.</p>` : "";
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     // No Storehouse data: times use today's cap for good, which overstates them
     const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
@@ -2427,7 +2426,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         perUnit.map(x => `<li>${esc(x.item)}: ~${short(x.v)} per ${UNIT[x.u] || esc(x.u)}</li>`).join("")}</ul>` : "") +
       (kept.length ? `<details class="small muted" style="margin:8px 0 0"><summary>${fmt(kept.length)} priced items left out: better used than sold</summary>${
         kept.map(([n, k]) => `${esc(n)} (${k})`).join("; ")}.</details>` : "") +
-      `<p class="small muted" style="margin:8px 0 0">Each way assumes it gets all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products at your level have no price yet (optional: a Farmer's Market paste with them unlocked, plus My Inventory, adds them).` : ""}</p>`;
+      `<p class="small muted" style="margin:8px 0 0">Each way assumes all of that production or budget.${noPrice ? ` ${fmt(noPrice)} end products have no price yet (a Market paste with them unlocked adds them).` : ""}</p>`;
   }
   $("silver-goal-in").addEventListener("change", () => { const v = +$("silver-goal-in").value || 0; if (v > 0) S.silverGoal = v; else delete S.silverGoal; save(); render(false); });
 
