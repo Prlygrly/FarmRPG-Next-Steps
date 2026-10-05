@@ -324,6 +324,16 @@
   // Hours between drops; everything else drops hourly (coal too, per the Quarry page).
   const DROP_HOURS = { Eggs: 24, Feathers: 24, Milk: 24, Antler: 24, "Steak Kabob": 24, Trout: 24, Grapes: 24,
     Straw: 1 / 6, Stone: 1 / 6, Sandstone: 1 / 6, Iron: 1 / 20, Nails: 1 / 20 };
+  // Stored production carries its own unit, as the game states it: { Antler: { n: 54210, per: "day" }, Wood: { n: 18002, per: "hour" } }.
+  // The math below works per hour; these are the only conversions. (Older saves stored a bare number per hour.)
+  const PER_HOURS = { day: 24, hour: 1 };
+  const unitOf = item => (DROP_HOURS[item] || 1) >= 24 ? "day" : "hour";
+  const perHourOf = e => typeof e === "number" ? e : e && e.n != null ? e.n / (PER_HOURS[e.per] || 1) : null;
+  const entryOf = (item, perHour, per = unitOf(item)) => ({ n: perHour * PER_HOURS[per], per });
+  const ratesPerHour = prod => Object.fromEntries(Object.entries(prod || {}).map(([k, e]) => [k, perHourOf(e)]).filter(([, v]) => v != null));
+  const storeRates = perHour => Object.fromEntries(Object.entries(perHour || {}).filter(([, v]) => typeof v === "number").map(([k, v]) => [k, entryOf(k, v)]));
+  // Old saves: bare numbers (per hour) become entries; entries stay as they are
+  const migrateRates = prod => Object.fromEntries(Object.entries(prod || {}).map(([k, e]) => [k, typeof e === "number" ? entryOf(k, e) : e]));
   // env = { production: {item: per hour}, orchard: {fruit: {production}}, cap, gap (hours between your checks),
   //         antlerNoon, orchardNoon (noon bonus %) }. Each drop is capped at the inventory cap; you can only use what fits.
   function productionMath(env) {
@@ -472,7 +482,7 @@
     return rows.filter(x => x.silverDay == null || x.silverDay > 0).sort((a, b) => (b.silverDay ?? -1) - (a.silverDay ?? -1));
   }
 
-  const api = { DROP_HOURS, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

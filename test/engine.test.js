@@ -264,3 +264,14 @@ console.log("engine tests passed");
   assert.strictEqual(makesPerDay("Cider", coster, perDay), null);       // needs AP for Glass
   assert.strictEqual(makesPerDay("Cider", coster, perDay, true), 100);  // fruit only: 1,000 Apples / 10
 }
+
+// Production units: stored as the game states it ({ n, per }); the math reads per hour through one conversion
+{
+  const { ratesPerHour, storeRates, migrateRates, perHourOf, unitOf } = require("../engine.js");
+  assert.strictEqual(unitOf("Antler"), "day"); assert.strictEqual(unitOf("Wood"), "hour");
+  const stored = storeRates({ Antler: 1000, Wood: 500 });                 // per hour in -> natural units out
+  assert.deepStrictEqual(stored, { Antler: { n: 24000, per: "day" }, Wood: { n: 500, per: "hour" } });
+  assert.deepStrictEqual(ratesPerHour(stored), { Antler: 1000, Wood: 500 });
+  assert.deepStrictEqual(migrateRates({ Antler: 1000, Wood: { n: 500, per: "hour" } }), stored);   // old saves: bare numbers per hour
+  assert.strictEqual(perHourOf({ n: 54210, per: "day" }), 2258.75);       // a daily drop is never read as hourly
+}

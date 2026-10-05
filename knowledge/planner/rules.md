@@ -53,6 +53,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   right now (another part is missing) may be sold.[^player]
 - A single request's page (quest.php: special and personal requests, e.g. "Items Wanted", "Lost Items") lists "Items Requested"
   (item, "You have N", "Nx") and "Rewards" (Silver amount, items "Nx"); parser still to build.[^player]
+- Saved production carries its own unit, as the game states it: `{ n: 54210, per: "day" }` for daily drops (Antler,
+  Eggs, Milk, Trout…), `{ n: 18002, per: "hour" }` for the rest. The math converts to per hour in one place
+  (`ratesPerHour` in engine.js); never store or quote a daily drop as an hourly rate.[^player]
 - Full list of decisions and the batch history: the README.[^readme]
 
 [^player]: Player confirmation

@@ -599,6 +599,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   let S = { mastery: null, inventory: null, manual: {}, perks: { ...START_PERKS }, places: {}, hidden: [] };
   try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
   S.perks = { ...START_PERKS, ...S.perks };
+  // Production is stored in each item's own unit ({ n, per }); older saves had bare numbers per hour
+  const fixRates = () => {
+    if (S.production) S.production = window.FRP.migrateRates(S.production);
+    if (S.whatIf && S.whatIf.prod) S.whatIf.prod = window.FRP.migrateRates(S.whatIf.prod);
+  };
+  fixRates();
+  try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {}   // keep the converted save
+  // Per-hour rates for the math (the one place stored production is read)
+  const prod = () => window.FRP.ratesPerHour(S.production);
   // Older saves may have "Lorn -  Main Quest" stuck in the NPC name (extra space before the dash parse fix)
   const fixQuestKinds = () => {
     for (const q of S.quests || []) {
@@ -704,7 +713,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const r = parseFarm(text);
       if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
       else {
-        S.production = r; done = true;
+        S.production = window.FRP.storeRates(r); done = true;
         if (r.plots && r.plots <= PLOT_SOFT_MAX && r.plots % 4 === 0) S.perks.plots = r.plots;
         else if (r.plots) msg = warn(`Plant All showed ${fmt(r.plots)}, which can't be your crop plots, so they were left at ${fmt(S.perks.plots || 0)}. Check them in Your perks.`);
         S.productionAt = Date.now();
@@ -745,7 +754,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     } else if (kind === "building") {
       // One building's own page: merge its output into production (players without the home-page output perk)
       const b = parseBuilding(text), n = Object.keys(b.rates);
-      if (n.length) { S.production = { ...(S.production || {}), ...b.rates }; S.productionAt = Date.now(); }
+      if (n.length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(b.rates) }; S.productionAt = Date.now(); }
       if (b.cap && S.inventory) S.inventory.cap = b.cap;
       if (b.capPerDay) S.perks.capPerDay = b.capPerDay;                  // for projecting the cap (Slow grinds)
       done = true;
@@ -758,7 +767,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       // The Steam app's Orchard page also carries the farm's building list: read that too
       if (/Around Your Farm/i.test(text)) {
         const f = parseFarm(text);
-        if (Object.keys(f).length) { S.production = f; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
+        if (Object.keys(f).length) { S.production = window.FRP.storeRates(f); if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
       }
     } else if (kind === "quests") {
       const r = parseQuests(text).filter(q => q.section !== "personal");
@@ -908,7 +917,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const PROD = [["Wood", "hour"], ["Board", "hour"], ["Stone", "hour"], ["Coal", "hour"], ["Iron", "hour"], ["Nails", "hour"],
     ["Steel", "hour"], ["Steel Wire", "hour"], ["Straw", "hour"], ["Worms", "hour"], ["Gummy Worms", "hour"], ["Mealworms", "hour"],
     ["Apple", "orchard"], ["Orange", "orchard"], ["Lemon", "orchard"], ["Grapes", "day"], ["Milk", "day"], ["Eggs", "day"],
-    ["Feathers", "day"], ["Antler", "day"], ["Steak Kabob", "day"], ["Trout", "day"], ["Grubs", "day"], ["Minnows", "day"]];
+    ["Feathers", "day"], ["Antler", "day"], ["Steak Kabob", "day"], ["Trout", "day"], ["Grubs", "hour"], ["Minnows", "hour"]];
   $("prod").innerHTML = PROD.map(([n, u]) => `<label class="field">${esc(n)} ${u === "hour" ? "per hour" : u === "orchard" ? "at midnight" : "per day"}
     <input type="number" min="0" inputmode="numeric" data-prod="${esc(n)}" data-unit="${u}"></label>`).join("");
   function syncProd() {
@@ -920,7 +929,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     markPlots();
     $("prod").querySelectorAll("[data-prod]").forEach(el => {
       const n = el.dataset.prod, u = el.dataset.unit;
-      const v = u === "orchard" ? S.orchard && S.orchard[n] && S.orchard[n].production : S.production && S.production[n];
+      const v = u === "orchard" ? S.orchard && S.orchard[n] && S.orchard[n].production : prod()[n];
       el.value = v == null ? "" : Math.round(u === "day" ? v * 24 : v);
     });
   }
@@ -934,7 +943,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       S.orchardAt = S.orchardAt || Date.now();
     } else {
       S.production = S.production || {};
-      if (v == null) delete S.production[n]; else S.production[n] = u === "day" ? v / 24 : v;
+      if (v == null) delete S.production[n]; else S.production[n] = { n: v, per: u === "day" ? "day" : "hour" };   // as typed
       S.productionAt = S.productionAt || Date.now();
     }
     save(); render(false);
@@ -1358,13 +1367,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const DROP_HOURS = window.FRP.DROP_HOURS;
   const invCap = () => S.inventory && S.inventory.cap ? S.inventory.cap : Infinity;
   const checkGap = () => 1 / (S.perks.harvestsPerHour || 1);
-  const prodEnv = () => ({ production: S.production, orchard: S.orchard, cap: invCap(), gap: checkGap(),
+  const prodEnv = () => ({ production: prod(), orchard: S.orchard, cap: invCap(), gap: checkGap(),
     antlerNoon: S.perks.antlerNoon, orchardNoon: S.perks.orchardNoon });
   const usableRate = (n, perHour) => window.FRP.productionMath(prodEnv()).usableRate(n, perHour);
   // Waiting on a building is counted in whole drops: 886 Boards still means waiting for the next hourly drop, not 5 minutes.
   // Returns { hours, drops, gap } (gap = hours between the drops you can use).
   const prodWait = (n, v) => {
-    const rate = S.production && S.production[n];
+    const rate = prod()[n];
     if (!(rate > 0)) return null;
     const gap = Math.max(DROP_HOURS[n] || 1, checkGap()), per = usableRate(n, rate) * gap, drops = Math.max(1, Math.ceil(v / per));
     return { hours: drops * gap, drops, gap };
@@ -1382,7 +1391,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const allProd = () => {
     const crops = cropRates();
     for (const c of Object.keys(crops)) if (gatherable(c)) delete crops[c];
-    const bld = Object.fromEntries(Object.entries(S.production || {}).map(([n, v]) => [n, v > 0 ? usableRate(n, v) : v]));
+    const bld = Object.fromEntries(Object.entries(prod()).map(([n, v]) => [n, v > 0 ? usableRate(n, v) : v]));
     return { ...crops, ...bld };
   };
 
@@ -1569,7 +1578,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const n = NPC[npc];
     if (!n || !C) return [];
     // Free: what your buildings and orchard make. Crops cost farming time, so they come after those.
-    const free = new Set([...Object.keys(S.production || {}).filter(k => S.production[k] > 0), ...Object.keys(S.orchard || {})]);
+    const free = new Set([...Object.keys(prod()).filter(k => prod()[k] > 0), ...Object.keys(S.orchard || {})]);
     const out = [];
     for (const [items, xp, how] of [[n.loves, 150, "loves"], [n.likes, 25, "likes"]]) {
       for (const item of items) {
@@ -1826,7 +1835,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const want = isMain ? q0 : chain && chain.demand[item] || 0, used = Math.min(q0, want), q = q0 - used;
       const chainNote = !used ? "" : isMain ? `<b>all go into ${esc(chain.product)}</b>`
         : want > q0 ? `<b>all of it goes into your ${esc(chain.product)} chain</b> (you'd need about ${short(want - q0)} more${
-            S.production && S.production[item] > 0 ? `: ${hoursText((want - q0) / usableRate(item, S.production[item]))} of your ${esc(item)} production` : ""})`
+            prod()[item] > 0 ? `: ${hoursText((want - q0) / usableRate(item, prod()[item]))} of your ${esc(item)} production` : ""})`
         : `${short(used)} go into your ${esc(chain.product)} chain`;
       // Only items on the Mastery page have tiers (Wood, Straw, Antler… don't). Mastery counts all q0 gathered;
       // only the overflow check uses what's left after the chain (q).
@@ -2155,7 +2164,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // Per-day amounts you can actually use (each drop capped at your inventory): farm buildings and the orchard.
     // "Full in" still uses the full rate: that's how fast the space goes.
     const perDay = {}, rawDay = {};
-    for (const [n, v] of Object.entries(S.production || {})) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24 * (n === "Antler" ? 1 + (S.perks.antlerNoon ?? 10) / 100 : 1); }
+    for (const [n, v] of Object.entries(prod())) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24 * (n === "Antler" ? 1 + (S.perks.antlerNoon ?? 10) / 100 : 1); }
     for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) { perDay[n] = fruitPerDay(n); rawDay[n] = o.production * noon; }
     if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
     if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
@@ -2239,14 +2248,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   // Usable amounts per day: crops (as now) plus buildings and orchard from a production env (current or what-if)
   function grindPerDay(env) {
     const perDay = {};
-    for (const [n, v] of Object.entries(allProd())) if (v > 0 && !(S.production || {})[n]) perDay[n] = v * 24;   // crops
+    for (const [n, v] of Object.entries(allProd())) if (v > 0 && !prod()[n]) perDay[n] = v * 24;   // crops
     Object.assign(perDay, window.FRP.productionMath(env).perDay());
     if (S.perks.autoBuyIronNails) { perDay.Iron = Infinity; perDay.Nails = Infinity; }   // bought as needed: never the limit
     if (S.perks.extraAntlers > 0) perDay.Antler = (perDay.Antler || 0) + S.perks.extraAntlers;
     return perDay;
   }
   const grindEnv = () => ({ ...prodEnv(), capPerDay: S.perks.capPerDay || 0 });
-  const whatIfOn = () => { const w = S.whatIf || {}; return w.cap > 0 || w.days > 0 || w.capPerDay > 0 || Object.values(w.prod || {}).some(v => v > 0) || Object.values(w.fruit || {}).some(v => v > 0); };
+  const wiRates = () => ({ ...(S.whatIf || {}), prod: window.FRP.ratesPerHour((S.whatIf || {}).prod) });   // what-if production per hour for the math
+  const whatIfOn = () => { const w = S.whatIf || {}; return w.cap > 0 || w.days > 0 || w.capPerDay > 0 || Object.values(window.FRP.ratesPerHour(w.prod)).some(v => v > 0) || Object.values(w.fruit || {}).some(v => v > 0); };
   function renderGrinds(p) {
     const F = window.FRP, perDay = grindPerDay(grindEnv());
     const auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, made = {};
@@ -2261,9 +2271,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // What if: the same grinds again with the changed numbers
     let alt = null;
     if (whatIfOn()) {
-      const pd2 = grindPerDay(F.whatIfEnv(grindEnv(), S.whatIf)), made2 = {};
+      const pd2 = grindPerDay(F.whatIfEnv(grindEnv(), wiRates())), made2 = {};
       for (const [k, n] of Object.entries(auto)) made2[k] = F.makesPerDay(n, C, pd2, true);
-      const env2 = F.whatIfEnv(grindEnv(), S.whatIf);
+      const env2 = F.whatIfEnv(grindEnv(), wiRates());
       alt = { perDay: pd2, budget: budgetFor(pd2, made2), growth: { env: env2, capPerDay: (S.whatIf || {}).capPerDay > 0 ? S.whatIf.capPerDay : S.perks.capPerDay || 0, extra: S.perks.extraAntlers > 0 ? { Antler: 1 } : {} } };
     }
     // Only what the Tower still needs (its tier), plus the always-on ones; the cap grows by capPerDay every day
@@ -2293,7 +2303,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const NOON = { Antler: ["antlerNoon", "Antler Snare"], Apple: ["orchardNoon", "Tree Shaker"], Orange: ["orchardNoon", "Tree Shaker"], Lemon: ["orchardNoon", "Tree Shaker"] };
     const noonNote = x => {
       const n = NOON[x.item]; if (!n) return "";
-      const pct = S.perks[n[0]] || 0, cap = invCap(), made = x.item === "Antler" ? (S.production.Antler || 0) * 24 : ((S.orchard || {})[x.item] || {}).production || 0;
+      const pct = S.perks[n[0]] || 0, cap = invCap(), made = x.item === "Antler" ? (prod().Antler || 0) * 24 : ((S.orchard || {})[x.item] || {}).production || 0;
       if (!pct) return `<span class="muted">No noon bonus yet: the ${n[1]} (artifact perk) adds a second drop of 10% at noon.</span>`;
       if (cap === Infinity || !made) return "";
       const full = cap * 100 / pct;
@@ -2435,27 +2445,28 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       f("days", "Days from now", "", "Your cap keeps growing by your daily cap growth for this many days.", w.days) +
       f("capPerDay", "Cap growth a day", S.perks.capPerDay ? `+${S.perks.capPerDay}` : "", "From the Storehouse page; bought in steps of +2.", w.capPerDay);
     const daily = n => (window.FRP.DROP_HOURS[n] || 1) >= 24;
-    const prod = Object.entries(S.production || {}).filter(([, v]) => v > 0).map(([n, v]) =>
-      f("prod:" + n, `${esc(n)} ${daily(n) ? "a day" : "an hour"}`, short(daily(n) ? v * 24 : v), "", (w.prod || {})[n] > 0 ? (daily(n) ? w.prod[n] * 24 : w.prod[n]) : null));
+    const wp = window.FRP.ratesPerHour(w.prod);
+    const prodF = Object.entries(prod()).filter(([, v]) => v > 0).map(([n, v]) =>
+      f("prod:" + n, `${esc(n)} ${daily(n) ? "a day" : "an hour"}`, short(daily(n) ? v * 24 : v), "", wp[n] > 0 ? (daily(n) ? wp[n] * 24 : wp[n]) : null));
     const fruit = Object.entries(S.orchard || {}).filter(([, o]) => o && o.production).map(([n, o]) =>
       f("fruit:" + n, `${esc(n)} at midnight`, short(o.production), "Trees x fruit per tree; the orchard has a tree limit.", (w.fruit || {})[n]));
     // Upgrade cost of each building target (upgrades.js: each new unit costs rate x the new amount), in the building's own unit
     const own = (n, perHour) => { const u = (window.UPGRADES.UPGRADES || {})[n]; return !u ? null : u.per === "day" ? perHour * 24 : u.per === "10 minutes" ? perHour / 6 : perHour; };
     let total = 0;
-    const costs = Object.entries(w.prod || {}).filter(([n, v]) => v > 0 && n !== "Steel Wire" && (S.production || {})[n] > 0).map(([n, v]) => {
-      const a = own(n, S.production[n]), b = own(n, v), c = a != null ? window.UPGRADES.upgradeCost(n, Math.round(a), Math.round(b)) : null;
+    const costs = Object.entries(wp).filter(([n, v]) => v > 0 && n !== "Steel Wire" && prod()[n] > 0).map(([n, v]) => {
+      const a = own(n, prod()[n]), b = own(n, v), c = a != null ? window.UPGRADES.upgradeCost(n, Math.round(a), Math.round(b)) : null;
       if (c) total += c;
       return c ? `${esc(n)} ${short(Math.round(a))} → ${short(Math.round(b))}: ~${short(c)} silver` : a == null ? `${esc(n)}: upgrade price not known yet` : "";
     }).filter(Boolean);
-    $("whatif-prod").innerHTML = ([...prod, ...fruit].join("") || `<span class="muted">Paste your farm page first.</span>`) +
+    $("whatif-prod").innerHTML = ([...prodF, ...fruit].join("") || `<span class="muted">Paste your farm page first.</span>`) +
       (costs.length ? `<p class="muted" style="flex-basis:100%;margin:6px 0 0">${costs.join("; ")}${total && costs.length > 1 ? `; total ~${short(total)} silver` : ""}.</p>` : "");
   }
   $("whatif-box").addEventListener("change", e => {
     const k = e.target.dataset.wi; if (!k) return;
     const v = +e.target.value || 0, w = S.whatIf = S.whatIf || {};
     if (k.startsWith("prod:")) {
-      const n = k.slice(5); (w.prod ||= {})[n] = v > 0 ? ((window.FRP.DROP_HOURS[n] || 1) >= 24 ? v / 24 : v) : 0;
-      if (n === "Steel") w.prod["Steel Wire"] = v > 0 ? Math.round(v / 3) : 0;          // wire follows steel: Steel / 3, rounded
+      const n = k.slice(5), per = window.FRP.unitOf(n); (w.prod ||= {})[n] = { n: v > 0 ? v : 0, per };   // as typed
+      if (n === "Steel") w.prod["Steel Wire"] = { n: v > 0 ? Math.round(v / 3) : 0, per: "hour" };          // wire follows steel: Steel / 3, rounded
     }
     else if (k.startsWith("fruit:")) (w.fruit ||= {})[k.slice(6)] = v;
     else w[k] = v;
@@ -3012,7 +3023,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!confirm(`Load the save from ${when}? This replaces what's on this page now.`)) return;
       S = Object.assign({ mastery: null, inventory: null, manual: {}, places: {}, hidden: [] }, data.S);
       S.perks = { ...START_PERKS, ...S.perks };
-      fixQuestKinds();
+      fixQuestKinds(); fixRates();
       save(); render();
       $("load-code").value = "";
       saveMsg(`Loaded the save from ${when}.`, true);
@@ -3063,7 +3074,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (o.k === "c") S = { mastery: S.mastery, inventory: S.inventory, quests: S.quests, questsAt: S.questsAt, manual: {}, places: {}, hidden: [],
         ...got, perks: { ...START_PERKS, ...got.perks } };
       else Object.assign(S, got);
-      fixQuestKinds(); save(); render(); syncProd();
+      fixQuestKinds(); fixRates(); save(); render(); syncProd();
       saveMsg(`Loaded the ${what} from ${when}.`, true);
     } catch (e) {
       alert(e.message && /version/.test(e.message) ? e.message : "That QR code couldn't be read. Make a new one and try again.");
