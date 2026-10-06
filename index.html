@@ -292,9 +292,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   #quick-msg { max-width: none; }
 }
 @media (pointer: coarse) { button:not(.fold), select { min-height: 40px; } }
-/* Cold-hot bar: today's price against the buy / sell lines */
+/* Good-bad bar: red (bad) to green (good); Steaks and Kabobs are good at both ends (buy low, sell high) */
 .heat { position: relative; height: 10px; width: min(420px, calc(100% - 40px)); margin: 26px 20px 22px; border-radius: 5px;
-  background: linear-gradient(90deg, #3B6FD0, #7FB3E8 35%, #F2D675 62%, #E8873A 82%, #D23A3A); }
+  background: linear-gradient(90deg, #D23A3A, #E8873A 30%, #F2D675 55%, #8FCB6B 78%, #2B9A5A); }
+.heat.swing { background: linear-gradient(90deg, #2B9A5A, #8FCB6B 20%, #F2D675 50%, #8FCB6B 80%, #2B9A5A); }
 .heat-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); transform: translateX(-1px); }
 .heat-lbl { position: absolute; top: 13px; transform: translateX(-50%); font-size: .7rem; color: var(--muted); white-space: nowrap; }
 .heat.two { margin-bottom: 34px; }
@@ -2678,15 +2679,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const has = ["Black Truffle", "White Truffle"].some(n => (inv[n] || {}).count > 0);
     return has && !(S.steakMarket && gameDay(S.steakMarket.at) === gameDay(Date.now()));
   }
-  // Cold-hot bar from lo to hi: ticks at the lines, a dot at today's price
+  // Good-bad bar from lo to hi: ticks at the lines, a dot at today's price
   // tone: sell / buy (green dot), hold (red), warn (amber). Every line is labelled: labels too close drop to a second row.
-  const heatBar = (lo, hi, ticks, v, what, tone) => {
+  const heatBar = (lo, hi, ticks, v, what, tone, swing = false) => {
     const at = x => Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100)).toFixed(1);
     const last = [-100, -100];
     const html = ticks.map(t => {
       const x = +at(t.v), row = x - last[0] >= 14 ? 0 : 1; last[row] = x;
       return `<span class="heat-tick" style="left:${x}%" title="${esc(t.label)}"></span><span class="heat-lbl${row ? " low" : ""}" style="left:${x}%">${t.label}</span>`; }).join("");
-    return `<div class="heat${last[1] > -100 ? " two" : ""}" role="img" aria-label="${esc(`${what}: today ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${html}<span class="heat-dot ${tone}" style="left:${at(v)}%"></span><span class="heat-val" style="left:${at(v)}%">${short(v)}</span></div>`;
+    return `<div class="heat${swing ? " swing" : ""}${last[1] > -100 ? " two" : ""}" role="img" aria-label="${esc(`${what}: today ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${html}<span class="heat-dot ${tone}" style="left:${at(v)}%"></span><span class="heat-val" style="left:${at(v)}%">${short(v)}</span></div>`;
   };
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
@@ -2717,7 +2718,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         const say = v <= L.buy && m.steak.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.steak.owned > 0 ? ["good", "sell"] : ["", "hold"];
         const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
         rows.push({ name: "Steaks", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1),
-          bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steaks", say[1]),
+          bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steaks", say[1], true),
           info: [m.steak.market ? `${esc(m.steak.market)} market${STEAK_STATE[m.steak.market] ? `, usually ${STEAK_STATE[m.steak.market]}` : ""}` : "", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`,
             m.steak.owned ? `you have ${fmt(m.steak.owned)}` : "", m.steak.canBuy ? `can buy ${fmt(m.steak.canBuy)} more` : ""] });
       }
@@ -2728,7 +2729,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const say = v <= L.buy && m.kabob.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.kabob.owned > 0 ? ["good", "sell"] : ["", "hold"];
       const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
       rows.push({ name: "Steak Kabobs", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1) + " (this hour)",
-        bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steak Kabobs", say[1]),
+        bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steak Kabobs", say[1], true),
         info: ["until the top of the hour", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`, m.kabob.owned ? `you have ${fmt(m.kabob.owned)}` : ""] });
     }
     const old = today ? "" : "These prices are from before today's reset: paste today's Steak Market page for a sell check.";
