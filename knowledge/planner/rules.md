@@ -25,7 +25,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - "Do these next" blends by effort in minutes of play: AP ÷ your AP-per-minute (default 100) + waiting hours × "an hour of waiting = N minutes" (default 20, since you can do other things while waiting). A "By type" view groups them instead.[^player]
 - Players without the Tower see no Tower talk; masteries show their silver/gold/perk-point rewards instead of AK; a Leveling up card helps toward 4x90/4x99 (see [levels and XP](/mechanics/levels-and-xp.md), [progression](/mechanics/progression.md)).[^player]
 - New visitors start with no paid perks; only items with a known production rate count as daily production.[^player]
-- Places need their skill level as well as item evidence (see [locked places](/mechanics/locked-places.md)).
+- Places that need only an Exploring level (Small Cave to Mount Banon) are open at that level; the others need their skill
+  level as well as item evidence (see [locked places](/mechanics/locked-places.md)).
 - A place shown open by any paste stays open (places don't lock again); a short or filtered paste can't close it. Your own
   ticks still win. When something can't be costed, say which places look closed.[^player]
 - Pastes: chat is stripped before anything is read; headings match in any case (the Steam app copies in capitals); the Steam Orchard page also carries the farm list, and both are read.[^player]

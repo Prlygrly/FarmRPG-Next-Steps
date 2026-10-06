@@ -1239,6 +1239,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     return ` <span class="tag${cls}${t ? ` has-tip" data-tip="${esc(t)}" tabindex="0` : ""}">${label}</span>`; };
   // The lowest Tower level that still needs this item's next tier (Infinity if none)
   const towerLevelFor = (item, have) => Math.min(Infinity, ...((O && O.towerUse[item]) || []).filter(u => (have || 0) < (u.tier === "mm" ? 1e6 : 1e5)).map(u => u.level));
+  const EXPLORE_LEVEL = { "Small Cave": 1, Forest: 1, "Small Spring": 5, "Highland Hills": 10, "Cane Pole Ridge": 20, "Misty Forest": 30,
+    "Black Rock Canyon": 40, "Mount Banon": 50 };
   const PLACE_LEVEL = { "Ember Lagoon": ["Exploring", 60], "Whispering Creek": ["Exploring", 70], "Jundland Desert": ["Exploring", 80],
     "Gary's Crushroom": ["Exploring", 90], "Lake Minerva": ["Fishing", 60], "Large Island": ["Fishing", 70], "Pirate's Cove": ["Fishing", 80],
     "Glacier Lake": ["Fishing", 90] };
@@ -1251,6 +1253,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     for (const [n, it] of Object.entries(inv)) seen[n] = Math.max(seen[n] || 0, it.count);
     const auto = placesUnlocked(seen, DROPS, SEASONS, { exploreEvidence: !!S.inventory });
     // Event places are only open for a few days of their month, so they start unticked: tick one while its event runs
+    // Places that need only an Exploring level are open at that level (knowledge/mechanics/locked-places.md)
+    const sk0 = p.skills || {};
+    if (sk0.Exploring != null) for (const [loc, lv] of Object.entries(EXPLORE_LEVEL)) if (sk0.Exploring >= lv) auto[loc] = true;
     // Places don't lock again: once a paste showed one open, it stays open (a short or filtered paste can't close it)
     const seen0 = S.placesSeen || {};
     for (const loc of Object.keys(auto)) if (seen0[loc]) auto[loc] = true;
