@@ -143,10 +143,9 @@ main[data-tab="best"] > section[data-tab="best"] { scroll-margin-top: 72px; }
 .bites details { border: 0; padding: 0; margin: 4px 0 0; }
 .bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
-@media (min-width: 1100px) { main[data-tab="next"].grid-on:not(.wordy) { max-width: 1320px; } }
+@media (min-width: 1100px) { main[data-tab="next"].grid-on { max-width: 1320px; } }
 #plan.list-on .bites { grid-template-columns: 1fr; }
 #quest-list .bites { margin-top: 8px; grid-template-columns: 1fr; }   /* one column, like the game's quest list */
-.bites.wordy { grid-template-columns: 1fr; }
 #bites { margin-top: 12px; }   /* room under the view buttons */
 [data-detail][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
@@ -266,6 +265,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mono-list > li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .mono-list > li:last-child { border-bottom: 0; }
 .mono-list .lbl { display: block; color: var(--muted); font-size: .8rem; }
+main.grid-on .card.mono > .mono-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 0 20px; }
+main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid var(--line); }
 .mono-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .mono-row > div:first-child { flex: 1; min-width: 0; }
 .mono-btns { display: flex; gap: 4px; white-space: nowrap; }
@@ -610,9 +611,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
       <button type="button" data-detail="expanded" title="Each item with labelled points: why, cost, where, needs.">Expanded</button>
     </div>
-    <p class="small muted" style="margin:10px 0 4px">Next steps layout</p>
-    <div class="seg" role="group" aria-label="Next steps layout">
-      <button type="button" data-layout="grid" title="Tiles side by side on wide screens.">Grid</button>
+    <p class="small muted" style="margin:10px 0 4px">Layout</p>
+    <div class="seg" role="group" aria-label="Layout">
+      <button type="button" data-layout="grid" title="Tiles side by side on wide screens: Next steps, and Monotask items on every tab.">Grid</button>
       <button type="button" data-layout="list" title="One column.">List</button>
     </div>
     <h3>Best use order</h3>

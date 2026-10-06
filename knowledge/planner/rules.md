@@ -42,7 +42,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   or turn in. ✓ Done adds what the step brings to your counts until the next paste (undo under the tabs); Do this next skips
   to the next target while the top one only waits. Masteries and quests have Skip (hides them; show again from the AK table
   or the Quests tab).[^player]
-- Next steps layout: Grid = tiles side by side on wide screens (default); List = one column.[^player]
+- Layout: Grid = tiles side by side on wide screens (default), List = one column; it applies to Next steps in every Detail
+  setting and to Monotask items on every tab.[^player]
 - "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do
   these next and the quest picks. A 7-day window marks a special as ending soon. Kitchen never uses meal prices (meals aren't
   sold).[^player]
