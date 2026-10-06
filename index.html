@@ -1251,6 +1251,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     for (const [n, it] of Object.entries(inv)) seen[n] = Math.max(seen[n] || 0, it.count);
     const auto = placesUnlocked(seen, DROPS, SEASONS, { exploreEvidence: !!S.inventory });
     // Event places are only open for a few days of their month, so they start unticked: tick one while its event runs
+    // Places don't lock again: once a paste showed one open, it stays open (a short or filtered paste can't close it)
+    const seen0 = S.placesSeen || {};
+    for (const loc of Object.keys(auto)) if (seen0[loc]) auto[loc] = true;
+    const seen1 = { ...seen0 };
+    for (const [loc, on] of Object.entries(auto)) if (on && !SEASONS.locs[loc]) seen1[loc] = true;
+    if (Object.keys(seen1).length !== Object.keys(seen0).length) { S.placesSeen = seen1; save(); }
     for (const loc of Object.keys(SEASONS.locs)) auto[loc] = false;
     // Places also need a skill level (knowledge/mechanics/locked-places.md): below it, they're closed whatever the items say
     const sk = p.skills || {};
@@ -1485,7 +1491,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         const label = `Tower · ${esc(u.item)} ${tierName(u.tier)} for level ${lv.level}, ${short(u.left)} to go`;
         const ms = seasonNote(u.item, DROPS, W), e0 = !ms && C.effort(u.item, u.left), e = e0 && adjust(e0);
         const t = e && masteryTarget(u.item, u.tier, u.left, e), x = t && stepsFor(t)[0];
-        mlines.push(x ? monoStep(label, t, x) : monoLi(label, ms ? `Only in ${monthText(ms)}` : `<span class="muted">can't cost yet</span>`));
+        mlines.push(x ? monoStep(label, t, x) : monoLi(label, ms ? `Only in ${monthText(ms)}` : `<span class="muted">${closedText(u.item)}</span>`));
       }
     }
     const akx = ap.known.find(c => !top || !top.target || c.item !== top.target.item);
@@ -1852,6 +1858,13 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const masteryTarget = (item, tier, left, effort) => ({ type: "mastery", key: "m:" + item, item, tier, left, effort });
   const questTarget = (q, n) => ({ type: "quest", key: qkey(q), name: q.name, effort: { byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive },
     crafts: n.missing.filter(m => m.effort && (m.effort.how === "craft" || m.effort.how === "cook")).map(m => ({ item: m.item, qty: m.left, how: m.effort.how })) });
+  // Why something can't be costed: the places it (or a part of it) comes from look closed
+  const closedText = item => {
+    const r = RECIPES.items[item], from = [item, ...((r && r.recipe) || []).map(([i]) => i)];
+    const locs = [...new Set(from.flatMap(i => Object.keys((DROPS.items[i] || {}).drops || {})))].filter(l => W && !W.places[l]);
+    return locs.length ? `can't cost yet: ${locs.slice(0, 3).map(esc).join(", ")} ${locs.length === 1 ? "looks" : "look"} closed to you. Tick ${locs.length === 1 ? "it" : "them"} in Setup › Places I can use, or paste your full My Inventory.`
+      : "can't cost yet";
+  };
   const skipM = item => ` <button type="button" class="small" data-mskip="${esc(item)}" title="Hide this mastery (show it again from the AK table)">Skip</button>`;
   const skipQ = key => ` <button type="button" class="small" data-qskip="${esc(key)}" title="Hide this quest (show it again on the Quests tab)">Skip</button>`;
 

@@ -26,6 +26,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Players without the Tower see no Tower talk; masteries show their silver/gold/perk-point rewards instead of AK; a Leveling up card helps toward 4x90/4x99 (see [levels and XP](/mechanics/levels-and-xp.md), [progression](/mechanics/progression.md)).[^player]
 - New visitors start with no paid perks; only items with a known production rate count as daily production.[^player]
 - Places need their skill level as well as item evidence (see [locked places](/mechanics/locked-places.md)).
+- A place shown open by any paste stays open (places don't lock again); a short or filtered paste can't close it. Your own
+  ticks still win. When something can't be costed, say which places look closed.[^player]
 - Pastes: chat is stripped before anything is read; headings match in any case (the Steam app copies in capitals); the Steam Orchard page also carries the farm list, and both are read.[^player]
 - A page pasted into the site arrives as **plain text**: no links and no "* " bullets (a paste into a chat keeps them). Readers
   must find names by position (the line above "You have N", above "− +", after "Silver"), never by bullets or links;
