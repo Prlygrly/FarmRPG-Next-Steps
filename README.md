@@ -55,7 +55,10 @@ with a source.
 - **Slow grinds**: the Tower masteries that take months, what limits them, and what an upgrade would save.
 - **Veggie Juice**: the juice cycle and a calculator.
 - **Trips**: what a planned exploring trip brings.
-- **Setup**: pastes, settings, places, production, save codes.
+- **Setup**: pastes, perks, general settings, places, production.
+- **⚙ App settings** (header): theme; Detail (Monotask: one thing per section / Condensed / Expanded: labelled points);
+  Next steps as a list or a grid; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
+- Anywhere: Ctrl+V outside a text box reads a page; ▾ folds a card (remembered); keys 1–7 switch tabs; phones get a bottom tab bar.
 
 ## Roadmap
 - Shared Truffle prices: one player's Steak Market paste gives everyone today's prices (needs a free Cloudflare Worker + KV;

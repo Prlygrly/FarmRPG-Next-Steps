@@ -33,6 +33,14 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Veggie Juice on crops is a setting (none / as much as helps / N each / down to X min), 10% per juice or 20% after "A Better Juice" ([Veggie Juice](/mechanics/veggie-juice.md)).[^player]
 - Kitchen is a pantry list (quest needs, then lowest stock); cook time = perks + your usual stirs, never perfect ([cooking](/mechanics/cooking.md)).[^player]
 - Keep on-screen text short and formal; no superlatives ("the most useful…").[^player]
+- **Monotask** (a Detail setting): one thing per section, an action before any waiting. Do this next = the top action;
+  Tower = the next named GM/MM not yet done; AK = the quickest mastery; Spend my = the best place for nets and for drinks;
+  Slow grinds = nearest Tower level, shortest, longest (no repeats); Veggie Juice = one step (waiting on Twine etc. only once
+  every crop is full); Quests = ready to turn in, else a special ending within 7 days, else the fewest AP; Silver goal = one
+  fishing place and one craft. Each card has "more" for its full view.[^player]
+- **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
+- App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
+  cleared by Forget my pastes. The last 3 pastes can be undone.[^player]
 - **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
   and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
   budget.[^player]
