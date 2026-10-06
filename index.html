@@ -3218,7 +3218,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const at = Math.max(0, done.indexOf(false)) + (done.every(Boolean) ? 3 : 0);
     const stepsHtml = [
       [`Breakfast Boost ${names(quick)} until ${upTo(quick[0])}`, `${full(quick)} of ${quick.length} ready`],
-      [`Grow ${names(tw)} (taking turns) until ${upTo(tw[0])}`, `${tw.map(x => `${esc(x.item)} ${short(x.have)}${harvests(x) ? `, ~${fmt(harvests(x))} harvests` : ""}`).join("; ")} · goal ${short(tw[0] ? tw[0].tgt : cap)}`],
+      [`Grow ${names(tw)} until ${upTo(tw[0])}`, `${tw.map(x => `${esc(x.item)} ${short(x.have)}${harvests(x) ? `, ~${fmt(harvests(x))} harvests` : ""}`).join("; ")} · goal ${short(tw[0] ? tw[0].tgt : cap)}`],
       [`Get ${names(parts)} for the goal`, parts.map(x => `${esc(x.item)} ${short(x.have)} of ${short(x.tgt)}${x.ap ? `, ${apText(x.ap, x.item)}` : ""}`).join("; ")],
       [`Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out`, beet ? `Beet ${short(beet.have)} of ${short(beet.tgt)}` : ""]
     ].map(([t, st], k) => [t, st, k < at && done[k]])
