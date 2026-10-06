@@ -258,6 +258,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .fold { background: none; border: 0; padding: 0 6px 0 0; font-size: .85em; color: var(--muted); vertical-align: middle; }
 .fold:hover { color: var(--ink); }
 #fold-bar { text-align: right; margin: -8px 0 8px; }
+/* Monotask: one thing per section */
+.card:not(.mono) > .mono-list { display: none; }
+.card.mono .mono-hide, .mono-off { display: none !important; }
+.mono-list { list-style: none; padding: 0; margin: 4px 0 0; }
+.mono-list > li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.mono-list > li:last-child { border-bottom: 0; }
+.mono-list .lbl { display: block; color: var(--muted); font-size: .8rem; }
+.mono-more { font: 400 .8rem "Atkinson Hyperlegible", sans-serif; margin-left: 8px; vertical-align: middle; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -328,18 +336,20 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-best" style="margin:0">Spend my…</h2>
     </div>
-    <p class="small muted">Where your Large Nets, Arnold Palmers or Apple Ciders finish the most.</p>
-    <div class="row">
+    <p class="mono-hide small muted">Where your Large Nets, Arnold Palmers or Apple Ciders finish the most.</p>
+    <div class="mono-hide row">
       <label class="field">Using <select id="best-unit" style="width:auto"><option value="LN">Large Nets</option><option value="AP">Arnold Palmers</option><option value="AC">Apple Ciders</option></select></label>
       <label class="field">Amount <input id="best-amt" type="number" min="1" inputmode="numeric"></label>
     </div>
-    <p id="best-note" class="small muted" style="margin:6px 0 0"></p>
-    <div id="best-list"></div>
+    <p class="mono-hide" id="best-note" class="small muted" style="margin:6px 0 0"></p>
+    <div class="mono-hide" id="best-list"></div>
+    <ul class="mono-list" id="mono-best"></ul>
   </section>
   <section class="card" data-tab="best" id="plant" aria-labelledby="h-plant">
     <h2 id="h-plant">What to plant now</h2>
-    <p class="small muted">What to plant next, by what it finishes. Tap one for more.</p>
-    <div id="plant-list"></div>
+    <p class="mono-hide small muted">What to plant next, by what it finishes. Tap one for more.</p>
+    <div class="mono-hide" id="plant-list"></div>
+    <ul class="mono-list" id="mono-plant"></ul>
   </section>
   <section class="card" data-tab="best" id="overflow" aria-labelledby="h-overflow">
     <h2 id="h-overflow">Daily overflow</h2>
@@ -350,19 +360,20 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div class="row" style="justify-content:space-between;align-items:center;margin:0">
       <h2 id="h-grinds" style="margin:0">Slow grinds</h2>
     </div>
-    <p class="small muted">Tower masteries that take months, longest first.</p>
-    <details class="small" id="grind-numbers" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
+    <p class="mono-hide small muted">Tower masteries that take months, longest first.</p>
+    <details class="mono-hide small" id="grind-numbers" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
       <div class="row" id="grind-settings" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
-    <details class="small" id="whatif-box" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">What if <span id="whatif-on"></span></summary>
+    <details class="mono-hide small" id="whatif-box" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">What if <span id="whatif-on"></span></summary>
       <p class="muted" style="margin:6px 0">Change a number to see how much sooner each grind finishes. Blank keeps your current value.</p>
       <div class="row" id="whatif-fields" style="gap:10px;align-items:flex-end"></div>
       <details style="margin-top:6px"><summary class="muted" style="cursor:pointer">Building output</summary>
         <div class="row" id="whatif-prod" style="gap:10px;align-items:flex-end;margin-top:6px"></div></details>
       <p style="margin:8px 0 0"><button type="button" id="whatif-reset">Reset</button> <span class="muted" id="whatif-sort"></span></p>
     </details>
-    <p class="small muted" id="grind-sort" style="margin:0 0 6px"></p>
-    <div id="grind-list"></div>
-    <div id="grind-standing"></div>
+    <p class="mono-hide small muted" id="grind-sort" style="margin:0 0 6px"></p>
+    <div class="mono-hide" id="grind-list"></div>
+    <ul class="mono-list" id="mono-grinds"></ul>
+    <div class="mono-hide" id="grind-standing"></div>
   </section>
   <section class="card" data-tab="best" id="steak-card" aria-labelledby="h-steak" hidden>
     <h2 id="h-steak" style="margin:0 0 4px">Steak Market today</h2>
@@ -371,15 +382,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="best" id="silver-goal" aria-labelledby="h-silver-goal">
     <h2 id="h-silver-goal" style="margin:0 0 4px">Silver goal</h2>
-    <p class="small muted" style="margin:0 0 6px">Ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
-    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
-    <div id="silver-goal-list"></div>
+    <p class="mono-hide small muted" style="margin:0 0 6px">Ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
+    <div class="mono-hide row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
+    <div class="mono-hide" id="silver-goal-list"></div>
+    <ul class="mono-list" id="mono-silver-goal"></ul>
   </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
-    <p class="small muted">Meals to cook: quest needs first, then lowest stock. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
-    <label class="field">Recipes I don't have <input id="kitchen-missing" type="text" placeholder="e.g. Cabbage Stew, Acorn Pie" style="min-width:240px"></label>
-    <div id="kitchen-list" style="margin-top:8px"></div>
+    <p class="mono-hide small muted">Meals to cook: quest needs first, then lowest stock. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
+    <label class="mono-hide field">Recipes I don't have <input id="kitchen-missing" type="text" placeholder="e.g. Cabbage Stew, Acorn Pie" style="min-width:240px"></label>
+    <div class="mono-hide" id="kitchen-list" style="margin-top:8px"></div>
+    <ul class="mono-list" id="mono-kitchen"></ul>
   </section>
 
   <section class="card" data-tab="setup" id="welcome" aria-labelledby="h-welcome" hidden>
@@ -447,35 +460,37 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   <section class="card" data-tab="next" id="leveling" aria-labelledby="h-leveling" hidden>
     <h2 id="h-leveling" style="margin-top:0">Leveling up</h2>
-    <p class="small muted" style="margin:0 0 6px">4x90 (Farming, Fishing, Crafting, Exploring) opens big questlines; 4x99 the major ones. <span class="tip" data-tip="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." aria-label="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." tabindex="0">ⓘ</span></p>
-    <div id="leveling-list"></div>
+    <p class="mono-hide small muted" style="margin:0 0 6px">4x90 (Farming, Fishing, Crafting, Exploring) opens big questlines; 4x99 the major ones. <span class="tip" data-tip="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." aria-label="Your Mastery paste shows levels, not the XP inside a level, so these count from the start of your current level." tabindex="0">ⓘ</span></p>
+    <div class="mono-hide" id="leveling-list"></div>
+    <ul class="mono-list" id="mono-leveling"></ul>
   </section>
 
   <section class="card" data-tab="next" id="plan" aria-labelledby="h-next" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <h2 id="h-next" style="margin:0">Do these next</h2>
-      <div class="row" role="group" aria-label="Order" style="gap:4px">
+      <h2 id="h-next" style="margin:0"><span id="h-next-t">Do these next</span></h2>
+      <div class="mono-hide row" role="group" aria-label="Order" style="gap:4px">
         <button type="button" data-view="blend" title="Everything in one list, quickest first: AP turned into minutes of play, plus waiting (set both in General settings).">Blended by effort</button>
         <button type="button" data-view="type" title="Grouped: ready to turn in, quests, masteries, Tower. Quickest first within each.">By type</button>
       </div>
     </div>
-    <ol class="bites" id="bites"></ol>
-    <button type="button" id="bites-more" hidden>Show more</button>
+    <ol class="mono-hide bites" id="bites"></ol>
+    <ul class="mono-list" id="mono-plan"></ul>
+    <button class="mono-hide" type="button" id="bites-more" hidden>Show more</button>
 
-    <details id="d-tower">
+    <details class="mono-hide" id="d-tower">
       <summary>Tower: what the next levels need</summary>
       <p class="small muted">Mega Mastery (MM) = 1,000,000 gathered. Grand Mastery (GM) = 100,000.</p>
       <div class="table-wrap"><table id="t-tower"></table></div>
     </details>
 
-    <details id="d-ak">
+    <details class="mono-hide" id="d-ak">
       <summary>AK: the quickest masteries to finish</summary>
       <p class="small muted">Mastery (10,000) = 10 AK. Grand Mastery (100,000) = 100 AK. <span class="tip" data-tip="Left: how many more to gather.&#10;Effort: the cheaper of gathering or crafting, from buddy.farm's drop rates and recipes and your perks.&#10;1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same." aria-label="Left: how many more to gather. Effort: the cheaper of gathering or crafting, from buddy.farm's drop rates and recipes and your perks. 1 Arnold Palmer, 1 Apple Cider and 1 Large Net count the same." tabindex="0">ⓘ</span></p>
       <div class="table-wrap"><table id="t-ak"></table></div>
       <p class="small muted" id="ak-other"></p>
     </details>
 
-    <details id="d-stock">
+    <details class="mono-hide" id="d-stock">
       <summary>Your supplies</summary>
       <div id="stock"></div>
     </details>
@@ -485,12 +500,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-vj" style="margin:0">Veggie Juice cycle</h2>
     </div>
-    <ol class="small muted" style="margin:0 0 8px;padding-left:20px">
+    <ol class="mono-hide small muted" style="margin:0 0 8px;padding-left:20px">
       <li>Grow Tomato and Watermelon (taking turns) when the plots are free, until full.</li>
       <li>Breakfast Boost the five quick crops until full.</li>
       <li>Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out. Repeat.</li>
     </ol>
-    <div id="vj-cycle"></div>
+    <div class="mono-hide" id="vj-cycle"></div>
+    <ul class="mono-list" id="mono-vj"></ul>
   </section>
   <section class="card" data-tab="vj" id="vj-calc" aria-labelledby="h-vjc">
     <h2 id="h-vjc">Veggie Juice calculator</h2>
@@ -529,8 +545,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-quests" style="margin:0">Quests</h2>
     </div>
-    <p class="small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
-    <div id="quest-list"></div>
+    <p class="mono-hide small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
+    <p class="mono-hide small muted" id="quest-sort" style="margin:0 0 6px"></p>
+    <div class="mono-hide" id="quest-list"></div>
+    <ul class="mono-list" id="mono-quests"></ul>
   </section>
   <section class="card" data-tab="quests" id="ww" aria-labelledby="h-ww" hidden>
     <h2 id="h-ww">Wishing well</h2>
@@ -656,6 +674,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   U.bestOrder = [...U.bestOrder.filter(x => BEST_IDS.includes(x)), ...BEST_IDS.filter(x => !U.bestOrder.includes(x))];
   const saveU = () => { try { localStorage.setItem(UI_STORE, JSON.stringify(U)); } catch (e) {} };
   const mono = () => U.detail === "mono";
+  // Monotask: each card shows one thing; "more" opens that card's full view until the page reloads
+  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "silver-goal", "kitchen", "vj", "quests"];
+  let MONO_OPEN = {};
+  const monoCard = id => mono() && !MONO_OPEN[id];
+  const monoLi = (label, html) => `<li><span class="lbl">${label}</span>${html}</li>`;
 
   // ---------- Theme ----------
   // "" = Auto: no data-theme, so the page follows the device's light/dark setting
@@ -1113,6 +1136,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       syncProd();
     }
     const ready = S.mastery && p.level != null;
+    syncMono();
     $("plan").hidden = !ready;
     $("next-empty").hidden = !!ready;
     $("trips").hidden = true;
@@ -1383,6 +1407,20 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
     $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
+    // Monotask: the top action (waiting only when nothing else is left), the next Tower mastery, the quickest AK
+    const top = cands.find(c => c.ready || c.cost >= 1) || cands[0];
+    const mlines = [];
+    if (top) mlines.push(monoLi("Do this next", `<b>${top.t}</b>${top.ready ? "" : ` <span class="small muted">${effortTag(top)}</span>`}`));
+    else if (fixed) mlines.push(monoLi("Do this next", `<b>${fixed.t}</b>`));
+    if (!p.noTower) {
+      const lv = tp.levels.find(l => l.unmet.length), u = lv && (lv.unmet.find(x => x.kind !== "mmCount") || lv.unmet[0]);
+      mlines.push(monoLi("Tower", !u ? "Only AK for the next 30 levels"
+        : u.kind === "mmCount" ? `<b>${u.left} more Mega Master${u.left === 1 ? "y" : "ies"}</b> of any item <span class="small muted">(level ${lv.level})</span>`
+        : `<b>${esc(u.item)} ${tierName(u.tier)}</b> <span class="small muted">(level ${lv.level}) · ${short(u.left)} to go</span>`));
+    }
+    const akx = ap.known.find(c => !top || c.item !== top.item) || ap.known[0];
+    if (akx) mlines.push(monoLi("AK", `<b>Finish ${esc(akx.item)} ${tierName(akx.tier)}</b> <span class="small muted">${fmt(akx.left)} more · ${gain(akx)}</span>`));
+    $("mono-plan").innerHTML = mlines.join("");
   }
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { S.nextView = b.dataset.view; save(); render(false); }));
   document.querySelectorAll("[data-detail]").forEach(b => b.addEventListener("click", () => { U.detail = b.dataset.detail; saveU(); syncApp(); render(false); }));
@@ -2023,6 +2061,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         how.length ? `<br><span class="small">${how.join("; ")}.</span>` : ""}</li>`;
     });
     $("leveling-list").innerHTML = `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>`;
+    const lo = low.slice().sort((a, b) => sk[a] - sk[b])[0];
+    $("mono-leveling").innerHTML = monoLi("Lowest skill", `<b>${lo} ${sk[lo]}</b> <span class="small muted">→ ${sk[lo] + 1}: ${short(lvTotal(sk[lo] + 1) - lvTotal(sk[lo]))} XP</span>`);
   }
 
   // ---------- Silver ----------
@@ -2077,7 +2117,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("best-note").textContent = S.best && S.best.amount ? `Spending ${short(amount)} ${UNIT[unit]}.`
       : have ? `Spending all ${short(have)} ${UNIT[unit]} you have. Type an amount to change it.`
       : `Spending ${short(amount)} ${UNIT[unit]}. Paste My Inventory to start from what you have.`;
-    const places = Object.keys(DROPS.locs).filter(l => W && W.places[l] && tripUnits(l).includes(unit)).map(loc => {
+    const placesFor = (unit, amount) => Object.keys(DROPS.locs).filter(l => W && W.places[l] && tripUnits(l).includes(unit)).map(loc => {
       const yields = yieldsNow(loc, unit, amount);
       const rows = tripEffects(yields, p, null).filter(r => r.crossed || (r.next && r.pct >= 0.01));
       const mDone = rows.filter(r => r.crossed).sort((a, b) => a.share - b.share);
@@ -2090,6 +2130,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const ak = mDone.reduce((s, r) => s + r.ak, 0);
       return { loc, mDone, mPart, qDone, qPart, done, progress, ak };
     }).filter(x => x.done || x.progress).sort((a, b) => b.done - a.done || b.progress - a.progress);
+    if (monoCard("best")) {
+      // Monotask: the best place for nets, and for Arnold Palmers / Apple Ciders, spending what you have
+      const one = (u, label) => {
+        const x = placesFor(u, (O && O.onHand[BEST_ITEM[u]]) || 1000)[0];
+        return monoLi(label, x ? `<b>${esc(x.loc)}</b> <span class="small muted">${x.done ? `finishes ${x.done}` : "moves things closer"}${x.ak ? ` · +${x.ak} AK` : ""}</span>` : `<span class="muted">nothing moves along</span>`);
+      };
+      const ex = O && !(O.onHand["Arnold Palmer"] > 0) && O.onHand["Apple Cider"] > 0 ? "AC" : "AP";
+      $("mono-best").innerHTML = one("LN", "Large Nets") + one(ex, ex === "AP" ? "Arnold Palmers / Apple Ciders" : "Apple Ciders / Arnold Palmers");
+      return;
+    }
+    const places = placesFor(unit, amount);
     if (!places.length) { $("best-list").innerHTML = `<p class="small muted">No place you can use with ${UNIT[unit]} moves anything along.</p>`; return; }
     const towerItem = item => (O.towerUse[item] || []).some(u => (p.items[item] || 0) < TIERS[u.tier === "mm" ? 4 : 3]);
     const list = (items, max) => items.length ? `<ul>${items.slice(0, max).join("")}${items.length > max ? `<li class="muted">and ${items.length - max} more</li>` : ""}</ul>` : `<p class="small muted" style="margin:0">Nothing here.</p>`;
@@ -2204,8 +2255,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         next.length ? `next Boost finishes ${next.length}${nextAk ? ` (+${nextAk} AK)` : ""}` : "each job needs more than one Boost"}${vjLow ? ` · Veggie Juice low (${short(vj)})` : ""}</span></summary>
       <p class="small muted" style="margin:4px 0">Crops of 5 minutes or less, under one Breakfast Boost: ${fmt(rounds)} harvests per Boost.</p>
       ${boostRows}</details>`;
-    if (!crops.length) { $("plant-list").innerHTML = `<p class="small muted">No crop feeds anything in your plan or quests right now.</p>`; return; }
+    if (!crops.length) { $("plant-list").innerHTML = `<p class="small muted">No crop feeds anything in your plan or quests right now.</p>`; $("mono-plant").innerHTML = monoLi("Plant now", "Nothing needs planting"); return; }
     $("plant-list").innerHTML = promote ? boostHtml + timedHtml : timedHtml + boostHtml;
+    const mc = (promote ? boost[0] : timed[0]) || timed[0] || boost[0], mj = mc.jobs[0];
+    $("mono-plant").innerHTML = monoLi("Plant now", mc.base <= 5 ? `<b>Breakfast Boost ${esc(mc.crop)}</b> <span class="small muted">for ${mj.name}${tagHtml(mj)} · ${fmt(roundsFor(mc, mj))} harvests</span>`
+      : `<b>${esc(mc.crop)}</b> <span class="small muted">for ${mj.name}${tagHtml(mj)} · ${tm(mj.hours)}</span>`);
   }
 
   // ---------- Best use: daily overflow ----------
@@ -2413,6 +2467,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     // No Storehouse data: times use today's cap for good, which overstates them
     const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
+    {
+      const fin = rows.filter(r => r.days != null && r.days !== Infinity), seen = new Set(), out = [];
+      const pickR = (label, r) => { if (r && !seen.has(r.item)) { seen.add(r.item); out.push(monoLi(label, `<b>${esc(r.item)}</b> <span class="small muted">${r.tier.toUpperCase()}${
+        r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}</span>`)); } };
+      pickR("Nearest Tower level", fin.filter(r => r.towerLv !== Infinity).sort((a, b) => a.towerLv - b.towerLv)[0]);
+      pickR("Shortest", fin.slice().sort((a, b) => a.days - b.days)[0]);
+      pickR("Longest", fin.slice().sort((a, b) => b.days - a.days)[0]);
+      $("mono-grinds").innerHTML = noStore.replace('<div class="note">', '<li><div class="note" style="margin:0">') .replace(/<\/div>$/, "</div></li>") + (out.join("") || monoLi("Slow grinds", "None"));
+    }
     $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
   // Best use "Go to" links scroll to the section (the address bar's "#" part is kept for QR codes)
@@ -2511,7 +2574,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const sellNote = (item, p) => SELL_ANYWAY[item] && openUses(item, p).length ? ` ${esc(SELL_ANYWAY[item][0])} pays more, but ${SELL_ANYWAY[item][1]}.`
     : openUses(item, p).length && atCapIdle(item, p) ? " At your cap, and nothing to make it into right now." : "";
   function renderSilverGoal(p) {
-    if (!S.mastery || !C) { $("silver-goal-list").innerHTML = `<p class="small muted">Paste Mastery Progress in Setup first.</p>`; return; }
+    if (!S.mastery || !C) { $("silver-goal-list").innerHTML = `<p class="small muted">Paste Mastery Progress in Setup first.</p>`; $("mono-silver-goal").innerHTML = ""; return; }
     const F = window.FRP, k = S.perks, { perDay, budget } = silverBudget();
     const towerNext = !p.noTower && p.level != null ? tSilver(p.level + 1) : null;
     const goal = S.silverGoal > 0 ? S.silverGoal : towerNext;
@@ -2562,6 +2625,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const perUnit = rows.filter(r => r.kind === "craft" && Object.keys(r.perUnit).length).map(r => {
       const [u, v] = Object.entries(r.perUnit).sort((a, b) => b[1] - a[1])[0]; return { item: r.item, u, v };
     }).sort((a, b) => b.v - a.v).slice(0, 4);
+    {
+      const f = timed.find(r => r.kind === "fish"), c = timed.find(r => r.kind === "craft"), dt = d => need > 0 ? daysTo(d) : "";
+      $("mono-silver-goal").innerHTML = (goal && S.silver != null ? monoLi("Goal", `<b>${short(goal)}</b> <span class="small muted">${need > 0 ? `${short(need)} to go` : "reached"}</span>`) : "") +
+        (f ? monoLi("Fishing", `<b>Large Nets at ${esc(f.loc)}</b> <span class="small muted">~${short(f.silverDay)} a day${dt(f.silverDay)}</span>`) : "") +
+        (c ? monoLi("Crafting", `<b>Craft ${esc(c.item)}</b> <span class="small muted">~${short(c.silverDay)} a day${dt(c.silverDay)}</span>`) : "") ||
+        monoLi("Silver", "No priced crafts or fishing places yet");
+    }
     const lv = (p.skills || {}).Crafting ?? 1;
     const noPrice = Object.entries(RECIPES.items).filter(([n, r]) => r.craft && r.recipe && (r.level || 1) <= lv && sellPrice(n, p) == null && !keepFor(n, p)).length;   // only end products are worth pricing
     $("silver-goal-list").innerHTML = (goal ? `<p class="small" style="margin:0 0 6px">${S.silverGoal > 0 ? "Goal" : `Tower ${p.level + 1}`}: <b>${short(goal)}</b>${
@@ -2677,6 +2747,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return [{ n, m, have, short: short1, tower, make, rounds, mins, cost, e, ap: e ? e.amount : null }];
     }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
     const tagT = x => x.tower ? towerTag(x.n, p.items[x.n], "") : "";
+    const mk = rows.find(x => x.short > 0) || rows.find(x => x.tower) || rows[0];
+    $("mono-kitchen").innerHTML = monoLi("Cook", mk ? `<b>${fmt(mk.make)} ${esc(mk.n)}</b>${tagT(mk)} <span class="small muted">${mk.short ? `for ${why[mk.n][0]}` : `you have ${fmt(mk.have)}`} · ~${minText(mk.mins)}</span>` : "Nothing to cook");
     $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
         x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${U.detail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
         ${U.detail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
@@ -2848,6 +2920,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     // A whole cycle: Tomato + Watermelon (2 each) set the size; the rest refill several times along the way
     const quickRounds = quick.length ? Math.ceil(cycle * 7 / quick[0].x.perRound) * quick.length : 0;
     const beetGJ = beet && beet.x ? Math.ceil(cycle * 15 / beet.x.perRound) : null, beetSeeds = beetGJ ? beetGJ * (S.perks.plots || 0) : 0;
+    {
+      // One step; waiting on a non-crop part only once every crop is full
+      const notFull = xs => xs.filter(x => x.have < cap * 0.95), names = xs => xs.map(x => esc(x.item)).join(", ").replace(/, ([^,]*)$/, " and $1");
+      const boostLeft = xs => xs.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0);
+      const fill = xs => { const t = xs.filter(x => x.item === "Tomato" || x.item === "Watermelon"), q = xs.filter(x => x.x && x.x.base <= 5), b = xs.find(x => x.item === "Beet");
+        return t.length ? `<b>Grow ${names(t)}</b> until ${short(cap)}` : q.length ? `<b>Breakfast Boost ${names(q)}</b> until full <span class="small muted">(~${fmt(boostLeft(q))} harvests)</span>`
+          : b ? `<b>Grape Juice the Beets</b> until full` : null; };
+      let act;
+      if (twMakes < 1) act = fill(notFull(tw));
+      else if (quick.some(x => x.makes <= now && x.have < cap * 0.95)) act = fill(notFull(quick));
+      else if (beet && beet.makes <= now) act = fill([beet]);
+      else if (now >= 1) act = `<b>Craft ${fmt(now)} Veggie Juice</b>`;
+      act = act || fill(notFull(rows.filter(x => x.x))) || (short1.length ? `Top up <b>${esc(short1[0].item)}</b> <span class="small muted">(${short1[0].refill})</span>` : `<b>Craft Veggie Juice</b>`);
+      $("mono-vj").innerHTML = monoLi(`Do this next <span class="muted">(${fmt(onHand["Veggie Juice"] || 0)} Veggie Juice)</span>`, act);
+    }
     const table = `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
         rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
     if (U.detail !== "expanded") {
@@ -3094,13 +3181,29 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
       const bump = q.kind === "main" ? 1.5 : 1;
       const rank = hidden.has(qkey(q)) ? 8 : unknown ? 4 : little ? 3 : ready ? 0 : 2;
-      return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump };
+      return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump, ready, cost: n.cost, need: n };
     }).sort((a, b) => a.rank - b.rank || b.score - a.score);
+    // Sort: best value (default), deadline (specials ending soonest), closest to done (fewest AP); hidden stay last
+    const qsorts = { value: "best value", deadline: "deadline", closest: "closest to done" }, qs = qsorts[U.questSort] ? U.questSort : "value";
+    const costOf = c => c.ready ? -1 : c.rank === 4 ? Infinity : c.cost;
+    if (qs === "deadline") cards.sort((a, b) => (a.rank === 8) - (b.rank === 8) || a.days - b.days || a.rank - b.rank || b.score - a.score);
+    else if (qs === "closest") cards.sort((a, b) => (a.rank === 8) - (b.rank === 8) || costOf(a) - costOf(b) || b.score - a.score);
+    $("quest-sort").innerHTML = `Sort: ${Object.entries(qsorts).map(([k, v]) => `<a href="#" data-qsort="${k}"${qs === k ? ' style="font-weight:700"' : ""}>${v}</a>`).join(" · ")}`;
+    // Monotask: ready to turn in, then a special ending within a week, then the fewest AP to finish
+    const open = cards.filter(c => c.rank < 8 && c.need);
+    const mq = open.find(c => c.ready) || open.filter(c => c.days <= 7 && c.rank !== 4).sort((a, b) => a.days - b.days)[0]
+      || open.filter(c => c.rank !== 4).sort((a, b) => a.cost - b.cost)[0];
+    $("mono-quests").innerHTML = monoLi(mq && mq.ready ? "Turn in" : "Quest", !mq ? "Nothing to do" : `<b>${esc(mq.q.name)}</b>${mq.q.npc ? ` <span class="small muted">(${esc(mq.q.npc)})</span>` : ""}${
+      mq.ready ? "" : `<br><span class="small muted">${mq.days <= 7 ? `${endsText(mq.days)} · ` : ""}still needs ${mq.need.missing.slice(0, 3).map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}${mq.need.missing.length > 3 ? "…" : ""}</span>`}`);
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
     const cls = `bites${U.detail === "expanded" ? " wordy" : ""}`;
     $("quest-list").innerHTML = `<ol class="${cls}">${vis.map(c => c.html).join("")}</ol>` +
       (hid.length ? `<details><summary>Hidden by you (${hid.length})</summary><ol class="${cls}">${hid.map(c => c.html).join("")}</ol></details>` : "");
   }
+  $("quest-sort").addEventListener("click", e => {
+    const a = e.target.closest("[data-qsort]"); if (!a) return;
+    e.preventDefault(); U.questSort = a.dataset.qsort; saveU(); render(false);
+  });
   $("quest-list").addEventListener("click", e => {
     const h = e.target.dataset.qhide, s = e.target.dataset.qshow;
     if (h) S.questHidden = [...new Set([...(S.questHidden || []), h])];
@@ -3360,6 +3463,24 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     U.open[d.id] = d.open; saveU();
   }, true);
   syncFolds();
+
+  for (const id of MONO_IDS) {
+    const c = document.getElementById(id), h = c && c.querySelector("h2");
+    if (h) h.insertAdjacentHTML("beforeend", `<a href="#" class="mono-more" data-more="${id}" hidden>more</a>`);
+  }
+  function syncMono() {
+    for (const id of MONO_IDS) {
+      const c = $(id); if (!c) continue;
+      c.classList.toggle("mono", monoCard(id));
+      const a = c.querySelector("[data-more]"); a.hidden = !mono(); a.textContent = MONO_OPEN[id] ? "less" : "more";
+    }
+    $("vj-calc").classList.toggle("mono-off", monoCard("vj"));
+    $("h-next-t").textContent = monoCard("plan") ? "Do this next" : "Do these next";
+  }
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-more]"); if (!a) return;
+    e.preventDefault(); MONO_OPEN[a.dataset.more] = !MONO_OPEN[a.dataset.more]; render(false);
+  });
 
   // ---------- App settings panel ----------
   function syncApp() {
