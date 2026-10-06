@@ -266,6 +266,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mono-list > li:last-child { border-bottom: 0; }
 .mono-list .lbl { display: block; color: var(--muted); font-size: .8rem; }
 .mono-more { font: 400 .8rem "Atkinson Hyperlegible", sans-serif; margin-left: 8px; vertical-align: middle; }
+/* Next steps as a grid: one card per kind */
+.bites > li.area { padding: 10px 12px; counter-increment: none; }
+.bites > li.area::before { content: none; }
+.bites > li.area h3 { font-size: 1rem; margin: 0 0 6px; }
+.area-list { list-style: none; margin: 0; padding: 0; }
+.area-list > li { padding: 5px 0; border-top: 1px solid var(--line); }
+.area-list > li:first-child { border-top: 0; padding-top: 0; }
+#plan.grid-on [aria-label="Order"] { display: none; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -1387,6 +1395,24 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (!tp.firstWall && tp.levels.length) extra.push({ t: "No mastery walls in the next 30 levels", d: "Only AK stands in your way. Keep finishing the quickest masteries." });
     const shown = S.bitesAll ? Infinity : 8;
     let html = "";
+    $("plan").classList.toggle("grid-on", U.layout === "grid");
+    if (U.layout === "grid") {
+      // One card per kind, quickest first; Tower notes (walls, blocked levels) join the Tower card
+      const per = S.bitesAll ? Infinity : 3;
+      let more = false;
+      const item = c => `<li>${c.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:6px"><strong>${c.t}</strong>${c.done}</div>` : `<strong>${c.t}</strong>`}${
+        c.kind ? `<span class="small muted" style="display:block">${c.main ? `<span class="tag">main</span> ` : ""}${effortTag(c)}</span>` : c.d ? `<span class="small muted" style="display:block">${c.d}</span>` : ""}</li>`;
+      for (const [k, name] of [["ready", "Ready to turn in"], ["quest", "Quests"], ["mastery", "Masteries"], ["tower", "Tower"]]) {
+        const g = [...cands.filter(c => (isLvl(c) ? "tower" : c.kind) === k), ...(k === "tower" ? extra : [])];
+        if (!g.length) continue;
+        const top = g.filter((c, i) => i < per || c.main);
+        if (top.length < g.length) more = true;
+        html += `<li class="area"><h3>${name}</h3><ul class="area-list">${top.map(item).join("")}</ul></li>`;
+      }
+      $("bites-more").hidden = !more && !S.bitesAll;
+      $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
+      $("bites").innerHTML = html;
+    } else {
     if (view === "blend") {
       // One list, quickest first; the next Tower level and main quests always make it, in their own spot
       const top = cands.filter((c, i) => i < shown || isLvl(c) || c.main);
@@ -1407,6 +1433,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
     $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
+    }
     // Monotask: the top action (waiting only when nothing else is left), the next Tower mastery, the quickest AK
     const top = cands.find(c => c.ready || c.cost >= 1) || cands[0];
     const mlines = [];
