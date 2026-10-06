@@ -1141,8 +1141,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const old = pages.filter(([, at]) => !at || now - at > week)
       .map(([n, at]) => at ? `${n} is ${Math.floor((now - at) / 864e5)} days old` : `${n} hasn't been pasted`);
     // Shown under the tabs on every tab (only once there's a Mastery paste, so a brand-new page isn't nagging)
-    $("stale-banner").hidden = !(old.length && S.mastery);
-    $("stale-banner").innerHTML = old.length ? `<div class="note" style="margin:0 0 12px">${old.join("; ")}. Paste a fresh copy in <a href="#" data-go="setup">Setup</a> when you can.</div>` : "";
+    const truffles = truffleCheckDue();
+    $("stale-banner").hidden = !((old.length && S.mastery) || truffles);
+    $("stale-banner").innerHTML = (old.length && S.mastery ? `<div class="note" style="margin:0 0 12px">${old.join("; ")}. Paste a fresh copy in <a href="#" data-go="setup">Setup</a> when you can.</div>` : "") +
+      (truffles ? `<div class="note" style="margin:0 0 12px">Truffle prices change at reset. For today's sell check, paste the Steak Market page (Town › Steak Market) in the quick paste box.</div>` : "");
     if (!hidden) return;
     $("paste-summary").innerHTML = old.length
       ? `<span class="muted">Some pastes are over a week old (see the note above).</span>`
@@ -2348,10 +2350,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const STEAK_STATE = { Stable: "49k-51k", Unstable: "47.5k-52.5k", Risky: "40k-60k", Wild: "25k-75k" };
   // Prices change at the game's reset (midnight, US Central time); Kabobs at the top of every hour
   const gameDay = t => new Date(t).toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+  // Players with Truffles (the Steak Market only shows them after "The Smell of a Fun Guy") who haven't pasted it since reset
+  function truffleCheckDue() {
+    const inv = (S.inventory && S.inventory.items) || {};
+    const has = ["Black Truffle", "White Truffle"].some(n => (inv[n] || {}).count > 0);
+    return has && !(S.steakMarket && gameDay(S.steakMarket.at) === gameDay(Date.now()));
+  }
   function renderSteak() {
-    const m = S.steakMarket;
-    $("steak-card").hidden = !m;
-    if (!m) return;
+    const m = S.steakMarket, due = truffleCheckDue();
+    $("steak-card").hidden = !m && !due;
+    if (!m) { $("steak-list").innerHTML = `<p class="small" style="margin:0">Paste today's Steak Market page for a Truffle sell check.</p>`; return; }
     const H = S.marketHistory || {}, today = gameDay(Date.now()) === gameDay(m.at);
     const pct = (list, v) => list.length ? Math.round(100 * list.filter(x => x < v).length / list.length) : null;
     const lines = (k, base) => {                                          // your history's 10th / 90th percentile, if any
@@ -2359,7 +2367,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return xs.length >= 10 ? { buy: xs[Math.round(0.1 * (xs.length - 1))], sell: xs[Math.round(0.9 * (xs.length - 1))] } : base;
     };
     const out = [];
-    if (!today) out.push(`<p class="small muted" style="margin:0 0 6px">These prices are from before today's reset: paste the Steak Market again for today's.</p>`);
+    if (!today) out.push(`<p class="small" style="margin:0 0 6px">These prices are from before today's reset: paste today's Steak Market page for a sell check.</p>`);
     else {
       if (m.truffle) for (const kind of ["White", "Black"]) {
         const price = m.truffle[kind.toLowerCase()], L = TRUFFLE_LINES[kind], owned = m.truffle[kind.toLowerCase() + "Owned"], chance = m.truffle[kind.toLowerCase() + "Chance"];
