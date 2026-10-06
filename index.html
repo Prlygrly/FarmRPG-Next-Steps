@@ -305,6 +305,11 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   transform: translate(-50%, -50%); z-index: 1; }
 .heat-val { position: absolute; top: -22px; transform: translateX(-50%); font-size: .75rem; font-weight: 700; white-space: nowrap; }
 .heat-dot.sell { background: #2B9A5A; } .heat-dot.buy { background: #2F6FD6; } .heat-dot.hold { background: #D23A3A; } .heat-dot.warn { background: #E0A21B; }
+/* Paste anywhere: what was read, shown wherever you've scrolled to */
+#toast { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 45; width: max-content; max-width: min(440px, calc(100% - 32px));
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+#toast .note { margin: 0; }
+#toast p { margin: 4px 0 0; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -642,6 +647,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <p class="small muted" style="margin:0">1–7 switch tabs; Esc closes this panel. Ctrl+V anywhere (outside a text box) reads a game page.</p>
     <p style="margin:12px 0 0"><button type="button" id="app-reset">Reset app settings</button></p>
   </aside>
+  <div id="toast" class="small" role="status" aria-live="polite" hidden></div>
   <div id="tip-pop" class="small" role="tooltip" hidden></div>
   <footer class="small muted" style="margin:24px 0 8px;text-align:center">
     Fan-made, not affiliated with FarmRPG. Data from <a href="https://buddy.farm" target="_blank" rel="noopener">buddy.farm</a>,
@@ -919,12 +925,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         }
       }
     } else {
-      msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
+      msg = warn("That isn't a page this planner reads. Open the game page, press Ctrl+A, then Ctrl+C, and paste again.");
     }
     const ok = !msg || done;
     if (JSON.stringify(S) !== before) {
       pushUndo(PAGE_NAME[kind] || "a page", before);
-      msg += `<p class="small muted" style="margin:4px 0 0">${msg ? "" : `Read: ${PAGE_NAME[kind] || "page"}. `}<a href="#" data-undo-paste>Undo</a></p>`;
+      msg += `<p class="small muted" style="margin:4px 0 0">${msg ? "" : `<b class="ok">✓</b> Read: ${PAGE_NAME[kind] || "page"}. `}<a href="#" data-undo-paste>Undo</a></p>`;
     }
     $("status").innerHTML = msg;
     if (ok) { pasteDone(); $("paste-clear").hidden = true; }
@@ -951,6 +957,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     save(); render();
     const m = `<p class="small muted" style="margin:4px 0 0">Undone: back to before the ${esc(u.label)} paste.</p>`;
     $("status").innerHTML = m; $("quick-msg").innerHTML = m;
+    if (!$("toast").hidden) toast(m);
     renderUndo();
   }
   function renderUndo() {
@@ -966,6 +973,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     undoPaste(i);
   });
   renderUndo();
+  let toastT = null;
+  function toast(html) {
+    clearTimeout(toastT);
+    $("toast").innerHTML = html; $("toast").hidden = false;
+    toastT = setTimeout(() => { $("toast").hidden = true; }, /data-undo-paste/.test(html) ? 15000 : 6000);
+  }
   // Paste anywhere: Ctrl+V outside a text box reads the page like the quick paste box
   document.addEventListener("paste", e => {
     const t = e.target;
@@ -973,7 +986,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const text = e.clipboardData && e.clipboardData.getData("text");
     if (!text || !text.trim()) return;
     e.preventDefault();
+    const before = JSON.stringify(S), kind = detectPage(text);
     const q = $("quick-paste"); q.value = text; q.dispatchEvent(new Event("input"));
+    const msg = $("quick-msg").hidden ? "" : $("quick-msg").innerHTML;
+    toast(msg || `<b class="ok">✓</b> Read: ${esc(PAGE_NAME[kind] || "page")}${JSON.stringify(S) === before ? " (nothing new)" : ""}.`);
   });
   const warn = s => `<div class="note">${s}</div>`;
 
