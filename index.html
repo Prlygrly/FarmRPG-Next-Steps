@@ -260,7 +260,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 #fold-bar { text-align: right; margin: -8px 0 8px; }
 /* Monotask: one thing per section */
 .card:not(.mono) > .mono-list { display: none; }
-.card.mono .mono-hide, .mono-off { display: none !important; }
+.card.mono .mono-hide, .mono-off, .user-off { display: none !important; }
 .mono-list { list-style: none; padding: 0; margin: 4px 0 0; }
 .mono-list > li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .mono-list > li:last-child { border-bottom: 0; }
@@ -1175,7 +1175,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderSilverGoal(p);
     renderSteak();
     // "Go to" links only for sections showing (the separators go with them)
-    document.querySelectorAll("#best-nav [data-jump]").forEach(a => { const off = $(a.dataset.jump).hidden; a.hidden = off; if (a.nextSibling && a.nextSibling.nodeType === 3) a.nextSibling.textContent = off ? " " : " · "; });
+    document.querySelectorAll("#best-nav [data-jump]").forEach(a => { const off = $(a.dataset.jump).hidden || U.bestOff.includes(a.dataset.jump); a.hidden = off; if (a.nextSibling && a.nextSibling.nodeType === 3) a.nextSibling.textContent = off ? " " : " · "; });
     renderKitchen(p);
     $("quests").hidden = !questList().length;
     if (questList().length) renderQuests(p);
@@ -3482,6 +3482,30 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     e.preventDefault(); MONO_OPEN[a.dataset.more] = !MONO_OPEN[a.dataset.more]; render(false);
   });
 
+  // ---------- Best use order (App settings) ----------
+  const BEST_NAME = { best: "Spend my…", plant: "What to plant", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", kitchen: "Kitchen" };
+  function applyBestOrder() {
+    let at = $("best-nav");
+    for (const id of U.bestOrder) { at.after($(id)); at = $(id); $(id).classList.toggle("user-off", U.bestOff.includes(id)); }
+    $("best-nav").innerHTML = "Go to: " + U.bestOrder.map(id => `<a href="#${id}" data-jump="${id}">${BEST_NAME[id]}</a> · `).join("") + `<a href="#" data-top>Top ↑</a>`;
+    $("best-order").innerHTML = U.bestOrder.map((id, i) => `<div class="row" style="gap:6px;margin:0 0 4px;flex-wrap:nowrap">
+      <button type="button" class="small" data-bmove="${id}" data-by="-1" aria-label="Move ${BEST_NAME[id]} up"${i ? "" : " disabled"}>↑</button>
+      <button type="button" class="small" data-bmove="${id}" data-by="1" aria-label="Move ${BEST_NAME[id]} down"${i < U.bestOrder.length - 1 ? "" : " disabled"}>↓</button>
+      <label class="small"><input type="checkbox" data-bshow="${id}"${U.bestOff.includes(id) ? "" : " checked"}> ${BEST_NAME[id]}</label></div>`).join("");
+  }
+  $("best-order").addEventListener("click", e => {
+    const b = e.target.closest("[data-bmove]"); if (!b) return;
+    const o = U.bestOrder, i = o.indexOf(b.dataset.bmove), j = i + +b.dataset.by;
+    if (j < 0 || j >= o.length) return;
+    [o[i], o[j]] = [o[j], o[i]]; saveU(); applyBestOrder(); render(false);
+    const again = $("best-order").querySelector(`[data-bmove="${b.dataset.bmove}"][data-by="${b.dataset.by}"]`); if (again && !again.disabled) again.focus();
+  });
+  $("best-order").addEventListener("change", e => {
+    const id = e.target.dataset.bshow; if (!id) return;
+    U.bestOff = e.target.checked ? U.bestOff.filter(x => x !== id) : [...U.bestOff, id]; saveU(); applyBestOrder(); render(false);
+  });
+  applyBestOrder();
+
   // ---------- App settings panel ----------
   function syncApp() {
     document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === U.detail)));
@@ -3498,7 +3522,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("app-settings").hidden) openApp(false); });
   $("app-reset").addEventListener("click", () => {
     if (!confirm("Reset the app settings (detail, layout, Best use order, folded cards)? Your game data stays.")) return;
-    U = { ...U_DEFAULT, folded: {}, open: {} }; saveU(); syncApp(); syncFolds(); render(false);
+    U = { ...U_DEFAULT, bestOrder: [...BEST_IDS], bestOff: [], folded: {}, open: {} }; saveU(); syncApp(); syncFolds(); applyBestOrder(); render(false);
   });
   syncApp();
 
