@@ -22,3 +22,4 @@
 * **Update (2026-10-05, late)**: building-upgrades.md: Quarry (Stone 15,000 per 10 min, Coal 25,000 per hour) and Ironworks (Iron 10,000 per 3 min, +3 Nails a step); silver.md: 64 fish prices, fishing silver per net from the catch (matches the game).
 * **Update (2026-10-05, late)**: mechanics/steak-market.md: the Steak Market page, Truffle sell lines, Steak and Kabob price spreads from the player's history pages.
 * **Update (2026-10-05, late)**: mechanics/steak-market.md: the wiki's Steak market, Beef Tips and Truffles pages (reset at midnight Central, steak market states, kabob range, getting Truffles, Black record 619.9M).
+* **Update (2026-10-06)**: planner/rules.md: pastes arrive as plain text (no bullets or links), readers find names by position; daily Truffle prompt exception. mechanics/steak-market.md: player keeps the 9,600 / 10,300 Kabob lines; shared-prices plan and Reddit findings.

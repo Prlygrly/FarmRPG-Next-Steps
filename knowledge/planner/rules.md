@@ -27,6 +27,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - New visitors start with no paid perks; only items with a known production rate count as daily production.[^player]
 - Places need their skill level as well as item evidence (see [locked places](/mechanics/locked-places.md)).
 - Pastes: chat is stripped before anything is read; headings match in any case (the Steam app copies in capitals); the Steam Orchard page also carries the farm list, and both are read.[^player]
+- A page pasted into the site arrives as **plain text**: no links and no "* " bullets (a paste into a chat keeps them). Readers
+  must find names by position (the line above "You have N", above "− +", after "Silver"), never by bullets or links;
+  test every reader with a bullet-free, link-free copy. Links (quest ids) are a bonus when present.[^player]
 - Veggie Juice on crops is a setting (none / as much as helps / N each / down to X min), 10% per juice or 20% after "A Better Juice" ([Veggie Juice](/mechanics/veggie-juice.md)).[^player]
 - Kitchen is a pantry list (quest needs, then lowest stock); cook time = perks + your usual stirs, never perfect ([cooking](/mechanics/cooking.md)).[^player]
 - Keep on-screen text short and formal; no superlatives ("the most useful…").[^player]

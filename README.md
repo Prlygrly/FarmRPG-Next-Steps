@@ -58,6 +58,8 @@ with a source.
 - **Setup**: pastes, settings, places, production, save codes.
 
 ## Roadmap
+- Shared Truffle prices: one player's Steak Market paste gives everyone today's prices (needs a free Cloudflare Worker + KV;
+  the Truffle prompt then says the two prices are shared). Optional Reddit hint for notable days.
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.
 - Ideas: "if you maxed this building" on building-limited goals; count crafted quest items in Spend my…; a plan-by-place view;

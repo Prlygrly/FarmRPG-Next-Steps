@@ -46,12 +46,18 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T23:30:00Z }
 - 90 days of Steaks (to 2026-10-05): median ~50,100; 10th-90th percentile 46,300-55,400; range 28,545-74,951; the wide
   swings come on Risky and Wild days. Planner default: buy at 46,000 or less, sell at 55,000 or more.[^player]
 - 24 hours of Kabobs: median ~9,900; 10th-90th percentile 9,600-10,300. Planner default: buy at 9,600 or less, sell at
-  10,300 or more; advice lasts until the top of the next hour.[^player]
+  10,300 or more; advice lasts until the top of the next hour. The player prefers these wider lines to the wiki's
+  10,000 rule (bigger margin per trade).[^player]
 - Kabobs usually run 9,500-10,500 and never go below 9,500; now and then 11,000-12,000. The wiki's rule of thumb: buy
   under 10,000, sell over 10,000.[^wiki]
 - Steak price moves at reset, by how stable the market is: Stable usually 49-51k, Unstable 47.5-52.5k, Risky 40-60k,
   Wild 25-75k. The history page shows how long each state lasted.[^wiki]
 - With a pasted history of 10+ rows, the planner uses that history's 10th / 90th percentile instead.
+- Players with Truffles are reminded each day to paste the Steak Market (see [planner rules](/planner/rules.md)).
+- Shared prices (not built): a Cloudflare Worker + KV (free) would let one player's paste give everyone today's Truffle
+  prices; only the two prices and the date are sent; two exact matching reports confirm a day; plausible ranges and a
+  per-device limit guard against lies. r/FarmRPG gets ~1 Truffle post a week, mostly "% of best value" titles, so a
+  Reddit reader would only catch notable days.[^player]
 - Reset is midnight server time (US Central); the market closes shortly before and reopens shortly after. Prices pasted
   before the latest reset are shown as stale.[^wiki]
 
