@@ -37,7 +37,12 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   Tower = the next named GM/MM not yet done; AK = the quickest mastery; Spend my = the best place for nets and for drinks;
   Slow grinds = nearest Tower level, shortest, longest (no repeats); Veggie Juice = one step (waiting on Twine etc. only once
   every crop is full); Quests = ready to turn in, else a special ending within 7 days, else the fewest AP; Silver goal = one
-  fishing place and one craft. Each card has "more" for its full view.[^player]
+  fishing place and one craft. "more" opens only that one item.[^player]
+- Monotask items are concrete steps ("Fish ~50 LN at Vast Ocean for 259 Aquamarine"): gather, grow, craft, wait, then finish
+  or turn in. ✓ Done adds what the step brings to your counts until the next paste (undo under the tabs); Do this next skips
+  to the next target while the top one only waits. Masteries and quests have Skip (hides them; show again from the AK table
+  or the Quests tab).[^player]
+- Next steps layout: Grid = tiles side by side on wide screens (default); List = one column.[^player]
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
   cleared by Forget my pastes. The last 3 pastes can be undone.[^player]

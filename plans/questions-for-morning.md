@@ -12,9 +12,9 @@ Answered questions are removed; their answers live in knowledge/.
 4. **Expanded, other cards**: Do these next, Quests, Slow grinds, Kitchen and Veggie Juice use labelled points now.
    Spend my, Plant, Daily overflow, Silver goal and Trips were already lists, so Expanded shows them as Condensed does.
    Want labelled points there too?
-5. **Grid layout**: a card each for Ready / Quests / Masteries / Tower, top 3 each. Is this what you pictured?
 6. **Monotask, untouched cards**: Daily overflow, Steak Market, Wishing well, Trips and the Veggie Juice calculator
    (hidden in Monotask) stay as they were. Any of those you want cut down?
-7. **"more" link**: opens a card's full view until the page reloads. Should it be remembered instead?
+7. **Monotask Done**: ✓ Done on a gathering step adds the items it was for (and takes the nets or drinks from your counts);
+   on a final step it marks the mastery done or turns in the quest. Is that how you want it to count?
 
 ## Waiting on data

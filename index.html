@@ -143,7 +143,8 @@ main[data-tab="best"] > section[data-tab="best"] { scroll-margin-top: 72px; }
 .bites details { border: 0; padding: 0; margin: 4px 0 0; }
 .bites details > summary { cursor: pointer; color: var(--muted); }
 /* Do these next: one column on phones, two or three side by side on wider screens */
-@media (min-width: 1100px) { main[data-tab="next"]:not(.wordy) { max-width: 1320px; } }
+@media (min-width: 1100px) { main[data-tab="next"].grid-on:not(.wordy) { max-width: 1320px; } }
+#plan.list-on .bites { grid-template-columns: 1fr; }
 #quest-list .bites { margin-top: 8px; grid-template-columns: 1fr; }   /* one column, like the game's quest list */
 .bites.wordy { grid-template-columns: 1fr; }
 #bites { margin-top: 12px; }   /* room under the view buttons */
@@ -265,15 +266,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mono-list > li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .mono-list > li:last-child { border-bottom: 0; }
 .mono-list .lbl { display: block; color: var(--muted); font-size: .8rem; }
-.mono-more { font: 400 .8rem "Atkinson Hyperlegible", sans-serif; margin-left: 8px; vertical-align: middle; }
+.mono-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.mono-btns { display: flex; gap: 4px; white-space: nowrap; }
+.mono-d { border: 0; padding: 0; margin: 2px 0 0; }
+.mono-d > summary { display: inline; list-style: none; font: 400 .8rem "Atkinson Hyperlegible", sans-serif; color: var(--focus); text-decoration: underline; }
+.mono-d > summary::-webkit-details-marker { display: none; }
+.mono-d[open] > summary { font-size: 0; }
+.mono-d[open] > summary::after { content: "less"; font-size: .8rem; }
+.mono-d ul { margin: 2px 0 0; padding-left: 18px; }
 /* Next steps as a grid: one card per kind */
-.bites > li.area { padding: 10px 12px; counter-increment: none; }
-.bites > li.area::before { content: none; }
-.bites > li.area h3 { font-size: 1rem; margin: 0 0 6px; }
-.area-list { list-style: none; margin: 0; padding: 0; }
-.area-list > li { padding: 5px 0; border-top: 1px solid var(--line); }
-.area-list > li:first-child { border-top: 0; padding-top: 0; }
-#plan.grid-on [aria-label="Order"] { display: none; }
 /* Expanded: labelled points (Why, Cost, Needs, Where) */
 .xp { list-style: none; padding: 0; margin: 4px 0 0; font-size: .9rem; }
 .xp > li { display: grid; grid-template-columns: 4.6em 1fr; gap: 8px; padding: 2px 0; }
@@ -597,8 +598,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </div>
     <p class="small muted" style="margin:10px 0 4px">Next steps layout</p>
     <div class="seg" role="group" aria-label="Next steps layout">
-      <button type="button" data-layout="list" title="One ranked list.">List</button>
-      <button type="button" data-layout="grid" title="A card for each kind: ready, quests, masteries, Tower.">Grid</button>
+      <button type="button" data-layout="grid" title="Tiles side by side on wide screens.">Grid</button>
+      <button type="button" data-layout="list" title="One column.">List</button>
     </div>
     <h3>Best use order</h3>
     <div id="best-order"></div>
@@ -691,7 +692,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
   const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "kitchen"];
-  const U_DEFAULT = { detail: "condensed", layout: "list", bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
+  const U_DEFAULT = { detail: "condensed", layout: "grid", bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
   if (S.nextDetail && !localStorage.getItem(UI_STORE)) U.detail = S.nextDetail;      // older saves kept detail with the game data
@@ -700,12 +701,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const mono = () => U.detail === "mono";
   // Monotask: each card shows one thing; "more" opens that card's full view until the page reloads
   const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "silver-goal", "kitchen", "vj", "quests"];
-  let MONO_OPEN = {};
-  const monoCard = id => mono() && !MONO_OPEN[id];
+  const monoCard = () => mono();
   // Expanded: [label, value] rows; a value can be a list. Empty rows drop out.
   const xpList = rows => `<ul class="xp">${rows.filter(([, v]) => v != null && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) =>
     `<li><b>${k}</b><div>${Array.isArray(v) ? (v.length === 1 ? v[0] : `<ul>${v.map(x => `<li>${x}</li>`).join("")}</ul>`) : v}</div></li>`).join("")}</ul>`;
-  const monoLi = (label, html) => `<li><span class="lbl">${label}</span>${html}</li>`;
+  // One monotask item: a label, the thing to do, optional buttons, and a "more" that opens only this item
+  const monoLi = (label, html, more = "", btns = "") => `<li><span class="lbl">${label}</span><div class="mono-row"><div>${html}</div>${
+    btns ? `<span class="mono-btns">${btns}</span>` : ""}</div>${more ? `<details class="mono-d"><summary>more</summary><div class="small">${more}</div></details>` : ""}</li>`;
 
   // ---------- Theme ----------
   // "" = Auto: no data-theme, so the page follows the device's light/dark setting
@@ -786,7 +788,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!n) msg = warn("No mastery lines were found. Open every tier on the Mastery Progress page, then copy again.");
       else {
         S.mastery = { items: r.items, tower: r.tower, skills: r.skills, totals: r.totals, at: Date.now() };
-        S.changes = [];                                                  // real numbers replace any Done ticks
+        S.changes = []; S.stepsDone = [];                                                  // real numbers replace any Done ticks
         S.manual = {};
         done = true;                                                     // read: clear the box even if a warning follows
         if (r.collapsed.length) msg = warn(`Some tiers were folded shut when you copied: ${esc(r.collapsed.join(", "))}. Open them and copy again for the full list.`);
@@ -795,7 +797,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const r = parseInventory(text);
       if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
       else {
-        S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = [];
+        S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = []; S.stepsDone = [];
         // A Market paste waiting for counts: work its prices out now
         if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
       }
@@ -884,7 +886,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const all = parseQuests(text), r = all.filter(q => q.section !== "personal");
       if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
       else {
-        S.quests = r; S.questsAt = Date.now(); S.changes = [];
+        S.quests = r; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
         // A pasted request Help Needed no longer lists is done (or gone). Match by id when the copy has links: names repeat
         const ids = new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1]));
         for (const [key, q] of Object.entries(S.requests || {})) {
@@ -1338,6 +1340,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (silverShort(next.level) > 0) fixed = { t: `Save up silver for Tower level ${next.level}`,
       d: `It costs ${short(tSilver(next.level))} silver; you're ${short(silverShort(next.level))} short. See Silver goal on Best use.` };
     else if (need === 0) cands.push({ t: `Climb to Tower level ${next.level}`, d: `You already have the ${TOWER.akPerLevel} AK it costs${silverNote(next.level)}.`, cost: 0, hours: 0, done: doneBtn("tower", { level: next.level }),
+      target: { type: "climb", key: "t:" + next.level, level: next.level },
       xp: { why: `Tower level ${next.level}`, needs: `the ${TOWER.akPerLevel} AK (you have it)${silverNote(next.level)}` } });
     else {
       const k = ap.known.find(x => x.ak >= need);
@@ -1346,6 +1349,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         more: outletText(k.item, k.left, k.effort.amount),
         wordy: `${fmt(k.left)} more (+${k.ak} AK, you need ${fmt(need)}): ${effortText(k.effort)}. ${outletText(k.item, k.left, k.effort.amount)}`,
         cost: k.effort.amount, hours: k.hours || 0, item: k.item, done: doneBtn("mastery", { name: k.item, tier: k.tier }),
+        target: masteryTarget(k.item, k.tier, k.left, k.effort),
         xp: { why: `+${k.ak} AK for Tower level ${next.level} (you need ${fmt(need)})`, needs: `${fmt(k.left)} more${k.effort.how === "craft" || k.effort.how === "cook" ? `, ${k.effort.how}ed` : ""}`, where: todoLines(k.effort) } });
     }
     // Other quick masteries (AK toward the levels after)
@@ -1354,6 +1358,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     for (const c of ap.known.slice(0, 6)) {
       if (cands.some(x => x.item === c.item)) continue;
       cands.push({ t: `Finish ${esc(c.item)} ${tierName(c.tier)}`, blocks: [{ label: `${fmt(c.left)} more · ${gain(c)}${c.effort.how === "craft" || c.effort.how === "cook" ? ` · ${c.effort.how}` : ""}`, items: todoLines(c.effort) }], wordy: `${fmt(c.left)} more (${gain(c)}): ${effortText(c.effort)}.`, cost: c.effort.amount, hours: c.hours || 0, item: c.item, done: doneBtn("mastery", { name: c.item, tier: c.tier }),
+        target: masteryTarget(c.item, c.tier, c.left, c.effort),
         xp: { why: `${gain(c)}${c.tower && c.tower.length ? ` · Tower ${c.tower.map(u => u.level).join(", ")}` : ""}`, needs: `${fmt(c.left)} more${c.effort.how === "craft" || c.effort.how === "cook" ? `, ${c.effort.how}ed` : ""}`, where: todoLines(c.effort) } });
     }
     // Quests worth doing (not hidden, costable, not level-locked, reward worth something)
@@ -1381,7 +1386,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
             n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
           + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
-        done: doneBtn("quest", { name: qkey(q) }),
+        done: doneBtn("quest", { name: qkey(q) }), target: unknown ? null : questTarget(q, n), qkey: qkey(q),
         xp: { why: `${val.value >= 1 ? `reward ~${short(val.value)} AP: ` : "reward: "}${rewardShort(data, p)}`,
           needs: ready ? `ready${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}${m.effort ? "" : ` <span class="muted">(${questSourceText(m.item) || "can't cost yet"})</span>`}`)],
           where: ready ? null : [...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
@@ -1422,24 +1427,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (!tp.firstWall && tp.levels.length) extra.push({ t: "No mastery walls in the next 30 levels", d: "Only AK stands in your way. Keep finishing the quickest masteries." });
     const shown = S.bitesAll ? Infinity : 8;
     let html = "";
-    $("plan").classList.toggle("grid-on", U.layout === "grid");
-    if (U.layout === "grid") {
-      // One card per kind, quickest first; Tower notes (walls, blocked levels) join the Tower card
-      const per = S.bitesAll ? Infinity : 3;
-      let more = false;
-      const item = c => `<li>${c.done ? `<div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:6px"><strong>${c.t}</strong>${c.done}</div>` : `<strong>${c.t}</strong>`}${
-        c.kind ? `<span class="small muted" style="display:block">${c.main ? `<span class="tag">main</span> ` : ""}${effortTag(c)}</span>` : c.d ? `<span class="small muted" style="display:block">${c.d}</span>` : ""}</li>`;
-      for (const [k, name] of [["ready", "Ready to turn in"], ["quest", "Quests"], ["mastery", "Masteries"], ["tower", "Tower"]]) {
-        const g = [...cands.filter(c => (isLvl(c) ? "tower" : c.kind) === k), ...(k === "tower" ? extra : [])];
-        if (!g.length) continue;
-        const top = g.filter((c, i) => i < per || c.main);
-        if (top.length < g.length) more = true;
-        html += `<li class="area"><h3>${name}</h3><ul class="area-list">${top.map(item).join("")}</ul></li>`;
-      }
-      $("bites-more").hidden = !more && !S.bitesAll;
-      $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
-      $("bites").innerHTML = html;
-    } else {
+    $("plan").classList.toggle("list-on", U.layout === "list");
+    document.querySelector("main").classList.toggle("grid-on", U.layout !== "list");
     if (view === "blend") {
       // One list, quickest first; the next Tower level and main quests always make it, in their own spot
       const top = cands.filter((c, i) => i < shown || isLvl(c) || c.main);
@@ -1460,20 +1449,39 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }
     $("bites-more").textContent = S.bitesAll ? "Show fewer" : "Show more";
     $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
-    }
-    // Monotask: the top action (waiting only when nothing else is left), the next Tower mastery, the quickest AK
-    const top = cands.find(c => c.ready || c.cost >= 1) || cands[0];
+    // Monotask: the first target whose next step is an action (waiting only when nothing else is left), the next
+    // Tower mastery, the quickest AK. Each shows one step with ✓ Done; "more" lists the steps after it.
+    MONO_STEPS = {};
     const mlines = [];
-    if (top) mlines.push(monoLi("Do this next", `<b>${top.t}</b>${top.ready ? "" : ` <span class="small muted">${effortTag(top)}</span>`}`));
-    else if (fixed) mlines.push(monoLi("Do this next", `<b>${fixed.t}</b>`));
+    let top = null, topStep = null, waiting = null;
+    for (const c of cands) {
+      const x = c.target && stepsFor(c.target)[0];
+      if (!x) continue;
+      if (x.kind !== "wait") { top = c; topStep = x; break; }
+      if (!waiting) waiting = [c, x];
+    }
+    if (!top && waiting) [top, topStep] = waiting;
+    if (top) mlines.push(monoStep(`Do this next · ${top.t}`, top.target, topStep,
+      waiting && waiting[0] !== top ? `<p style="margin:4px 0 0" class="muted">Meanwhile: ${stepText(waiting[1], waiting[0].target)} (${waiting[0].t})</p>` : "",
+      top.target.type === "mastery" ? skipM(top.target.item) : top.target.type === "quest" ? skipQ(top.target.key) : ""));
+    else if (fixed) mlines.push(monoLi("Do this next", `<b>${fixed.t}</b>`, fixed.d || ""));
     if (!p.noTower) {
       const lv = tp.levels.find(l => l.unmet.length), u = lv && (lv.unmet.find(x => x.kind !== "mmCount") || lv.unmet[0]);
-      mlines.push(monoLi("Tower", !u ? "Only AK for the next 30 levels"
-        : u.kind === "mmCount" ? `<b>${u.left} more Mega Master${u.left === 1 ? "y" : "ies"}</b> of any item <span class="small muted">(level ${lv.level})</span>`
-        : `<b>${esc(u.item)} ${tierName(u.tier)}</b> <span class="small muted">(level ${lv.level}) · ${short(u.left)} to go</span>`));
+      if (!u) mlines.push(monoLi("Tower", "Only AK for the next 30 levels"));
+      else if (u.kind === "mmCount") mlines.push(monoLi("Tower", `<b>${u.left} more Mega Master${u.left === 1 ? "y" : "ies"}</b> of any item <span class="small muted">(level ${lv.level})</span>`));
+      else {
+        const label = `Tower · ${esc(u.item)} ${tierName(u.tier)} for level ${lv.level}, ${short(u.left)} to go`;
+        const ms = seasonNote(u.item, DROPS, W), e0 = !ms && C.effort(u.item, u.left), e = e0 && adjust(e0);
+        const t = e && masteryTarget(u.item, u.tier, u.left, e), x = t && stepsFor(t)[0];
+        mlines.push(x ? monoStep(label, t, x) : monoLi(label, ms ? `Only in ${monthText(ms)}` : `<span class="muted">can't cost yet</span>`));
+      }
     }
-    const akx = ap.known.find(c => !top || c.item !== top.item) || ap.known[0];
-    if (akx) mlines.push(monoLi("AK", `<b>Finish ${esc(akx.item)} ${tierName(akx.tier)}</b> <span class="small muted">${fmt(akx.left)} more · ${gain(akx)}</span>`));
+    const akx = ap.known.find(c => !top || !top.target || c.item !== top.target.item);
+    if (akx) {
+      const t = masteryTarget(akx.item, akx.tier, akx.left, akx.effort), x = stepsFor(t)[0];
+      const label = `AK · ${esc(akx.item)} ${tierName(akx.tier)}, ${fmt(akx.left)} more, ${gain(akx)}`;
+      mlines.push(x ? monoStep(label, t, x, "", skipM(akx.item)) : monoLi(label, ""));
+    }
     $("mono-plan").innerHTML = mlines.join("");
   }
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { S.nextView = b.dataset.view; save(); render(false); }));
@@ -1762,6 +1770,78 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const stock = (e.fromStock || []).filter(x => !bought.includes(x.item)).map(x => `${short(x.used)} ${esc(x.item)}`);
     return [...lines, ...waits.map(w => w.t), ...(stock.length ? [`<span class="muted">From your stock: ${stock.join(", ")}</span>`] : [])];
   }
+
+  // ---------- Monotask steps ----------
+  // A target (mastery, quest, Tower climb) as steps, actions first: gather, grow, craft, wait, then finish or turn in.
+  // ✓ Done on a step adds what it brings to your counts (until the next paste) and moves on to the next step.
+  const VERB = { LN: "Fish", AP: "Explore", AC: "Explore", explores: "Explore" };
+  const SUPPLY_OF = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
+  let MONO_STEPS = {};
+  function stepsFor(t) {
+    if (!t) return [];
+    if (t.type === "climb") return [{ kind: "climb", id: t.key, level: t.level }];
+    const e = t.effort || {}, done = new Set(S.stepsDone || []), out = [], waits = [];
+    if (t.type === "mastery" && e.how === "drop")
+      return [{ kind: "gather", id: t.key + "|g", unit: e.unit, loc: e.loc, amount: e.amount, items: { [t.item]: t.left }, finish: true }];
+    for (const [k, v] of Object.entries(e.byPlace || {}).filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1])) {
+      const [unit, loc] = k.split("|");
+      out.push({ kind: "gather", id: `${t.key}|g|${k}`, unit, loc, amount: v, items: (e.forWhat || {})[k] || {} });
+    }
+    const crops = cropInfo(), orch = S.orchard || {}, made = allProd(), bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    for (const [n, v] of Object.entries(e.passive || {})) {
+      if (v < 0.5 || bought.includes(n)) continue;
+      if (crops[n] && made[n] > 0 && !orch[n]) out.push({ kind: "grow", id: `${t.key}|grow|${n}`, item: n, qty: v, rounds: Math.ceil(v / crops[n].perRound) });
+      else waits.push({ kind: "wait", id: `${t.key}|wait|${n}`, item: n, qty: v });
+    }
+    for (const c of t.crafts || []) out.push({ kind: "craft", id: `${t.key}|craft|${c.item}`, item: c.item, qty: c.qty, how: c.how });
+    out.push(...waits);
+    out.push(t.type === "quest" ? { kind: "turnin", id: t.key + "|turnin", finish: true } : { kind: "finish", id: t.key + "|finish", finish: true });
+    return out.filter(x => !done.has(x.id));
+  }
+  const forText = items => { const xs = Object.entries(items || {}).filter(([, q]) => q >= 0.5).sort((a, b) => b[1] - a[1]);
+    return xs.length ? ` <span class="small muted">for ${xs.slice(0, 3).map(([n, q]) => `${short(q)} ${esc(n)}`).join(", ")}${xs.length > 3 ? "…" : ""}</span>` : ""; };
+  function stepText(x, t) {
+    if (x.kind === "gather") return `${VERB[x.unit] || "Explore"} ~${short(x.amount)} ${UNIT_SHORT[x.unit]} at <b>${esc(x.loc)}</b>${forText(x.items)}`;
+    if (x.kind === "grow") return `Grow ${short(x.qty)} <b>${esc(x.item)}</b> <span class="small muted">(~${fmt(x.rounds)} harvest${x.rounds === 1 ? "" : "s"})</span>`;
+    if (x.kind === "craft") return `${x.how === "cook" ? "Cook" : "Craft"} ${short(x.qty)} <b>${esc(x.item)}</b>`;
+    if (x.kind === "wait") { const w = prodWait(x.item, x.qty); return `Wait for ${short(x.qty)} <b>${esc(x.item)}</b>${w ? ` <span class="small muted">(${dropText(x.item, w)})</span>` : ""}`; }
+    if (x.kind === "turnin") return `Turn in <b>${esc(t.name)}</b>`;
+    if (x.kind === "climb") return `Climb to <b>Tower level ${x.level}</b>`;
+    const how = t.effort && t.effort.how;
+    return how === "craft" || how === "cook" ? `${how === "cook" ? "Cook" : "Craft"} ${short(t.left)} <b>${esc(t.item)}</b> <span class="small muted">(${tierName(t.tier)})</span>`
+      : `Finish <b>${esc(t.item)} ${tierName(t.tier)}</b>`;
+  }
+  function doStep(x, t) {
+    if (x.kind === "turnin") return doneQuest(t.key);
+    if (x.kind === "climb") return doneTower(x.level);
+    if (x.finish) return doneMastery(t.item, t.tier);
+    const label = x.kind === "gather" ? `${VERB[x.unit] || "Explore"} ~${short(x.amount)} ${UNIT_SHORT[x.unit]} at ${x.loc}`
+      : `${x.kind === "grow" ? "Grew" : x.kind === "craft" ? (x.how === "cook" ? "Cooked" : "Crafted") : "Got"} ${short(x.qty)} ${x.item}`;
+    tick("step", label, () => {
+      const got = x.kind === "gather" ? x.items : { [x.item]: x.qty };
+      const inv = S.inventory && S.inventory.items, cap = (S.inventory && S.inventory.cap) || Infinity;
+      for (const [n, q] of Object.entries(got)) {
+        const add = Math.ceil(q);
+        if (inv) inv[n] = { ...(inv[n] || {}), count: Math.min(cap, ((inv[n] || {}).count || 0) + add) };
+        if (S.mastery && n in S.mastery.items) S.mastery.items[n] += add;          // gathering counts toward mastery
+      }
+      const sup = x.kind === "gather" && inv && inv[SUPPLY_OF[x.unit]];
+      if (sup) sup.count = Math.max(0, sup.count - Math.ceil(x.amount));
+      S.stepsDone = [...(S.stepsDone || []), x.id];
+    });
+  }
+  // One monotask item for a target's next step: ✓ Done, optional Skip, and "more" = the steps after it
+  function monoStep(label, t, x, more = "", skip = "") {
+    MONO_STEPS[x.id] = { s: x, t };
+    const rest = stepsFor(t).slice(1);
+    const m = (rest.length ? `Then:<ul>${rest.map(r => `<li>${stepText(r, t)}</li>`).join("")}</ul>` : "") + more;
+    return monoLi(label, stepText(x, t), m, `<button type="button" class="small" data-step="${esc(x.id)}" title="Done: counts what it brings until your next paste">✓ Done</button>${skip}`);
+  }
+  const masteryTarget = (item, tier, left, effort) => ({ type: "mastery", key: "m:" + item, item, tier, left, effort });
+  const questTarget = (q, n) => ({ type: "quest", key: qkey(q), name: q.name, effort: { byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive },
+    crafts: n.missing.filter(m => m.effort && (m.effort.how === "craft" || m.effort.how === "cook")).map(m => ({ item: m.item, qty: m.left, how: m.effort.how })) });
+  const skipM = item => ` <button type="button" class="small" data-mskip="${esc(item)}" title="Hide this mastery (show it again from the AK table)">Skip</button>`;
+  const skipQ = key => ` <button type="button" class="small" data-qskip="${esc(key)}" title="Hide this quest (show it again on the Quests tab)">Skip</button>`;
 
   // ---------- Townsfolk ----------
   // Gift XP and cheap gifts: knowledge/mechanics/friendship.md (farm-made items count as free).
@@ -2116,7 +2196,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     });
     $("leveling-list").innerHTML = `<ul style="margin:0;padding-left:20px">${rows.join("")}</ul>`;
     const lo = low.slice().sort((a, b) => sk[a] - sk[b])[0];
-    $("mono-leveling").innerHTML = monoLi("Lowest skill", `<b>${lo} ${sk[lo]}</b> <span class="small muted">→ ${sk[lo] + 1}: ${short(lvTotal(sk[lo] + 1) - lvTotal(sk[lo]))} XP</span>`);
+    $("mono-leveling").innerHTML = monoLi("Lowest skill", `<b>${lo} ${sk[lo]}</b> <span class="small muted">→ ${sk[lo] + 1}: ${short(lvTotal(sk[lo] + 1) - lvTotal(sk[lo]))} XP</span>`,
+      `<ul>${rows[low.indexOf(lo)]}</ul>`);
   }
 
   // ---------- Silver ----------
@@ -2188,7 +2269,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       // Monotask: the best place for nets, and for Arnold Palmers / Apple Ciders, spending what you have
       const one = (u, label) => {
         const x = placesFor(u, (O && O.onHand[BEST_ITEM[u]]) || 1000)[0];
-        return monoLi(label, x ? `<b>${esc(x.loc)}</b> <span class="small muted">${x.done ? `finishes ${x.done}` : "moves things closer"}${x.ak ? ` · +${x.ak} AK` : ""}</span>` : `<span class="muted">nothing moves along</span>`);
+        const what = x ? [...x.mDone.map(r => `${esc(r.item)} ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}`), ...x.qDone.map(o => `quest ${esc(o.name)}`)] : [];
+        return monoLi(label, x ? `<b>${esc(x.loc)}</b> <span class="small muted">${x.done ? `finishes ${x.done}` : "moves things closer"}${x.ak ? ` · +${x.ak} AK` : ""}</span>` : `<span class="muted">nothing moves along</span>`,
+          what.length ? `Finishes:<ul>${what.slice(0, 8).map(w => `<li>${w}</li>`).join("")}</ul>` : "");
       };
       const ex = O && !(O.onHand["Arnold Palmer"] > 0) && O.onHand["Apple Cider"] > 0 ? "AC" : "AP";
       $("mono-best").innerHTML = one("LN", "Large Nets") + one(ex, ex === "AP" ? "Arnold Palmers / Apple Ciders" : "Apple Ciders / Arnold Palmers");
@@ -2313,7 +2396,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("plant-list").innerHTML = promote ? boostHtml + timedHtml : timedHtml + boostHtml;
     const mc = (promote ? boost[0] : timed[0]) || timed[0] || boost[0], mj = mc.jobs[0];
     $("mono-plant").innerHTML = monoLi("Plant now", mc.base <= 5 ? `<b>Breakfast Boost ${esc(mc.crop)}</b> <span class="small muted">for ${mj.name}${tagHtml(mj)} · ${fmt(roundsFor(mc, mj))} harvests</span>`
-      : `<b>${esc(mc.crop)}</b> <span class="small muted">for ${mj.name}${tagHtml(mj)} · ${tm(mj.hours)}</span>`);
+      : `<b>${esc(mc.crop)}</b> <span class="small muted">for ${mj.name}${tagHtml(mj)} · ${tm(mj.hours)}</span>`,
+      mc.jobs.length > 1 ? `Also feeds:<ul>${mc.jobs.slice(1, 8).map(j => `<li>${j.name}${tagHtml(j)}: ${short(j.qty)}</li>`).join("")}</ul>` : "");
   }
 
   // ---------- Best use: daily overflow ----------
@@ -2500,6 +2584,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         ...parts.map(x => `${partName(x)}: ${short(x.need)} needed${cropNote(x)}, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
         ...r.untimed.map(u => `${UNIT[u.unit] || esc(u.unit)}: ${short(u.need)} needed <span class="muted">(set ${UNIT[u.unit] || esc(u.unit)} a day above to time it)</span>`),
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
+      r.lines = lines;
       return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
         lim || handTxt ? `<br><span class="small muted">${[lim, handTxt ? `${handTxt} in all` : ""].filter(Boolean).join(" · ")}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
         ${wordy ? xpList([["Why", towerTipText(r.item, r.have) || "kept going every day"], ["Needs", lines[0]], ["Limit", r.bottleneck && r.days !== Infinity ? `${partName(r.bottleneck)}, ${longText(r.bottleneck.days)}` : "nothing you make feeds it yet"],
@@ -2520,7 +2605,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     {
       const fin = rows.filter(r => r.days != null && r.days !== Infinity), seen = new Set(), out = [];
       const pickR = (label, r) => { if (r && !seen.has(r.item)) { seen.add(r.item); out.push(monoLi(label, `<b>${esc(r.item)}</b> <span class="small muted">${r.tier.toUpperCase()}${
-        r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}</span>`)); } };
+        r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}</span>`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
       pickR("Nearest Tower level", fin.filter(r => r.towerLv !== Infinity).sort((a, b) => a.towerLv - b.towerLv)[0]);
       pickR("Shortest", fin.slice().sort((a, b) => a.days - b.days)[0]);
       pickR("Longest", fin.slice().sort((a, b) => b.days - a.days)[0]);
@@ -2678,8 +2763,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     {
       const f = timed.find(r => r.kind === "fish"), c = timed.find(r => r.kind === "craft"), dt = d => need > 0 ? daysTo(d) : "";
       $("mono-silver-goal").innerHTML = (goal && S.silver != null ? monoLi("Goal", `<b>${short(goal)}</b> <span class="small muted">${need > 0 ? `${short(need)} to go` : "reached"}</span>`) : "") +
-        (f ? monoLi("Fishing", `<b>Large Nets at ${esc(f.loc)}</b> <span class="small muted">~${short(f.silverDay)} a day${dt(f.silverDay)}</span>`) : "") +
-        (c ? monoLi("Crafting", `<b>Craft ${esc(c.item)}</b> <span class="small muted">~${short(c.silverDay)} a day${dt(c.silverDay)}</span>`) : "") ||
+        (f ? monoLi("Fishing", `<b>Large Nets at ${esc(f.loc)}</b> <span class="small muted">~${short(f.silverDay)} a day${dt(f.silverDay)}</span>`,
+          `~${short(f.perUnit.LN)} a net × your ~${short(budget.LN)} nets a day. With Shrimp-a-Plenty and Sea Pincher Special: ~${short(f.perUnit.LN * 1.21)} a net.`) : "") +
+        (c ? monoLi("Crafting", `<b>Craft ${esc(c.item)}</b> <span class="small muted">~${short(c.silverDay)} a day${dt(c.silverDay)}</span>`,
+          `${fmt(c.price)} each × ~${short(c.perDay)} a day, limited by ${by(c.limit)}.${sellNote(c.item, p)}`) : "") ||
         monoLi("Silver", "No priced crafts or fishing places yet");
     }
     const lv = (p.skills || {}).Crafting ?? 1;
@@ -2798,7 +2885,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
     const tagT = x => x.tower ? towerTag(x.n, p.items[x.n], "") : "";
     const mk = rows.find(x => x.short > 0) || rows.find(x => x.tower) || rows[0];
-    $("mono-kitchen").innerHTML = monoLi("Cook", mk ? `<b>${fmt(mk.make)} ${esc(mk.n)}</b>${tagT(mk)} <span class="small muted">${mk.short ? `for ${why[mk.n][0]}` : `you have ${fmt(mk.have)}`} · ~${minText(mk.mins)}</span>` : "Nothing to cook");
+    $("mono-kitchen").innerHTML = monoLi("Cook", mk ? `<b>${fmt(mk.make)} ${esc(mk.n)}</b>${tagT(mk)} <span class="small muted">${mk.short ? `for ${why[mk.n][0]}` : `you have ${fmt(mk.have)}`} · ~${minText(mk.mins)}</span>` : "Nothing to cook",
+      mk && mk.e ? `<ul>${todoLines(mk.e).map(l => `<li>${l}</li>`).join("")}</ul>` : "");
     $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
         x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${U.detail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
         ${U.detail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
@@ -2985,7 +3073,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       else if (beet && beet.makes <= now) act = fill([beet]);
       else if (now >= 1) act = `<b>Craft ${fmt(now)} Veggie Juice</b>`;
       act = act || fill(notFull(rows.filter(x => x.x))) || (short1.length ? `Top up <b>${esc(short1[0].item)}</b> <span class="small muted">(${short1[0].refill})</span>` : `<b>Craft Veggie Juice</b>`);
-      $("mono-vj").innerHTML = monoLi(`Do this next <span class="muted">(${fmt(onHand["Veggie Juice"] || 0)} Veggie Juice)</span>`, act);
+      $("mono-vj").innerHTML = monoLi(`Do this next <span class="muted">(${fmt(onHand["Veggie Juice"] || 0)} Veggie Juice)</span>`, act,
+        `Can craft ${fmt(now)} now (short on ${limit.map(esc).join(", ")}).${short1.length ? `<ul>${short1.map(x => `<li>Top up <b>${esc(x.item)}</b> (enough for ${fmt(x.makes)}): ${x.refill}</li>`).join("")}</ul>` : ""}`);
     }
     const table = `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
         rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
@@ -3241,8 +3330,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const open = cards.filter(c => c.rank < 8 && c.need);
     const mq = open.find(c => c.ready) || open.filter(c => c.days <= 7 && c.rank !== 4).sort((a, b) => a.days - b.days)[0]
       || open.filter(c => c.rank !== 4).sort((a, b) => a.cost - b.cost)[0];
-    $("mono-quests").innerHTML = monoLi(mq && mq.ready ? "Turn in" : "Quest", !mq ? "Nothing to do" : `<b>${esc(mq.q.name)}</b>${mq.q.npc ? ` <span class="small muted">(${esc(mq.q.npc)})</span>` : ""}${
-      mq.ready ? "" : `<br><span class="small muted">${mq.days <= 7 ? `${endsText(mq.days)} · ` : ""}still needs ${mq.need.missing.slice(0, 3).map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}${mq.need.missing.length > 3 ? "…" : ""}</span>`}`);
+    {
+      const t = mq && questTarget(mq.q, mq.need), x = t && stepsFor(t)[0];
+      const label = mq ? `Quest · ${esc(mq.q.name)}${mq.q.npc ? ` (${esc(mq.q.npc)})` : ""}${mq.days <= 7 ? `, ${endsText(mq.days)}` : ""}` : "Quest";
+      $("mono-quests").innerHTML = !x ? monoLi(label, "Nothing to do") : monoStep(label, t, x,
+        mq.need.missing.length ? `<p style="margin:4px 0 0">Still needs ${mq.need.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}.</p>` : "", skipQ(t.key));
+    }
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
     const cls = `bites${U.detail === "expanded" ? " wordy" : ""}`;
     $("quest-list").innerHTML = `<ol class="${cls}">${vis.map(c => c.html).join("")}</ol>` +
@@ -3512,22 +3605,21 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }, true);
   syncFolds();
 
-  for (const id of MONO_IDS) {
-    const c = document.getElementById(id), h = c && c.querySelector("h2");
-    if (h) h.insertAdjacentHTML("beforeend", `<a href="#" class="mono-more" data-more="${id}" hidden>more</a>`);
-  }
   function syncMono() {
     for (const id of MONO_IDS) {
       const c = $(id); if (!c) continue;
       c.classList.toggle("mono", monoCard(id));
-      const a = c.querySelector("[data-more]"); a.hidden = !mono(); a.textContent = MONO_OPEN[id] ? "less" : "more";
     }
     $("vj-calc").classList.toggle("mono-off", monoCard("vj"));
     $("h-next-t").textContent = monoCard("plan") ? "Do this next" : "Do these next";
   }
+  // ✓ Done on a step, Skip on a mastery or quest
   document.addEventListener("click", e => {
-    const a = e.target.closest("[data-more]"); if (!a) return;
-    e.preventDefault(); MONO_OPEN[a.dataset.more] = !MONO_OPEN[a.dataset.more]; render(false);
+    const b = e.target.closest("[data-step], [data-mskip], [data-qskip]"); if (!b) return;
+    e.preventDefault();
+    if (b.dataset.step) { const x = MONO_STEPS[b.dataset.step]; if (x) doStep(x.s, x.t); }
+    else if (b.dataset.mskip) { S.hidden = [...new Set([...S.hidden, b.dataset.mskip])]; save(); render(false); }
+    else { S.questHidden = [...new Set([...(S.questHidden || []), b.dataset.qskip])]; save(); render(false); }
   });
 
   // ---------- Best use order (App settings) ----------

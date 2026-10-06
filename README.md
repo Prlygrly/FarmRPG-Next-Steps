@@ -57,7 +57,7 @@ with a source.
 - **Trips**: what a planned exploring trip brings.
 - **Setup**: pastes, perks, general settings, places, production.
 - **⚙ App settings** (header): theme; Detail (Monotask: one thing per section / Condensed / Expanded: labelled points);
-  Next steps as a list or a grid; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
+  Next steps as a grid or one column; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
 - Anywhere: Ctrl+V outside a text box reads a page; ▾ folds a card (remembered); keys 1–7 switch tabs; phones get a bottom tab bar.
 
 ## Roadmap
