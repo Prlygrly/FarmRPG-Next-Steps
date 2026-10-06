@@ -3159,7 +3159,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     });
     const now = Math.min(...rows.map(x => x.makes)), limit = rows.filter(x => x.makes === now).map(x => x.item);
     const tw = rows.filter(x => x.item === "Tomato" || x.item === "Watermelon"), quick = rows.filter(x => x.x && x.x.base <= 5), beet = rows.find(x => x.item === "Beet");
-    const twMakes = Math.min(...tw.map(x => x.makes)), cycle = goal;
+    const cycle = goal;
     // Non-crop ingredients (Twine, Horn, Glass Bottle) that would run out before the crops do
     const short1 = rows.filter(x => !x.x && x.makes < goal);
     const names = xs => xs.map(x => esc(x.item)).join(", ").replace(/, ([^,]*)$/, " and $1");
@@ -3175,9 +3175,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         return t.length ? `<b>Grow ${names(t)}</b> until ${short(t[0].tgt)}` : q.length ? `<b>Breakfast Boost ${names(q)}</b> until ${q[0].tgt >= cap ? "full" : short(q[0].tgt)} <span class="small muted">(~${fmt(boostLeft(q))} harvests)</span>`
           : b ? `<b>Grape Juice the Beets</b> until ${b.tgt >= cap ? "full" : short(b.tgt)}` : null; };
       if (!goal) act = `Nothing to craft: Veggie Juice is at your cap`;
-      else if (twMakes < 1) act = fill(notFull(tw));
-      else if (quick.some(x => x.makes <= now && x.have < x.tgt * 0.95)) act = fill(notFull(quick));
-      else if (beet && beet.makes <= now && beet.have < beet.tgt * 0.95) act = fill([beet]);
+      else if (notFull(quick).length) act = fill(notFull(quick));
+      else if (notFull(tw).length) act = fill(notFull(tw));
+      else if (beet && notFull([beet]).length) act = fill([beet]);
       else if (now >= 1) act = `<b>Craft ${fmt(Math.min(now, goal))} Veggie Juice</b>`;
       act = act || fill(notFull(rows.filter(x => x.x))) || (short1.length ? `Top up <b>${esc(short1[0].item)}</b> <span class="small muted">(${short1[0].refill})</span>` : `<b>Craft Veggie Juice</b>`);
       $("mono-vj").innerHTML = monoLi(`Do this next <span class="muted">(${fmt(onHand["Veggie Juice"] || 0)} Veggie Juice)</span>`, act,
@@ -3187,14 +3187,15 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
     const cycleLine = `${fmt(cycle)} Veggie Juice · ~${fmt(quickRounds)} Boost harvests (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${
       beetGJ ? ` · ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""}`;
-    // The cycle as a checklist: done (full), now, later
-    const at = twMakes < 1 ? 0 : quick.some(x => x.makes <= now && x.have < x.tgt * 0.95) ? 1 : 2;
+    // The cycle as a checklist: done, now (the first step whose crops aren't in for the goal), later
     const full = xs => xs.filter(x => x.have >= x.tgt * 0.95).length, upTo = x => !x || x.tgt >= cap ? "full" : short(x.tgt);
+    const done = [full(quick) === quick.length, full(tw) === tw.length, !beet || beet.have >= beet.tgt * 0.95];
+    const at = done[0] ? done[1] ? 2 : 1 : 0;
     const stepsHtml = [
-      [`Grow ${names(tw)} (taking turns) until ${upTo(tw[0])}`, `${tw.map(x => `${esc(x.item)} ${short(x.have)}`).join(", ")} of ${short(tw[0] ? tw[0].tgt : cap)}`],
       [`Breakfast Boost ${names(quick)} until ${upTo(quick[0])}`, `${full(quick)} of ${quick.length} ready`],
+      [`Grow ${names(tw)} (taking turns) until ${upTo(tw[0])}`, `${tw.map(x => `${esc(x.item)} ${short(x.have)}`).join(", ")} of ${short(tw[0] ? tw[0].tgt : cap)}`],
       [`Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out`, beet ? `Beet ${short(beet.have)} of ${short(beet.tgt)}` : ""]
-    ].map(([t, st], k) => [t, st, k < at && [full(tw) === tw.length, full(quick) === quick.length, !beet || beet.have >= beet.tgt * 0.95][k]])   // ✓ only when that step's crops are in
+    ].map(([t, st], k) => [t, st, k < at && done[k]])
      .map(([t, st, ok], k) => `<li${k === at ? ' style="font-weight:700"' : ok ? ' class="muted"' : ""}>${ok ? "✓ " : ""}${t}${k === at ? ` <span class="tag good">now</span>` : ""}${
       st ? ` <span class="small muted" style="font-weight:400">(${st})</span>` : ""}</li>`).join("");
     const topUps = short1.map(x => `Top up <b>${esc(x.item)}</b> <span class="muted">(enough for ${fmt(x.makes)})</span>: ${x.refill}`);
