@@ -37,7 +37,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   Tower = the next named GM/MM not yet done; AK = the quickest mastery; Spend my = the best place for nets and for drinks;
   Slow grinds = nearest Tower level, shortest, longest (no repeats); Veggie Juice = one step (waiting on Twine etc. only once
   every crop is full); Quests = ready to turn in, else a special ending within 7 days, else the fewest AP; Silver goal = one
-  fishing place and one craft. "more" opens only that one item.[^player]
+  fishing place and one craft, each with the total nets or items sold the goal takes. "more" opens only that one item.[^player]
 - Monotask items are concrete steps ("Fish ~50 LN at Vast Ocean for 259 Aquamarine"): gather, grow, craft, wait, then finish
   or turn in. ✓ Done adds what the step brings to your counts until the next paste (undo under the tabs); Do this next skips
   to the next target while the top one only waits. Masteries and quests have Skip (hides them; show again from the AK table
