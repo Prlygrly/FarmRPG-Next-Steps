@@ -34,6 +34,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   must find names by position (the line above "You have N", above "− +", after "Silver"), never by bullets or links;
   test every reader with a bullet-free, link-free copy. Links (quest ids) are a bonus when present.[^player]
 - Veggie Juice on crops is a setting (none / as much as helps / N each / down to X min), 10% per juice or 20% after "A Better Juice" ([Veggie Juice](/mechanics/veggie-juice.md)).[^player]
+- Veggie Juice has a goal box (blank: what full Tomatoes and Watermelons make). It can't ask for more than you can still
+  hold (cap minus Veggie Juice on hand): it says so and plans for that. Each ingredient is filled to what the goal takes,
+  never past the cap.[^player]
 - Kitchen is a pantry list (quest needs, then lowest stock); cook time = perks + your usual stirs, never perfect ([cooking](/mechanics/cooking.md)).[^player]
 - Keep on-screen text short and formal; no superlatives ("the most useful…").[^player]
 - **Monotask** (a Detail setting): one thing per section, an action before any waiting. Do this next = the top action;
