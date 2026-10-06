@@ -244,6 +244,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .stock { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
 .stock div { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .stock b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+/* App settings: a panel that slides in from the right (full width on phones) */
+#app-settings { position: fixed; top: 0; right: 0; bottom: 0; width: min(400px, 100%); z-index: 40; background: var(--surface);
+  border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.25); padding: 16px; overflow-y: auto; }
+#app-shade { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,.35); }
+#app-settings h3 { margin: 18px 0 6px; font-size: 1.05rem; }
+#app-settings .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+#app-settings .seg button[aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); font-weight: 700; }
+#gear { width: 36px; height: 36px; padding: 0; display: grid; place-items: center; font-size: 1.15rem; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -263,8 +271,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </div>
     <div class="head-tools">
     <div class="quick-col">
-    <label class="small muted">Theme
-      <select id="theme" aria-label="Page theme">
+    <select id="theme" aria-label="Page theme" hidden>
         <option value="">Auto (match my device)</option>
         <option value="light">Cream</option>
         <option value="dark">Purple</option>
@@ -274,10 +281,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <option value="noir">Noir</option>
         <option value="paper">Paper</option>
       </select>
-    </label>
     <div class="quick-wrap"><textarea id="quick-paste" rows="1" placeholder="Quick paste: update a page" aria-label="Quick paste: paste any game page to update it without going to Setup"></textarea><span id="quick-ok" aria-hidden="true">✓</span></div>
     <div id="quick-msg" class="small" hidden></div>
     </div>
+    <button type="button" id="gear" aria-label="App settings" title="App settings: theme, detail, layout, save and load">⚙</button>
     <span id="tools-menu"></span>
     </div>
   </header>
@@ -313,10 +320,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-best" style="margin:0">Spend my…</h2>
-      <div class="row" role="group" aria-label="Detail" style="gap:4px">
-        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
-      </div>
     </div>
     <p class="small muted">Where your Large Nets, Arnold Palmers or Apple Ciders finish the most.</p>
     <div class="row">
@@ -339,10 +342,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="card" data-tab="grinds" id="grinds" aria-labelledby="h-grinds">
     <div class="row" style="justify-content:space-between;align-items:center;margin:0">
       <h2 id="h-grinds" style="margin:0">Slow grinds</h2>
-      <span class="small">
-        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons.">Expanded</button>
-      </span>
     </div>
     <p class="small muted">Tower masteries that take months, longest first.</p>
     <details class="small" id="grind-numbers" style="margin:0 0 8px"><summary class="muted" style="cursor:pointer">Your numbers</summary>
@@ -452,10 +451,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         <button type="button" data-view="blend" title="Everything in one list, quickest first: AP turned into minutes of play, plus waiting (set both in General settings).">Blended by effort</button>
         <button type="button" data-view="type" title="Grouped: ready to turn in, quests, masteries, Tower. Quickest first within each.">By type</button>
       </div>
-      <div class="row" role="group" aria-label="Detail" style="gap:4px">
-        <button type="button" data-detail="condensed" title="A short to-do list for each step: where to go, how much, what to grow.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
-      </div>
     </div>
     <ol class="bites" id="bites"></ol>
     <button type="button" id="bites-more" hidden>Show more</button>
@@ -482,10 +477,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="card" data-tab="vj" id="vj" aria-labelledby="h-vj">
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-vj" style="margin:0">Veggie Juice cycle</h2>
-      <div class="row" role="group" aria-label="Detail" style="gap:4px">
-        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
-      </div>
     </div>
     <ol class="small muted" style="margin:0 0 8px;padding-left:20px">
       <li>Grow Tomato and Watermelon (taking turns) when the plots are free, until full.</li>
@@ -512,10 +503,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="card" data-tab="trips" id="trips" aria-labelledby="h-trips" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-trips" style="margin:0">I'm exploring here anyway</h2>
-      <div class="row" role="group" aria-label="Detail" style="gap:4px">
-        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
-      </div>
     </div>
     <p class="small muted">Places you visit anyway (the Forest for Antlers): what else they bring home. <span class="tip" data-tip="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." aria-label="Things found there also count as cheaper in the other lists, by the Trip discount in General settings." tabindex="0">ⓘ</span></p>
     <div class="row">
@@ -534,10 +521,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="card" data-tab="quests" id="quests" aria-labelledby="h-quests" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-quests" style="margin:0">Quests</h2>
-      <div class="row" role="group" aria-label="Detail" style="gap:4px">
-        <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
-        <button type="button" data-detail="expanded" title="Full sentences with the reasons and alternatives.">Expanded</button>
-      </div>
     </div>
     <p class="small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
     <div id="quest-list"></div>
@@ -548,24 +531,52 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <div id="ww-list"></div>
   </section>
 
-  <section class="card" data-tab="setup" id="saves" aria-labelledby="h-saves">
-    <h2 id="h-saves">Save and load</h2>
-    <p class="small muted">Kept in this browser only. Keep a save code somewhere safe to restore it or move devices.</p>
-    <div class="row">
-      <button id="save-make" type="button">Make a save code</button>
-      <button id="save-copy" type="button" hidden>Copy it</button>
-      <button id="save-file" type="button">Download save file</button>
-      <button id="save-qr" type="button">Show as QR codes</button>
-      <label class="small" style="cursor:pointer"><input id="save-upload" type="file" accept=".txt,text/plain" hidden><span class="muted">or</span> <u>load a save file</u></label>
+  <div id="app-shade" hidden></div>
+  <aside id="app-settings" role="dialog" aria-modal="true" aria-labelledby="h-app" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2 id="h-app" style="margin:0">App settings</h2>
+      <button type="button" id="app-close" aria-label="Close settings">✕</button>
     </div>
-    <div id="qr-box" hidden></div>
-    <textarea id="save-code" readonly hidden aria-label="Your save code" style="min-height:70px;margin-top:8px;font-family:monospace;font-size:.8rem"></textarea>
-    <div class="row" style="margin-top:10px">
-      <textarea id="load-code" placeholder="Paste a save code here to load it…" aria-label="Paste a save code" style="min-height:50px;font-family:monospace;font-size:.8rem"></textarea>
-      <button id="load-go" type="button">Load this code</button>
+    <p class="small muted" style="margin:4px 0 0">How the page looks. Game settings (perks, production) stay in Setup.</p>
+    <h3>Display</h3>
+    <label class="field">Theme <select id="theme-pick" aria-label="Page theme"></select></label>
+    <p class="small muted" style="margin:10px 0 4px">Detail</p>
+    <div class="seg" role="group" aria-label="Detail">
+      <button type="button" data-detail="mono" title="One thing per section.">Monotask</button>
+      <button type="button" data-detail="condensed" title="Short to-do lists.">Condensed</button>
+      <button type="button" data-detail="expanded" title="Each item with labelled points: why, cost, where, needs.">Expanded</button>
     </div>
-    <div id="save-status" aria-live="polite"></div>
-  </section>
+    <p class="small muted" style="margin:10px 0 4px">Next steps layout</p>
+    <div class="seg" role="group" aria-label="Next steps layout">
+      <button type="button" data-layout="list" title="One ranked list.">List</button>
+      <button type="button" data-layout="grid" title="A card for each kind: ready, quests, masteries, Tower.">Grid</button>
+    </div>
+    <h3>Best use order</h3>
+    <div id="best-order"></div>
+    <h3>Data</h3>
+    <div id="undo-list" class="small"></div>
+  <div id="saves">
+      <h3 id="h-saves">Save and load</h3>
+      <p class="small muted">Kept in this browser only. Keep a save code somewhere safe to restore it or move devices.</p>
+      <div class="row">
+        <button id="save-make" type="button">Make a save code</button>
+        <button id="save-copy" type="button" hidden>Copy it</button>
+        <button id="save-file" type="button">Download save file</button>
+        <button id="save-qr" type="button">Show as QR codes</button>
+        <label class="small" style="cursor:pointer"><input id="save-upload" type="file" accept=".txt,text/plain" hidden><span class="muted">or</span> <u>load a save file</u></label>
+      </div>
+      <div id="qr-box" hidden></div>
+      <textarea id="save-code" readonly hidden aria-label="Your save code" style="min-height:70px;margin-top:8px;font-family:monospace;font-size:.8rem"></textarea>
+      <div class="row" style="margin-top:10px">
+        <textarea id="load-code" placeholder="Paste a save code here to load it…" aria-label="Paste a save code" style="min-height:50px;font-family:monospace;font-size:.8rem"></textarea>
+        <button id="load-go" type="button">Load this code</button>
+      </div>
+      <div id="save-status" aria-live="polite"></div>
+    </div>
+    <h3>Keys</h3>
+    <p class="small muted" style="margin:0">1–7 switch tabs; Esc closes this panel. Ctrl+V anywhere (outside a text box) reads a game page.</p>
+    <p style="margin:12px 0 0"><button type="button" id="app-reset">Reset app settings</button></p>
+  </aside>
   <div id="tip-pop" class="small" role="tooltip" hidden></div>
   <footer class="small muted" style="margin:24px 0 8px;text-align:center">
     Fan-made, not affiliated with FarmRPG. Data from <a href="https://buddy.farm" target="_blank" rel="noopener">buddy.farm</a>,
@@ -629,11 +640,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   };
   fixQuestKinds();
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
+  // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
+  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "kitchen"];
+  const U_DEFAULT = { detail: "condensed", layout: "list", bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
+  let U = { ...U_DEFAULT };
+  try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
+  if (S.nextDetail && !localStorage.getItem(UI_STORE)) U.detail = S.nextDetail;      // older saves kept detail with the game data
+  U.bestOrder = [...U.bestOrder.filter(x => BEST_IDS.includes(x)), ...BEST_IDS.filter(x => !U.bestOrder.includes(x))];
+  const saveU = () => { try { localStorage.setItem(UI_STORE, JSON.stringify(U)); } catch (e) {} };
+  const mono = () => U.detail === "mono";
 
   // ---------- Theme ----------
   // "" = Auto: no data-theme, so the page follows the device's light/dark setting
   const setTheme = t => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
   try { const t = localStorage.getItem("frp-theme") || ""; setTheme(t); $("theme").value = t; } catch (e) {}
+  $("theme-pick").innerHTML = $("theme").innerHTML; $("theme-pick").value = $("theme").value;
+  $("theme-pick").addEventListener("change", () => { $("theme").value = $("theme-pick").value; $("theme").dispatchEvent(new Event("change")); });
   $("theme").addEventListener("change", () => {
     const t = $("theme").value;
     setTheme(t);
@@ -1263,8 +1285,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const TAG = { ready: "ready", quest: "Quest", mastery: "Mastery", tower: "Tower" };
     // The tag splits the two parts the ranking blends: active play (AP at your pace) and real waiting time
     // Condensed (to-do lines) or Expanded (the full sentences)
-    const wordy = S.nextDetail === "expanded";
-    document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === (wordy ? "expanded" : "condensed"))));
+    const wordy = U.detail === "expanded";
     $("bites").classList.toggle("wordy", wordy);
     document.querySelector("main").classList.toggle("wordy", wordy);
     const effortTag = c => {
@@ -1308,7 +1329,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     $("bites").innerHTML = extra.slice(0, fixed ? 1 : 0).map(li).join("") + html + extra.slice(fixed ? 1 : 0).map(li).join("");
   }
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { S.nextView = b.dataset.view; save(); render(false); }));
-  document.querySelectorAll("[data-detail]").forEach(b => b.addEventListener("click", () => { S.nextDetail = b.dataset.detail; save(); render(false); }));
+  document.querySelectorAll("[data-detail]").forEach(b => b.addEventListener("click", () => { U.detail = b.dataset.detail; saveU(); syncApp(); render(false); }));
+  document.querySelectorAll("[data-layout]").forEach(b => b.addEventListener("click", () => { U.layout = b.dataset.layout; saveU(); syncApp(); render(false); }));
   $("bites-more").addEventListener("click", () => { S.bitesAll = !S.bitesAll; save(); render(false); });
 
   function wallBite(lv, isNext) {
@@ -1891,12 +1913,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return `<div class="card" style="background:var(--bg);margin-top:10px">
         <div class="row" style="justify-content:space-between"><strong>${esc(t.loc)}: about ${short(amount)} ${UNIT[t.unit]}${t.mode === "until" ? ` (to gather ${short(t.qty)} ${esc(t.item)})` : ""}</strong>
           <button type="button" data-stop-trip="${esc(t.loc)}">Stop this trip</button></div>
-        <p class="small" style="margin:6px 0">${S.nextDetail === "expanded" ? `This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.`
+        <p class="small" style="margin:6px 0">${U.detail === "expanded" ? `This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.`
           : `Finishes: ${done ? `<b>${done} tier${done === 1 ? "" : "s"}</b>` : "none"}${ak ? ` · <b>+${ak} AK</b>` : ""}`}</p>
         <div class="table-wrap"><table><thead><tr><th>Item</th><th class="num">About</th><th>What it does for you</th></tr></thead><tbody>${
           rows.slice(0, 12).map(r => { const nt = r.notes.join("; ") || "—";
             // Condensed: long "where it goes" notes fold away behind a tap
-            const cell = S.nextDetail !== "expanded" && nt.length > 90 ? `<details><summary>${nt.slice(0, nt.search(/[:;(]|$/)).trim() || "where it goes"}</summary>${nt}</details>` : nt;
+            const cell = U.detail !== "expanded" && nt.length > 90 ? `<details><summary>${nt.slice(0, nt.search(/[:;(]|$/)).trim() || "where it goes"}</summary>${nt}</details>` : nt;
             return `<tr><td>${esc(r.item)}</td><td class="num">${short(r.q)}</td><td class="small">${cell}</td></tr>`; }).join("")}</tbody></table></div></div>`;
     }).join("");
   }
@@ -2016,7 +2038,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const towerItem = item => (O.towerUse[item] || []).some(u => (p.items[item] || 0) < TIERS[u.tier === "mm" ? 4 : 3]);
     const list = (items, max) => items.length ? `<ul>${items.slice(0, max).join("")}${items.length > max ? `<li class="muted">and ${items.length - max} more</li>` : ""}</ul>` : `<p class="small muted" style="margin:0">Nothing here.</p>`;
     $("best-list").innerHTML = places.map((x, i) => {
-      const wb = S.nextDetail === "expanded", bitsC = o => o.bits.map(b => b.replace(/^all /, "")).join(", ");
+      const wb = U.detail === "expanded", bitsC = o => o.bits.map(b => b.replace(/^all /, "")).join(", ");
       if (!wb) {
         const mC = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: ✓ ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${r.towerLevels.length ? ` <span class="tag tower">Tower ${r.towerLevels.join(", ")}</span>` : ""}${r.over ? `<details class="small muted"><summary>extras</summary>${r.over}</details>` : ""}</li>`),
           ...x.mPart.map(r => `<li>${esc(r.item)}: +${pct(r.pct)} to ${TIER_NAME[r.next]} <span class="small muted">(~${short(r.q)} of ${short(r.left)})</span>${towerItem(r.item) ? towerTag(r.item, p.items[r.item]) : ""}</li>`)];
@@ -2111,7 +2133,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const row = (c, how) => { const top = c.jobs[0];
       return `<details class="plant-row"><summary><b>${esc(c.crop)}</b> <span class="muted small">${how(c)}</span> — ${top.name}${tagHtml(top)} <span class="muted small">${
         howJob(c, top)}${c.jobs.length > 1 ? ` · +${c.jobs.length - 1} more` : ""}</span></summary>
-        <ul class="small">${c.jobs.slice(0, 8).map(j => S.nextDetail === "expanded"
+        <ul class="small">${c.jobs.slice(0, 8).map(j => U.detail === "expanded"
           ? `<li>${j.name}${tagHtml(j)} — ${short(j.qty)}, ${howJob(c, j)}${c.vj ? ` <span class="muted">(about ${short(j.hours * c.vjPerHour)} Veggie Juice)</span>` : ""}${extraHtml(j)}</li>`
           : `<li>${j.name}${tagHtml(j)} — ${short(j.qty)} · ${howJob(c, j)}${c.vj ? ` · <span class="muted">~${short(j.hours * c.vjPerHour)} Veggie Juice</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul></details>`; };
     let howJob = (c, j) => tm(j.hours);
@@ -2208,7 +2230,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const fullShort = (h, n) => h <= 0 ? `<b class="bad">full now</b>` : `full ${fullWhen(n, h)}`;
     const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : fullWhen(x.n, x.h).replace(/^in /, "")}`).join(" · ")}</span></summary>
       <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h, x.n)})</span> → ${x.sum}${
-        S.nextDetail === "expanded" ? `<br>${x.detail}` : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
+        U.detail === "expanded" ? `<br>${x.detail}` : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
     $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<p class="small muted" style="margin:10px 0 0">${Object.keys(STANDING).filter(n => perDay[n]).map(esc).join(", ")}: see <a href="#" data-go="grinds">Slow grinds</a>.</p>` : "");
     $("grind-standing").innerHTML = (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
         Object.keys(STANDING).filter(n => perDay[n]).map(n => `${esc(n)} → ${esc(STANDING[n][STANDING[n].length - 1])}`).join(" · ")}</span></summary>
@@ -2279,7 +2301,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     else if (sortBy === "saved") rows.sort((a, b) => b.saved - a.saved);
     $("grind-sort").innerHTML = `Sort: ${Object.entries(sorts).map(([k, v]) => `<a href="#" data-gsort="${k}"${sortBy === k ? ' style="font-weight:700"' : ""}>${v}</a>`).join(" · ")}`;
     $("whatif-sort").innerHTML = "";
-    const wordy = S.nextDetail === "expanded";
+    const wordy = U.detail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
     const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])}${x.craftedPerDay ? ` + ~${short(x.craftedPerDay)} crafted a day` : ""})` : ""}` : UNIT[x.kind] || esc(x.kind);
     // Crops: everyone plants one crop in every plot, so a crop need is a number of harvests (and growth time before Veggie Juice)
@@ -2474,7 +2496,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const UNIT = { LN: "Large Net", AP: "Arnold Palmer", AC: "Apple Cider" };
     const daysTo = d => need == null || !(d > 0) ? "" : need <= 0 ? " · goal reached" : ` · goal in <b>${longText(need / d)}</b>`;
     const by = x => x.kind === "prod" ? `${esc(x.by)}${BUILDING[x.by] ? ` (${esc(BUILDING[x.by])})` : ""}` : `${UNIT[x.by] || esc(x.by)}s a day`;
-    const wordy = S.nextDetail === "expanded";
+    const wordy = U.detail === "expanded";
     const timed = rows.filter(r => r.silverDay != null).slice(0, 6);
     const line = r => r.kind === "fish"
       ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish. Shrimp-a-Plenty (+10% silver) and Sea Pincher Special (+10% fish) while netting: ~${short(r.perUnit.LN * 1.21)} a net.</span></li>`
@@ -2600,8 +2622,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     }).sort((a, b) => (b.short > 0) - (a.short > 0) || a.have - b.have);
     const tagT = x => x.tower ? towerTag(x.n, p.items[x.n], "") : "";
     $("kitchen-list").innerHTML = (rows.length ? rows.map(x => `<details class="plant-row"><summary><b>${esc(x.n)}</b> <span class="muted small">have ${fmt(x.have)}</span>${tagT(x)} — ${
-        x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${S.nextDetail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
-        ${S.nextDetail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
+        x.short ? `<b>${fmt(x.short)} more for quests</b>` : `${fmt(x.make)} more`} <span class="muted small">· ${x.rounds > 1 ? `${fmt(x.rounds)} rounds, ` : ""}${U.detail === "expanded" ? "about " : "~"}${minText(x.mins)}${x.ap >= 1 ? ` · ~${short(x.ap)} AP` : ""}</span></summary>
+        ${U.detail !== "expanded" ? `<div class="small" style="margin:2px 0 6px 18px">${/\d|%/.test(x.m.effect) ? `<span class="muted">${esc(effectText(x.m.effect))}</span>` : ""}
           ${x.short ? `<span style="display:block">For ${why[x.n].join(", ")}</span>` : ""}
           <span style="display:block">${fmt(x.make)} meal${x.make === 1 ? "" : "s"} · ${x.rounds > 1 ? `${fmt(x.rounds)} rounds` : "1 round"} of ${minText(cookMinutes(x.n, x.m))}${S.perks.stirs ? ` (${S.perks.stirs} stir${S.perks.stirs === 1 ? "" : "s"})` : ""}</span>
           ${x.e ? `<ul class="bite-parts">${todoLines(x.e).map(l => `<li>${l}</li>`).join("")}</ul>` : `<span class="muted">Ingredients can't be costed yet.</span>`}</div></details>` : `<div class="small" style="margin:2px 0 6px 18px"><p style="margin:0 0 4px" class="muted">${esc(effectText(x.m.effect))}</p>${
@@ -2748,7 +2770,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         else if (item === "Beet" && x) { const gj = Math.ceil(need / x.perRound);
           refill = `${fmt(gj)} Grape Juices (you have ${short(onHand["Grape Juice"] || 0)}), planting ${fmt(gj * (S.perks.plots || 0))} ${esc(x.seed)} (you have ${short(onHand[x.seed] || 0)})`; }
         else if (x) refill = `about ${minText(need / x.perHour * 60)} of farming`;
-        else { const e0 = C.effort(item, need), e = e0 && adjust(e0); refill = e ? (S.nextDetail === "expanded" ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") : todoLines(e).join(" · ")) || "—" : "can't cost"; }
+        else { const e0 = C.effort(item, need), e = e0 && adjust(e0); refill = e ? (U.detail === "expanded" ? [passiveText(e.passive), placeMix(e.byPlace, 2, e.forWhat)].filter(Boolean).join(" + ") : todoLines(e).join(" · ")) || "—" : "can't cost"; }
       }
       return { item, per, have, makes: Math.floor(have / per), refill, x };
     });
@@ -2772,7 +2794,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const beetGJ = beet && beet.x ? Math.ceil(cycle * 15 / beet.x.perRound) : null, beetSeeds = beetGJ ? beetGJ * (S.perks.plots || 0) : 0;
     const table = `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
         rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
-    if (S.nextDetail !== "expanded") {
+    if (U.detail !== "expanded") {
       const stepC = twMakes < 1 ? `<b>Grow Tomato and Watermelon</b> until full` : quick.some(x => x.makes <= now && x.have < cap * 0.95)
         ? `<b>Breakfast Boost</b> the quick crops: ~${fmt(quick.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0))} harvests`
         : beet && beet.makes <= now ? `<b>Grape Juice the Beets</b> until full` : `<b>Craft Veggie Juice</b>: ${fmt(now)} now`;
@@ -3008,7 +3030,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
           : `<ul class="bite-parts small">${questTodo(n).map(x => `<li>${x}</li>`).join("")}</ul>${st ? `<span class="small muted" style="display:block">Also uses ${st}</span>` : ""}`}
         <span class="small muted" style="display:block">Reward: ${rewardShort(data, p)}</span>
         ${nextNames.length ? `<span class="small muted" style="display:block">Next: ${nextNames[0]}</span>` : ""}</li>`;
-      const html = S.nextDetail === "expanded" ? `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
+      const html = U.detail === "expanded" ? `<li><div class="row" style="justify-content:space-between"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
         <span class="small">${costTxt}</span> ${verdict}<br>
         <span class="small">Reward${val.value >= 1 ? ` <span class="muted">(all of it together worth about ${short(val.value)} AP to you${data.rSilver || data.rGold ? "; silver and gold not counted" : ""})</span>` : ""}: ${rewardText(data, p)}${val.special.length ? ` <span class="muted">(can't value: ${val.special.slice(0, 3).map(esc).join(", ")}${val.special.length > 3 ? "…" : ""})</span>` : ""}${val.special.traded ? ` <span class="muted">(trade-chat price for ${val.special.traded.slice(0, 3).map(esc).join(", ")}${val.special.traded.length > 3 ? "…" : ""})</span>` : ""}${val.special.rough ? ` <span class="muted">(rough value for ${val.special.rough.slice(0, 3).map(esc).join(", ")}, from what they're used in)</span>` : ""}</span>
         ${ahead.length ? `<br><span class="small muted">Next in the chain: ${ahead.join(" → ")}</span>` : ""}</li>` : condensed;
@@ -3019,7 +3041,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump };
     }).sort((a, b) => a.rank - b.rank || b.score - a.score);
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
-    const cls = `bites${S.nextDetail === "expanded" ? " wordy" : ""}`;
+    const cls = `bites${U.detail === "expanded" ? " wordy" : ""}`;
     $("quest-list").innerHTML = `<ol class="${cls}">${vis.map(c => c.html).join("")}</ol>` +
       (hid.length ? `<details><summary>Hidden by you (${hid.length})</summary><ol class="${cls}">${hid.map(c => c.html).join("")}</ol></details>` : "");
   }
@@ -3251,6 +3273,26 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip, .has-tip"); if (t && !t.contains(e.relatedTarget)) $("tip-pop").hidden = true; });
   document.addEventListener("focusin", e => { if (e.target.classList && (e.target.classList.contains("tip") || e.target.classList.contains("has-tip"))) showTip(e.target); });
   document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("tip")) $("tip-pop").hidden = true; });
+
+  // ---------- App settings panel ----------
+  function syncApp() {
+    document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === U.detail)));
+    document.querySelectorAll("[data-layout]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.layout === U.layout)));
+  }
+  let gearFrom = null;
+  const openApp = on => {
+    $("app-settings").hidden = $("app-shade").hidden = !on;
+    if (on) { gearFrom = document.activeElement; syncApp(); $("app-close").focus(); } else if (gearFrom) gearFrom.focus();
+  };
+  $("gear").addEventListener("click", () => openApp(true));
+  $("app-close").addEventListener("click", () => openApp(false));
+  $("app-shade").addEventListener("click", () => openApp(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("app-settings").hidden) openApp(false); });
+  $("app-reset").addEventListener("click", () => {
+    if (!confirm("Reset the app settings (detail, layout, Best use order, folded cards)? Your game data stays.")) return;
+    U = { ...U_DEFAULT, folded: {}, open: {} }; saveU(); syncApp(); render(false);
+  });
+  syncApp();
 
   // ---------- Tabs ----------
   // One tab shows at a time. The choice is remembered on this device; with no Mastery paste yet, start on Setup.
