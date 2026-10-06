@@ -545,11 +545,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-vj" style="margin:0">Veggie Juice cycle</h2>
     </div>
-    <ol class="mono-hide small muted" style="margin:0 0 8px;padding-left:20px">
-      <li>Grow Tomato and Watermelon (taking turns) when the plots are free, until full.</li>
-      <li>Breakfast Boost the five quick crops until full.</li>
-      <li>Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out. Repeat.</li>
-    </ol>
+    <details class="mono-hide small" id="vj-how" style="margin:0 0 8px;border:0;padding:0"><summary class="muted">How the cycle works</summary>
+      <ol id="vj-steps" style="margin:4px 0 0;padding-left:20px"></ol></details>
     <div class="mono-hide" id="vj-cycle"></div>
     <ul class="mono-list" id="mono-vj"></ul>
   </section>
@@ -3153,29 +3150,24 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const now = Math.min(...rows.map(x => x.makes)), limit = rows.filter(x => x.makes === now).map(x => x.item);
     const tw = rows.filter(x => x.item === "Tomato" || x.item === "Watermelon"), quick = rows.filter(x => x.x && x.x.base <= 5), beet = rows.find(x => x.item === "Beet");
     const twMakes = Math.min(...tw.map(x => x.makes)), cycle = Math.floor(cap / 2);
-    // Where you are in the loop
-    let step;
-    if (twMakes < 1) step = `<b>Grow Tomato and Watermelon</b> (taking turns) until full: ${tw.map(x => `${esc(x.item)} ${x.refill}`).join(", ")}.`;
-    else if (quick.some(x => x.makes <= now && x.have < cap * 0.95)) {
-      const need = quick.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0);
-      step = `<b>Breakfast Boost</b> the five quick crops until full: about ${fmt(need)} harvests (${need <= rounds ? "1 Boost" : `about ${fmt(Math.ceil(need / rounds))} Boosts`}).`;
-    } else if (beet && beet.makes <= now) step = `<b>Grape Juice the Beets</b> until full: ${beet.refill}.`;
-    else step = `<b>Craft Veggie Juice</b>: you can make ${fmt(now)} now.`;
     // Non-crop ingredients (Twine, Horn, Glass Bottle) that would run out before the crops do
     const cropMakes = Math.min(...rows.filter(x => x.x).map(x => Math.max(x.makes, Math.floor(cap / x.per))));
     const short1 = rows.filter(x => !x.x && x.makes < cropMakes);
-    if (short1.length) step += ` Also top up ${short1.map(x => `<b>${esc(x.item)}</b> (enough for ${fmt(x.makes)}; ${x.refill})`).join(", ")}.`;
+    const names = xs => xs.map(x => esc(x.item)).join(", ").replace(/, ([^,]*)$/, " and $1");
+    $("vj-steps").innerHTML = `<li>Grow ${names(tw) || "Tomato and Watermelon"} (taking turns) until full.</li>
+      <li>Breakfast Boost ${names(quick) || "the quick crops"} (crops of 5 minutes or less) until full.</li>
+      <li>Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out. Repeat.</li>`;
     // A whole cycle: Tomato + Watermelon (2 each) set the size; the rest refill several times along the way
     const quickRounds = quick.length ? Math.ceil(cycle * 7 / quick[0].x.perRound) * quick.length : 0;
     const beetGJ = beet && beet.x ? Math.ceil(cycle * 15 / beet.x.perRound) : null, beetSeeds = beetGJ ? beetGJ * (S.perks.plots || 0) : 0;
+    let act;
     {
       // One step; waiting on a non-crop part only once every crop is full
-      const notFull = xs => xs.filter(x => x.have < cap * 0.95), names = xs => xs.map(x => esc(x.item)).join(", ").replace(/, ([^,]*)$/, " and $1");
+      const notFull = xs => xs.filter(x => x.have < cap * 0.95);
       const boostLeft = xs => xs.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0);
       const fill = xs => { const t = xs.filter(x => x.item === "Tomato" || x.item === "Watermelon"), q = xs.filter(x => x.x && x.x.base <= 5), b = xs.find(x => x.item === "Beet");
         return t.length ? `<b>Grow ${names(t)}</b> until ${short(cap)}` : q.length ? `<b>Breakfast Boost ${names(q)}</b> until full <span class="small muted">(~${fmt(boostLeft(q))} harvests)</span>`
           : b ? `<b>Grape Juice the Beets</b> until full` : null; };
-      let act;
       if (twMakes < 1) act = fill(notFull(tw));
       else if (quick.some(x => x.makes <= now && x.have < cap * 0.95)) act = fill(notFull(quick));
       else if (beet && beet.makes <= now) act = fill([beet]);
@@ -3186,17 +3178,15 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     }
     const table = `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th class="num">Each</th><th class="num">Have</th><th class="num">Makes</th><th>To fill up</th></tr></thead><tbody>${
         rows.map(x => `<tr${limit.includes(x.item) ? ' class="bad"' : ""}><td>${esc(x.item)}</td><td class="num">${x.per}</td><td class="num">${short(x.have)}</td><td class="num">${short(x.makes)}</td><td class="small">${x.refill}</td></tr>`).join("")}</tbody></table></div>`;
+    const cycleLine = `~${fmt(cycle)} Veggie Juice from full Tomatoes and Watermelons · ~${fmt(quickRounds)} Boost harvests (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${
+      beetGJ ? ` · ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""}`;
     if (U.detail !== "expanded") {
-      const stepC = twMakes < 1 ? `<b>Grow Tomato and Watermelon</b> until full` : quick.some(x => x.makes <= now && x.have < cap * 0.95)
-        ? `<b>Breakfast Boost</b> the quick crops: ~${fmt(quick.reduce((s, x) => s + Math.ceil(Math.max(0, cap - x.have) / x.x.perRound), 0))} harvests`
-        : beet && beet.makes <= now ? `<b>Grape Juice the Beets</b> until full` : `<b>Craft Veggie Juice</b>: ${fmt(now)} now`;
-      $("vj-cycle").innerHTML = `<p style="margin:0 0 4px"><b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice · can craft <b>${fmt(now)}</b> now <span class="muted small">(short on ${limit.map(esc).join(", ")})</span></p>
-        <ul class="bite-parts"><li>Next: ${stepC}</li>${short1.map(x => `<li>Top up <b>${esc(x.item)}</b> <span class="muted">(enough for ${fmt(x.makes)})</span>: ${x.refill}</li>`).join("")}</ul>
-        <p class="small muted" style="margin:4px 0 8px">Full cycle: ~${fmt(cycle)} Veggie Juice · ~${fmt(quickRounds)} Boost harvests (${fmt(Math.ceil(quickRounds / rounds))} Boosts)${
-          beetGJ ? ` · ${fmt(beetGJ)} Grape Juices for Beets (${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""})` : ""}</p>${table}`;
+      $("vj-cycle").innerHTML = `<p style="margin:0 0 4px"><b>${fmt(onHand["Veggie Juice"] || 0)}</b> Veggie Juice · can craft <b>${fmt(now)}</b> now <span class="muted small">(short on ${limit.slice(0, 3).map(esc).join(", ")}${limit.length > 3 ? ` and ${limit.length - 3} more` : ""})</span></p>
+        <p style="margin:0">Next: ${act}</p>
+        <details class="small" style="margin-top:8px"><summary class="muted">Ingredients and the full cycle</summary><p class="muted" style="margin:6px 0 0">Full cycle: ${cycleLine}</p>${table}</details>`;
     } else $("vj-cycle").innerHTML = xpList([
         ["Now", `${fmt(onHand["Veggie Juice"] || 0)} Veggie Juice; can craft <b>${fmt(now)}</b> (limited by ${limit.map(esc).join(", ")})`],
-        ["Next", step],
+        ["Next", act],
         ["Cycle", [`about ${fmt(cycle)} Veggie Juice from full Tomatoes and Watermelons`, `~${fmt(quickRounds)} Boost harvests (${fmt(Math.ceil(quickRounds / rounds))} Boosts)`,
           ...(beetGJ ? [`${fmt(beetGJ)} Grape Juices for Beets: ${fmt(beetSeeds)} ${esc(beet.x.seed)}${(onHand[beet.x.seed] || 0) < beetSeeds ? `; <b>you have ${short(onHand[beet.x.seed] || 0)}</b>` : ""}`] : [])]]]) + table;
     // Calculator crop list
