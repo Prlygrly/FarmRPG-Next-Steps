@@ -46,7 +46,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do
   these next and the quest picks. A 7-day window marks a special as ending soon. Kitchen never uses meal prices (meals aren't
   sold).[^player]
-- Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar (red to green; Steaks and Kabobs green at both ends): today's price
+- Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar (red to green; Steaks and Kabobs blue for buy, green for sell): today's price
   against the lines.[^player]
 - Slow grinds name where to gather the limiting part (Feathers for White Parchment at its explore place). When Grapes are
   the limit and below the cap, times assume Grapes raised to the cap now and kept there as the cap grows, with the silver

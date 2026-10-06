@@ -292,10 +292,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   #quick-msg { max-width: none; }
 }
 @media (pointer: coarse) { button:not(.fold), select { min-height: 40px; } }
-/* Good-bad bar: red (bad) to green (good); Steaks and Kabobs are good at both ends (buy low, sell high) */
+/* Good-bad bar: red (bad) to green (good); Steaks and Kabobs: blue = buy (low), green = sell (high) */
 .heat { position: relative; height: 10px; width: min(420px, calc(100% - 40px)); margin: 26px 20px 22px; border-radius: 5px;
   background: linear-gradient(90deg, #D23A3A, #E8873A 30%, #F2D675 55%, #8FCB6B 78%, #2B9A5A); }
-.heat.swing { background: linear-gradient(90deg, #2B9A5A, #8FCB6B 20%, #F2D675 50%, #8FCB6B 80%, #2B9A5A); }
+.heat.swing { background: linear-gradient(90deg, #2F6FD6, #7FB3E8 22%, #F2D675 50%, #8FCB6B 78%, #2B9A5A); }
 .heat-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); transform: translateX(-1px); }
 .heat-lbl { position: absolute; top: 13px; transform: translateX(-50%); font-size: .7rem; color: var(--muted); white-space: nowrap; }
 .heat.two { margin-bottom: 34px; }
@@ -303,7 +303,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .heat-dot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink);
   transform: translate(-50%, -50%); z-index: 1; }
 .heat-val { position: absolute; top: -22px; transform: translateX(-50%); font-size: .75rem; font-weight: 700; white-space: nowrap; }
-.heat-dot.sell, .heat-dot.buy { background: #2B9A5A; } .heat-dot.hold { background: #D23A3A; } .heat-dot.warn { background: #E0A21B; }
+.heat-dot.sell { background: #2B9A5A; } .heat-dot.buy { background: #2F6FD6; } .heat-dot.hold { background: #D23A3A; } .heat-dot.warn { background: #E0A21B; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -2680,7 +2680,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return has && !(S.steakMarket && gameDay(S.steakMarket.at) === gameDay(Date.now()));
   }
   // Good-bad bar from lo to hi: ticks at the lines, a dot at today's price
-  // tone: sell / buy (green dot), hold (red), warn (amber). Every line is labelled: labels too close drop to a second row.
+  // tone: sell (green dot), buy (blue), hold (red), warn (amber). Every line is labelled: labels too close drop to a second row.
   const heatBar = (lo, hi, ticks, v, what, tone, swing = false) => {
     const at = x => Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100)).toFixed(1);
     const last = [-100, -100];
