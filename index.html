@@ -124,6 +124,10 @@ main[data-tab="trips"] > section[data-tab="trips"]:not([hidden]),
 main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
 main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
+/* Best use: a "Go to" line that stays at the top while scrolling */
+.jump { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 6px 0; margin: 0 0 8px; }
+.jump a { white-space: nowrap; }
+main[data-tab="best"] > section[data-tab="best"] { scroll-margin-top: 72px; }
 /* Spend my…: each place's masteries and quests side by side (stacked on phones) */
 .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 4px 16px; }
 .two-col h4 { margin: 8px 0 4px; font-size: .95em; }
@@ -299,6 +303,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="quests" id="quests-empty" hidden>
     <p style="margin:0">Paste your <b>Help Needed</b> page in the <a href="#" data-go="setup">Setup</a> tab to see your quests here.</p>
+  </section>
+  <section class="jump small" data-tab="best" id="best-nav" aria-label="Best use sections">Go to:
+    <a href="#best" data-jump="best">Spend my…</a> · <a href="#plant" data-jump="plant">What to plant</a> ·
+    <a href="#overflow" data-jump="overflow">Daily overflow</a> · <a href="#steak-card" data-jump="steak-card">Steak Market</a> ·
+    <a href="#silver-goal" data-jump="silver-goal">Silver goal</a> · <a href="#kitchen" data-jump="kitchen">Kitchen</a>
   </section>
   <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
     <div class="row" style="justify-content:space-between;align-items:center">
@@ -1062,6 +1071,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     renderGrinds(p);
     renderSilverGoal(p);
     renderSteak();
+    // "Go to" links only for sections showing (the separators go with them)
+    document.querySelectorAll("#best-nav [data-jump]").forEach(a => { const off = $(a.dataset.jump).hidden; a.hidden = off; if (a.nextSibling && a.nextSibling.nodeType === 3) a.nextSibling.textContent = off ? " " : " · "; });
     renderKitchen(p);
     $("quests").hidden = !questList().length;
     if (questList().length) renderQuests(p);
@@ -2323,6 +2334,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
     $("grind-list").innerHTML = noStore + (html.length ? html.join("") : `<p class="small muted">Nothing takes longer than ${fmt(S.perks.grindDays || 180)} days at your production.</p>`) + none + untimed + hand;
   }
+  // Best use "Go to" links scroll to the section (the address bar's "#" part is kept for QR codes)
+  $("best-nav").addEventListener("click", e => {
+    const a = e.target.closest("[data-jump]"); if (!a) return;
+    e.preventDefault(); $(a.dataset.jump).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  });
   // ---------- Steak Market: sell Truffles? buy or sell Steaks and Kabobs? ----------
   // Truffle lines are the community's (knowledge/mechanics/steak-market.md); Steak and Kabob lines come from your pasted
   // history (10th and 90th percentile) or, without one, from a 90-day / 24-hour sample.
