@@ -252,6 +252,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 #app-settings .seg { display: flex; flex-wrap: wrap; gap: 4px; }
 #app-settings .seg button[aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); font-weight: 700; }
 #gear { width: 36px; height: 36px; padding: 0; display: grid; place-items: center; font-size: 1.15rem; }
+/* Folding cards: the heading row stays */
+.card.folded > :not(.card-head) { display: none !important; }
+.card.folded { padding-bottom: 10px; }
+.fold { background: none; border: 0; padding: 0 6px 0 0; font-size: .85em; color: var(--muted); vertical-align: middle; }
+.fold:hover { color: var(--ink); }
+#fold-bar { text-align: right; margin: -8px 0 8px; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -298,6 +304,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
   </nav>
+  <p id="fold-bar" class="small"><a href="#" data-fold-all="1">Collapse all</a> · <a href="#" data-fold-all="0">Expand all</a></p>
   <div id="stale-banner" class="small" hidden></div>
   <details id="changes" class="card" hidden style="padding:10px 14px">
     <summary id="changes-sum"></summary>
@@ -386,7 +393,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     <p class="small muted" style="margin:0">Computer: Ctrl+A, Ctrl+C, paste below. Phone: save the page, then <b>Upload a saved page</b>. Nothing leaves this browser.</p>
   </section>
 
-  <section class="card" data-tab="setup" aria-labelledby="h-paste">
+  <section class="card" data-tab="setup" id="paste-card" aria-labelledby="h-paste">
     <div class="row" style="justify-content:space-between">
       <h2 id="h-paste" style="margin:0">Paste a page from the game</h2>
       <button id="paste-toggle" type="button" aria-expanded="true" aria-controls="paste-body">Hide</button>
@@ -485,7 +492,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     </ol>
     <div id="vj-cycle"></div>
   </section>
-  <section class="card" data-tab="vj" aria-labelledby="h-vjc">
+  <section class="card" data-tab="vj" id="vj-calc" aria-labelledby="h-vjc">
     <h2 id="h-vjc">Veggie Juice calculator</h2>
     <p class="small muted">Each Veggie Juice takes <span id="vj-cut-text">10%</span> off the time <b>left</b>, never below 1 minute: use them all right after planting. <span class="tip" data-tip="20% once the questline "A Better Juice" is done." aria-label="20% once the questline "A Better Juice" is done." tabindex="0">ⓘ</span></p>
     <div class="row">
@@ -3323,6 +3330,37 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   document.addEventListener("focusin", e => { if (e.target.classList && (e.target.classList.contains("tip") || e.target.classList.contains("has-tip"))) showTip(e.target); });
   document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("tip")) $("tip-pop").hidden = true; });
 
+  // ---------- Folding cards (remembered) ----------
+  // Each card's heading gets a ▾ button; folded cards keep only their heading row. Named <details> remember open/shut too.
+  const cards = [...document.querySelectorAll("main > section.card[id]")].filter(c => c.querySelector("h2"));
+  for (const c of cards) {
+    const h = c.querySelector("h2"), head = [...c.children].find(k => k === h || k.contains(h));
+    head.classList.add("card-head");
+    h.insertAdjacentHTML("afterbegin", `<button type="button" class="fold" data-fold="${c.id}" aria-expanded="true" aria-label="Fold or unfold this card">▾</button>`);
+  }
+  function syncFolds() {
+    for (const c of cards) {
+      const f = !!U.folded[c.id], b = c.querySelector("[data-fold]");
+      c.classList.toggle("folded", f); b.textContent = f ? "▸" : "▾"; b.setAttribute("aria-expanded", String(!f));
+    }
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-fold], [data-fold-all]"); if (!b) return;
+    e.preventDefault();
+    if (b.dataset.fold) { if (U.folded[b.dataset.fold]) delete U.folded[b.dataset.fold]; else U.folded[b.dataset.fold] = true; }
+    else {
+      const tab = document.querySelector("main").dataset.tab;
+      for (const c of cards) if (c.dataset.tab === tab) { if (b.dataset.foldAll === "1") U.folded[c.id] = true; else delete U.folded[c.id]; }
+    }
+    saveU(); syncFolds();
+  });
+  for (const [id, on] of Object.entries(U.open)) { const d = document.getElementById(id); if (d && d.tagName === "DETAILS") d.open = on; }
+  document.addEventListener("toggle", e => {
+    const d = e.target; if (!d.id || d.tagName !== "DETAILS" || d.id === "changes") return;
+    U.open[d.id] = d.open; saveU();
+  }, true);
+  syncFolds();
+
   // ---------- App settings panel ----------
   function syncApp() {
     document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === U.detail)));
@@ -3339,7 +3377,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("app-settings").hidden) openApp(false); });
   $("app-reset").addEventListener("click", () => {
     if (!confirm("Reset the app settings (detail, layout, Best use order, folded cards)? Your game data stays.")) return;
-    U = { ...U_DEFAULT, folded: {}, open: {} }; saveU(); syncApp(); render(false);
+    U = { ...U_DEFAULT, folded: {}, open: {} }; saveU(); syncApp(); syncFolds(); render(false);
   });
   syncApp();
 
