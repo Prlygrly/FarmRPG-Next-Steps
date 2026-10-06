@@ -46,14 +46,15 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do
   these next and the quest picks. A 7-day window marks a special as ending soon. Kitchen never uses meal prices (meals aren't
   sold).[^player]
-- Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar (red to green; Steaks and Kabobs blue for buy, green for sell): today's price
-  against the lines.[^player]
+- Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar of today's price
+  against the lines: red to green for Truffles; blue (buy) to green (sell) for Steaks and Kabobs.[^player]
 - Slow grinds name where to gather the limiting part (Feathers for White Parchment at its explore place). When Grapes are
   the limit and below the cap, times assume Grapes raised to the cap now and kept there as the cap grows, with the silver
   that costs (see [building upgrades](/mechanics/building-upgrades.md)).[^player]
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
-  cleared by Forget my pastes. The last 3 pastes can be undone.[^player]
+  cleared by Forget my pastes. The last 3 pastes (and save-code loads) can be undone.[^player]
+- A My Inventory paste always replaces the old one, however small: an item missing from it is 0 now.[^player]
 - **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
   and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
   budget.[^player]

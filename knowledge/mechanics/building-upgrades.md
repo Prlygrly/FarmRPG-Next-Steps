@@ -24,7 +24,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T12:00:00Z }
 
   | Item | Rate | Unit | Check |
   |---|---|---|---|
-  | Grapes (Vineyard) | 2,000 | per day | 11,000 -> 11,001 = 22,002,000 (no limit on how many; the price rises with the amount) |
+  | Grapes (Vineyard) | 2,000 | per day | 11,000 -> 11,001 = 22,002,000 (no limit on how many; each costs 2,000 more than the last) |
   | Worms | 250 | per hour | 11,001 = 2,750,250 |
   | Gummy Worms | 25,000 | per hour | 2,001 = 50,025,000 |
   | Mealworms | 10,000 | per hour | 2,001 = 20,010,000 |
