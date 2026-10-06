@@ -267,6 +267,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mono-list > li:last-child { border-bottom: 0; }
 .mono-list .lbl { display: block; color: var(--muted); font-size: .8rem; }
 .mono-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.mono-row > div:first-child { flex: 1; min-width: 0; }
 .mono-btns { display: flex; gap: 4px; white-space: nowrap; }
 .mono-d { border: 0; padding: 0; margin: 2px 0 0; }
 .mono-d > summary { display: inline; list-style: none; font: 400 .8rem "Atkinson Hyperlegible", sans-serif; color: var(--focus); text-decoration: underline; }
@@ -291,6 +292,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   #quick-msg { max-width: none; }
 }
 @media (pointer: coarse) { button:not(.fold), select { min-height: 40px; } }
+/* Cold-hot bar: today's price against the buy / sell lines */
+.heat { position: relative; height: 10px; width: min(420px, calc(100% - 16px)); margin: 8px 8px 22px; border-radius: 5px;
+  background: linear-gradient(90deg, #3B6FD0, #7FB3E8 35%, #F2D675 62%, #E8873A 82%, #D23A3A); }
+.heat-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); transform: translateX(-1px); }
+.heat-lbl { position: absolute; top: 13px; transform: translateX(-50%); font-size: .7rem; color: var(--muted); white-space: nowrap; }
+.heat-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink);
+  transform: translate(-50%, -50%); z-index: 1; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -402,13 +410,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" data-tab="best" id="steak-card" aria-labelledby="h-steak" hidden>
     <h2 id="h-steak" style="margin:0 0 4px">Steak Market today</h2>
-    <p class="small muted" style="margin:0 0 6px">From your Steak Market paste. Truffles and Steaks change at reset, Kabobs every hour.</p>
-    <div id="steak-list"></div>
+    <p class="mono-hide small muted" style="margin:0 0 6px">From your Steak Market paste. Truffles and Steaks change at reset, Kabobs every hour.</p>
+    <div class="mono-hide" id="steak-list"></div>
+    <ul class="mono-list" id="mono-steak"></ul>
   </section>
   <section class="card" data-tab="best" id="silver-goal" aria-labelledby="h-silver-goal">
     <h2 id="h-silver-goal" style="margin:0 0 4px">Silver goal</h2>
     <p class="mono-hide small muted" style="margin:0 0 6px">Ways to earn silver with what you have. Prices include your sell perks and masteries.</p>
-    <div class="mono-hide row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
+    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px"><label class="field"><span>Saving up (silver)<span class="tip" data-tip="Blank: your next Tower level." tabindex="0"> ⓘ</span></span><input type="number" min="0" id="silver-goal-in" style="width:11em"></label></div>
     <div class="mono-hide" id="silver-goal-list"></div>
     <ul class="mono-list" id="mono-silver-goal"></ul>
   </section>
@@ -700,7 +709,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const saveU = () => { try { localStorage.setItem(UI_STORE, JSON.stringify(U)); } catch (e) {} };
   const mono = () => U.detail === "mono";
   // Monotask: each card shows one thing; "more" opens that card's full view until the page reloads
-  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "silver-goal", "kitchen", "vj", "quests"];
+  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "steak-card", "silver-goal", "kitchen", "vj", "quests"];
   const monoCard = () => mono();
   // Expanded: [label, value] rows; a value can be a list. Empty rows drop out.
   const xpList = rows => `<ul class="xp">${rows.filter(([, v]) => v != null && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) =>
@@ -916,6 +925,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
     while (list.length) { try { localStorage.setItem(UNDO_STORE, JSON.stringify(list)); break; } catch (e) { list = list.slice(1); } }   // too big: drop the oldest
+    if (!list.length) try { localStorage.removeItem(UNDO_STORE); } catch (e) {}
     renderUndo();
   }
   function undoPaste(i) {
@@ -975,6 +985,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     checks: "Roughly how often you check the game. Crops only get harvested when you look, so this sets how often a planting can be collected; a crop that's ready sooner doesn't come in any faster.",
     vj: "How you use Veggie Juice on planted crops (Breakfast Boost crops are left out). It changes crop times everywhere in the planner.",
     abj: "Finishing Mariya's questline \"A Better Juice\" (needs Tower 100 and Farming, Fishing, Crafting and Exploring at 99) makes each Veggie Juice take 20% off a crop's time left instead of 10%. The planner assumes it's done once you qualify and none of it is in Help Needed; tick this if you haven't actually finished it.",
+    daily: "Personal requests then count as ending today: they go first in Do these next and in quest picks.",
     stirs: "How many times you usually stir each meal. The first stir is possible after 1 minute, then every 15 minutes; each takes 10% off the time left.",
     boost: "How many Plant All + Harvest All rounds you usually manage during one 2-minute Breakfast Boost."
   };
@@ -1036,6 +1047,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     `<option value="count">A set number each planting</option><option value="target">Down to a set time</option></select></label>` +
     `<label class="field" id="vj-count-wrap">Juices each planting <input type="number" min="1" max="100" data-perk="vjCount"></label>` +
     `<label class="field" id="vj-target-wrap">Down to (minutes) <input type="number" min="1" max="100000" data-perk="vjTarget"></label>` +
+    `<label class="small"><input type="checkbox" data-perk="dailyRequests"> I do personal requests every day${tip(TIPS.daily)}</label>` +
     `<label class="small" id="abj-wrap"><input type="checkbox" data-perk="abjNotDone"> The questline "A Better Juice" isn't done yet${tip(TIPS.abj)}</label>` +
     `<span class="small muted" id="vj-cut-note"></span>` +
     `<label class="field"><span>Stirs per meal${tip(TIPS.stirs)}</span> <input type="number" min="0" max="100" data-perk="stirs"></label>` +
@@ -1374,7 +1386,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const ready = !n.missing.length && !n.levels.length;
       const hours = timeOf({ passive: n.passive });
       const st = stockText(n.stock);
-      const days = q.section === "special" ? daysLeft(q, data) : null;
+      const days = questDays(q, data);
       cands.push({
         t: `${ready ? "Turn in" : "Do"} the quest ${esc(q.name)}${q.kind === "main" ? " (main quest)" : ""}${days != null ? ` (${endsText(days)})` : ""}`,
         // Lists as lists: what's still needed, then how to get it
@@ -1386,7 +1398,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
             n.uncosted.length ? ` (can't cost ${n.uncosted.map(esc).join(", ")} yet)` : ""}.`)
           + (val.value >= 1 ? ` Reward worth about ${short(val.value)} AP.` : ""),
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
-        done: doneBtn("quest", { name: qkey(q) }), target: unknown ? null : questTarget(q, n), qkey: qkey(q),
+        done: doneBtn("quest", { name: qkey(q) }), target: unknown ? null : questTarget(q, n), qkey: qkey(q), days,
         xp: { why: `${val.value >= 1 ? `reward ~${short(val.value)} AP: ` : "reward: "}${rewardShort(data, p)}`,
           needs: ready ? `ready${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}${m.effort ? "" : ` <span class="muted">(${questSourceText(m.item) || "can't cost yet"})</span>`}`)],
           where: ready ? null : [...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
@@ -1397,7 +1409,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const apm = Math.max(1, S.perks.apPerMin || 100), wait = (S.perks.waitWorth ?? 20) / 60;
     for (const c of cands) c.mins = c.ready ? 0 : c.cost === Infinity ? Infinity : c.cost / apm + c.hours * 60 * wait;
     for (const c of cands) c.kind = c.ready ? "ready" : c.main || /quest/.test(c.t) ? "quest" : /Tower level/.test(c.t) ? "tower" : "mastery";
-    cands.sort((a, b) => a.mins - b.mins);
+    cands.sort((a, b) => (a.days === 0 ? 0 : 1) - (b.days === 0 ? 0 : 1) || a.mins - b.mins);      // ending today first
     const isLvl = c => /to reach Tower level/.test(c.t) || /^Climb to Tower/.test(c.t);
     const view = S.nextView || "blend";
     document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
@@ -2141,8 +2153,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       return `<div class="card" style="background:var(--bg);margin-top:10px">
         <div class="row" style="justify-content:space-between"><strong>${esc(t.loc)}: about ${short(amount)} ${UNIT[t.unit]}${t.mode === "until" ? ` (to gather ${short(t.qty)} ${esc(t.item)})` : ""}</strong>
           <button type="button" data-stop-trip="${esc(t.loc)}">Stop this trip</button></div>
-        <p class="small" style="margin:6px 0">${U.detail === "expanded" ? `This trip also brings home: ${done ? `<b>${done} mastery tier${done === 1 ? "" : "s"} finished</b>` : "no finished tiers"}${ak ? `, <b>+${ak} AK</b>` : ""}.`
-          : `Finishes: ${done ? `<b>${done} tier${done === 1 ? "" : "s"}</b>` : "none"}${ak ? ` · <b>+${ak} AK</b>` : ""}`}</p>
+        <div class="small" style="margin:6px 0">${U.detail === "expanded" ? xpList([["Finishes", rows.filter(r => r.crossed).map(r => `${esc(r.item)} ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}`)],
+            ["Tower", rows.filter(r => r.tower).map(r => `${esc(r.item)}: meets level ${r.towerLevels.join(", ")}`)], ["AK", ak ? `+${ak}` : null],
+            ["Overflow", rows.filter(r => r.over).map(r => esc(r.item)).join(", ") || null]])
+          : `Finishes: ${done ? `<b>${done} tier${done === 1 ? "" : "s"}</b>` : "none"}${ak ? ` · <b>+${ak} AK</b>` : ""}`}</div>
         <div class="table-wrap"><table><thead><tr><th>Item</th><th class="num">About</th><th>What it does for you</th></tr></thead><tbody>${
           rows.slice(0, 12).map(r => { const nt = r.notes.join("; ") || "—";
             // Condensed: long "where it goes" notes fold away behind a tap
@@ -2263,7 +2277,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const done = mDone.length + qDone.length;
       const progress = mPart.reduce((s, r) => s + r.pct, 0) + qPart.reduce((s, q) => s + q.pct, 0);
       const ak = mDone.reduce((s, r) => s + r.ak, 0);
-      return { loc, mDone, mPart, qDone, qPart, done, progress, ak };
+      return { loc, mDone, mPart, qDone, qPart, done, progress, ak, yields };
     }).filter(x => x.done || x.progress).sort((a, b) => b.done - a.done || b.progress - a.progress);
     if (monoCard("best")) {
       // Monotask: the best place for nets, and for Arnold Palmers / Apple Ciders, spending what you have
@@ -2292,17 +2306,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         return `<details class="best-place"${i < 3 ? " open" : ""}><summary><strong>${esc(x.loc)}</strong> <span class="small">${headC}</span></summary>
           <div class="two-col small"><div><h4>Masteries</h4>${list(mC, 8)}</div><div><h4>Quests</h4>${S.quests ? list(qC, 8) : `<p class="small muted" style="margin:0">Paste Help Needed to see quests.</p>`}</div></div></details>`;
       }
-      const m = [...x.mDone.map(r => `<li><b>${esc(r.item)}</b>: finishes ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${
-          r.towerLevels.length ? `, meets Tower level ${r.towerLevels.join(", ")}` : ""}${r.over ? `<details class="small muted"><summary>where the extra goes</summary>${r.over}</details>` : ""}</li>`),
-        ...x.mPart.map(r => `<li>${esc(r.item)}: ${pct(r.pct)} closer to ${TIER_NAME[r.next]} <span class="small muted">(about ${short(r.q)} of ${short(r.left)})${
-          towerItem(r.item) ? " · Tower item" : ""}</span></li>`)];
-      const q = [...x.qDone.map(o => `<li><b>finishes ${esc(o.name)}</b>${o.main ? ` <span class="tag">main</span>` : ""}${o.step ? ` <span class="small muted">(${o.step} after ${esc(o.from)})</span>` : ""}</li>`),
-        ...x.qPart.map(o => `<li>${esc(o.name)}: ${pct(o.pct)} of what it still needs${o.main ? ` <span class="tag">main</span>` : ""} <span class="small muted">(${o.bits.join(", ")}${
-          o.step ? `; ${o.step} after ${esc(o.from)}` : ""})</span></li>`)];
+      const fin = [...x.mDone.map(r => `<b>${esc(r.item)}</b> ${r.crossedNames.join(" and ")}${r.ak ? ` (+${r.ak} AK)` : ""}${r.towerLevels.length ? ` · meets Tower ${r.towerLevels.join(", ")}` : ""}${
+          r.over ? `<details class="small muted"><summary>where the extra goes</summary>${r.over}</details>` : ""}`),
+        ...x.qDone.map(o => `quest <b>${esc(o.name)}</b>${o.main ? ` <span class="tag">main</span>` : ""}${o.step ? ` <span class="muted">(${o.step} after ${esc(o.from)})</span>` : ""}`)];
+      const closer = [...x.mPart.map(r => `${esc(r.item)}: ${pct(r.pct)} of the way to ${TIER_NAME[r.next]} <span class="muted">(~${short(r.q)} of ${short(r.left)})</span>${towerItem(r.item) ? towerTag(r.item, p.items[r.item]) : ""}`),
+        ...x.qPart.map(o => `quest ${esc(o.name)}: ${pct(o.pct)} <span class="muted">(${o.bits.join(", ")})</span>`)];
+      const brings = Object.entries(x.yields).filter(([, q]) => q >= 1).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, q]) => `${short(q)} ${esc(n)}`).join(", ");
       const head = `${x.done ? `<b>${x.done} finished</b>` : "nothing finished"}${x.ak ? `, <b>+${x.ak} AK</b>` : ""}${
         x.mPart.length + x.qPart.length ? `, ${x.mPart.length + x.qPart.length} moved closer` : ""}`;
-      return `<details class="best-place"${i < 3 ? " open" : ""}><summary><strong>${esc(x.loc)}</strong> <span class="small">${head}</span></summary>
-        <div class="two-col"><div><h4>Masteries</h4>${list(m, 10)}</div><div><h4>Quests</h4>${S.quests ? list(q, 10) : `<p class="small muted" style="margin:0">Paste Help Needed to see quests.</p>`}</div></div></details>`;
+      return `<details class="best-place"${i < 3 ? " open" : ""}><summary><strong>${esc(x.loc)}</strong> <span class="small">${head}</span></summary>${xpList([
+        ["Finishes", fin.slice(0, 10)], ["Closer", closer.slice(0, 10)], ["Brings", brings], ["Spends", `${short(amount)} ${UNIT[unit]}`]])}</details>`;
     }).join("");
   }
 
@@ -2379,7 +2392,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         howJob(c, top)}${c.jobs.length > 1 ? ` · +${c.jobs.length - 1} more` : ""}</span></summary>
         <ul class="small">${c.jobs.slice(0, 8).map(j => U.detail === "expanded"
           ? `<li>${j.name}${tagHtml(j)} — ${short(j.qty)}, ${howJob(c, j)}${c.vj ? ` <span class="muted">(about ${short(j.hours * c.vjPerHour)} Veggie Juice)</span>` : ""}${extraHtml(j)}</li>`
-          : `<li>${j.name}${tagHtml(j)} — ${short(j.qty)} · ${howJob(c, j)}${c.vj ? ` · <span class="muted">~${short(j.hours * c.vjPerHour)} Veggie Juice</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul></details>`; };
+          : `<li>${j.name}${tagHtml(j)} — ${short(j.qty)} · ${howJob(c, j)}${c.vj ? ` · <span class="muted">~${short(j.hours * c.vjPerHour)} Veggie Juice</span>` : ""}${extraHtml(j)}</li>`).join("")}</ul>${
+        U.detail === "expanded" ? xpList([["Grows", `${c.base <= 5 ? "under a Breakfast Boost" : `ready in ${tm(c.minutes / 60)}${c.vj ? ` with ${c.vj} Veggie Juice each planting` : ""}`}; ~${short(c.perRound)} a harvest`],
+          ["Seeds", `${esc(c.seed)}: you have ${short(onHand[c.seed] || 0)}`]]) : ""}</details>`; };
     let howJob = (c, j) => tm(j.hours);
     const timedHtml = timed.length ? timed.slice(0, 6).map(c => row(c, c => `ready in ${tm(c.minutes / 60)}${c.vj ? ` with ${c.vj} Veggie Juice` : ""}`)).join("") : `<p class="small muted">No slower crop feeds anything right now.</p>`;
     // Boost crops aren't passive, so they go last, unless nothing else needs planting or Veggie Juice is running low
@@ -2478,7 +2493,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const fullShort = (h, n) => h <= 0 ? `<b class="bad">full now</b>` : `full ${fullWhen(n, h)}`;
     const rest = blocks.map(B => `<details class="plant-row"><summary><b>${esc(B.b)}</b> <span class="muted small">${B.its.map(x => `${esc(x.n)} ${x.h <= 0 ? "full" : fullWhen(x.n, x.h).replace(/^in /, "")}`).join(" · ")}</span></summary>
       <ul class="small" style="margin:2px 0 6px;padding-left:22px">${B.its.map(x => `<li><b>${esc(x.n)}</b> <span class="muted">(${fullShort(x.h, x.n)})</span> → ${x.sum}${
-        `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
+        U.detail === "expanded" ? xpList([["Makes", `~${short(perDay[x.n])} a day; you have ${short(onHand[x.n] || 0)} of ${short(cap)}`], ["Plan", x.lines]])
+        : `<ul class="bite-parts">${x.lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</li>`).join("")}</ul></details>`);
     $("overflow-list").innerHTML = rest.join("") + (standing.length ? `<p class="small muted" style="margin:10px 0 0">${Object.keys(STANDING).filter(n => perDay[n]).map(esc).join(", ")}: see <a href="#" data-go="grinds">Slow grinds</a>.</p>` : "");
     $("grind-standing").innerHTML = (standing.length ? `<details class="plant-row" style="margin-top:10px"><summary><b>Set and forget</b> <span class="muted small">${
         Object.keys(STANDING).filter(n => perDay[n]).map(n => `${esc(n)} → ${esc(STANDING[n][STANDING[n].length - 1])}`).join(" · ")}</span></summary>
@@ -2535,6 +2551,25 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const all = F.grindList(p.items, { coster: C, perDay, budget, growth, craftToo: CRAFT_TOO }, { minDays: S.perks.grindDays > 0 ? S.perks.grindDays : 180, always: GRIND_ALWAYS, targetFor });
     // Ones that need something the farm doesn't make at all aren't grinds yet: one muted count instead
     const rows = all.filter(r => r.pinned || r.days !== Infinity), noProd = all.length - rows.length;
+    // Grapes as the limit, below your cap: Vineyard units can be bought without limit (each costs 2,000 x the new amount),
+    // so time it as if you raise Grapes to your cap now and keep up as the cap grows (knowledge/mechanics/building-upgrades.md)
+    const gDay = (prod().Grapes || 0) * 24, capNow = invCap(), capUp = S.perks.capPerDay || 0;
+    for (const r of rows) {
+      if (!(r.bottleneck && r.bottleneck.item === "Grapes" && capNow !== Infinity && gDay < capNow && r.days > 0)) continue;
+      const env = { ...grindEnv(), production: { ...prod(), Grapes: 1e9 } };
+      const t = F.grindTime(r.item, r.left, { coster: C, perDay: { ...perDay, Grapes: capNow }, budget, growth: { ...growth, env, cache: {} }, craftToo: CRAFT_TOO });
+      if (!(t && t.days != null && t.days < r.days)) continue;
+      r.grapes = { now: r.days, cost: window.UPGRADES.upgradeCost("Grapes", Math.round(gDay), capNow), daily: capUp ? window.UPGRADES.upgradeCost("Grapes", capNow, capNow + capUp) : 0 };
+      r.days = t.days;
+    }
+    // The limiting part, if you can also gather it: where, and the cost per 1,000
+    for (const r of rows) {
+      const ps = r.parts.filter(x => x.kind === "prod" && x.item !== "Grapes").sort((a, b) => (b === r.bottleneck) - (a === r.bottleneck) || b.days - a.days);
+      for (const x of ps) {
+        const g = window.FRP.bestEffort(x.item, 1000, DROPS, S.perks, W);
+        if (g && g.unit !== "explores" && g.amount > 0) { r.gather = { item: x.item, unit: g.unit, loc: g.loc, per: g.amount }; break; }
+      }
+    }
     for (const r of rows) {
       const t = alt && F.grindTime(r.item, r.left, { coster: C, perDay: alt.perDay, budget: alt.budget, growth: alt.growth, craftToo: CRAFT_TOO });
       r.alt = t && t.days != null && r.days != null && r.days !== Infinity && t.days < r.days * 0.99 ? t.days : null;
@@ -2576,7 +2611,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       for (const x of r.parts) if (x.kind !== "prod") hand[x.kind] = (hand[x.kind] || 0) + x.need;
       for (const u of r.untimed) hand[u.unit] = (hand[u.unit] || 0) + u.need;
       const handTxt = Object.entries(hand).map(([u, v]) => `~${short(v)} ${UNIT[u] || esc(u)}`).join(" + ");
-      const time = (r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}`) +
+      const time = (r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}${r.grapes ? " (Grapes at your cap)" : ""}`) +
         (r.alt != null ? ` <span class="good">→ ~${longText(r.alt)} (${longText(r.saved)} sooner)</span>` : "");
       const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
       const parts = r.parts.slice().sort((a, b) => b.days - a.days);
@@ -2584,6 +2619,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         ...parts.map(x => `${partName(x)}: ${short(x.need)} needed${cropNote(x)}, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
         ...r.untimed.map(u => `${UNIT[u.unit] || esc(u.unit)}: ${short(u.need)} needed <span class="muted">(set ${UNIT[u.unit] || esc(u.unit)} a day above to time it)</span>`),
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
+      if (r.grapes) lines.splice(1, 0, `Grapes kept at your cap: raise them from ${fmt(Math.round(gDay))} to ${fmt(capNow)} a day for ~${short(r.grapes.cost)} silver${
+        r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
+      if (r.gather) lines.push(`Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;
       return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
         lim || handTxt ? `<br><span class="small muted">${[lim, handTxt ? `${handTxt} in all` : ""].filter(Boolean).join(" · ")}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
@@ -2605,7 +2643,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     {
       const fin = rows.filter(r => r.days != null && r.days !== Infinity), seen = new Set(), out = [];
       const pickR = (label, r) => { if (r && !seen.has(r.item)) { seen.add(r.item); out.push(monoLi(label, `<b>${esc(r.item)}</b> <span class="small muted">${r.tier.toUpperCase()}${
-        r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}</span>`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
+        r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}${r.grapes ? " with Grapes at your cap" : ""}</span>${
+        r.gather ? `<br><span class="small">${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">for more ${esc(r.gather.item)}</span></span>` : ""}`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
       pickR("Nearest Tower level", fin.filter(r => r.towerLv !== Infinity).sort((a, b) => a.towerLv - b.towerLv)[0]);
       pickR("Shortest", fin.slice().sort((a, b) => a.days - b.days)[0]);
       pickR("Longest", fin.slice().sort((a, b) => b.days - a.days)[0]);
@@ -2635,44 +2674,63 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const has = ["Black Truffle", "White Truffle"].some(n => (inv[n] || {}).count > 0);
     return has && !(S.steakMarket && gameDay(S.steakMarket.at) === gameDay(Date.now()));
   }
+  // Cold-hot bar from lo to hi: ticks at the lines, a dot at today's price
+  const heatBar = (lo, hi, ticks, v, what) => {
+    const at = x => Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100)).toFixed(1);
+    let last = -100;                                                      // labels closer than 14% would overlap: the first one keeps its label
+    return `<div class="heat" role="img" aria-label="${esc(`${what}: ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${ticks.map(t => {
+      const x = +at(t.v), lbl = x - last >= 14 ? (last = x, `<span class="heat-lbl" style="left:${x}%">${t.label}</span>`) : "";
+      return `<span class="heat-tick" style="left:${x}%" title="${esc(t.label)}"></span>${lbl}`; }).join("")}<span class="heat-dot" style="left:${at(v)}%" title="${short(v)}"></span></div>`;
+  };
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
     $("steak-card").hidden = !m && !due;
-    if (!m) { $("steak-list").innerHTML = `<p class="small" style="margin:0">Paste today's Steak Market page for a Truffle sell check.</p>`; return; }
+    if (!m) { const t = "Paste today's Steak Market page for a Truffle sell check."; $("steak-list").innerHTML = `<p class="small" style="margin:0">${t}</p>`; $("mono-steak").innerHTML = monoLi("Truffles", t); return; }
     const H = S.marketHistory || {}, today = gameDay(Date.now()) === gameDay(m.at);
     const pct = (list, v) => list.length ? Math.round(100 * list.filter(x => x < v).length / list.length) : null;
     const lines = (k, base) => {                                          // your history's 10th / 90th percentile, if any
       const xs = Object.values(H[k] || {}).map(r => r.price).sort((a, b) => a - b);
       return xs.length >= 10 ? { buy: xs[Math.round(0.1 * (xs.length - 1))], sell: xs[Math.round(0.9 * (xs.length - 1))] } : base;
     };
-    const out = [];
-    if (!today) out.push(`<p class="small" style="margin:0 0 6px">These prices are from before today's reset: paste today's Steak Market page for a sell check.</p>`);
-    else {
+    const span = (xs, lo, hi) => [Math.min(lo, ...xs), Math.max(hi, ...xs)];
+    const rows = [];                                                      // { name, price, say, cls, mono, bar, info }
+    if (today) {
       if (m.truffle) for (const kind of ["White", "Black"]) {
-        const price = m.truffle[kind.toLowerCase()], L = TRUFFLE_LINES[kind], owned = m.truffle[kind.toLowerCase() + "Owned"], chance = m.truffle[kind.toLowerCase() + "Chance"];
+        const k = kind.toLowerCase(), price = m.truffle[k], L = TRUFFLE_LINES[kind], owned = m.truffle[k + "Owned"], chance = m.truffle[k + "Chance"];
+        if (!price) continue;
         const [cls, say] = price >= L.great ? ["good", "sell: a high day"] : price >= L.sell ? ["good", "sell"] : price >= L.need ? ["warn", "sell only if you need the silver"] : ["bad", "hold"];
-        const hist = Object.values(H.truffle || {}).map(r => r[kind.toLowerCase()]), p = pct(hist, price);
-        out.push(`<li><b>${kind} Truffles: ${short(price)}</b> <span class="tag ${cls}">${say}</span><br><span class="small muted">${[
-          owned ? `your ${fmt(owned)} are worth ~${short(owned * price)}` : "",
-          chance ? `chance it rises at reset: ${esc(chance.toLowerCase())}` : "",
-          p != null ? `higher than ${p}% of the last ${hist.length} days` : "",
-          `sell from ${short(L.sell)}, ${short(L.great)}+ is a high day; ${short(L.need)}+ if you need the silver`].filter(Boolean).join(" · ")}</span></li>`);
+        const hist = Object.values(H.truffle || {}).map(r => r[k]).filter(x => x > 0), p = pct(hist, price);
+        const [lo, hi] = span([...hist, price], L.need * 0.95, L.great * 1.02);
+        rows.push({ name: `${kind} Truffles`, price: short(price), say, cls, mono: price >= L.sell ? "Sell" : "Hold",
+          bar: heatBar(lo, hi, [{ v: L.need, label: short(L.need) }, { v: L.sell, label: short(L.sell) }, { v: L.great, label: short(L.great) }], price, `${kind} Truffles`),
+          info: [owned ? `your ${fmt(owned)} are worth ~${short(owned * price)}` : "", chance ? `chance it rises at reset: ${esc(chance.toLowerCase())}` : "",
+            p != null ? `higher than ${p}% of the last ${hist.length} days` : "", `sell from ${short(L.sell)}, ${short(L.great)}+ is a high day; ${short(L.need)}+ if you need the silver`] });
       }
       if (m.steak && m.steak.price) {
-        const L = lines("steak", SWING_LINES.steak), v = m.steak.price;
+        const L = lines("steak", SWING_LINES.steak), v = m.steak.price, hist = Object.values(H.steak || {}).map(r => r.price).filter(x => x > 0);
         const say = v <= L.buy && m.steak.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.steak.owned > 0 ? ["good", "sell"] : ["", "hold"];
-        out.push(`<li><b>Steaks: ${fmt(v)}</b>${m.steak.market ? ` (${esc(m.steak.market)}${STEAK_STATE[m.steak.market] ? `: usually ${STEAK_STATE[m.steak.market]}` : ""})` : ""} <span class="tag ${say[0]}">${say[1]}</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
-          m.steak.owned ? `; you have ${fmt(m.steak.owned)}` : ""}${m.steak.canBuy ? `, can buy ${fmt(m.steak.canBuy)} more` : ""}</span></li>`);
+        const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
+        rows.push({ name: "Steaks", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1),
+          bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steaks"),
+          info: [m.steak.market ? `${esc(m.steak.market)} market${STEAK_STATE[m.steak.market] ? `, usually ${STEAK_STATE[m.steak.market]}` : ""}` : "", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`,
+            m.steak.owned ? `you have ${fmt(m.steak.owned)}` : "", m.steak.canBuy ? `can buy ${fmt(m.steak.canBuy)} more` : ""] });
       }
     }
     // Kabobs: hourly, so the advice only holds until the top of the next hour
     if (m.kabob && m.kabob.price && Date.now() < Math.floor(m.at / 3.6e6 + 1) * 3.6e6) {
-      const L = lines("kabob", SWING_LINES.kabob), v = m.kabob.price;
+      const L = lines("kabob", SWING_LINES.kabob), v = m.kabob.price, hist = Object.values(H.kabob || {}).map(r => r.price).filter(x => x > 0);
       const say = v <= L.buy && m.kabob.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.kabob.owned > 0 ? ["good", "sell"] : ["", "hold"];
-      out.push(`<li><b>Steak Kabobs: ${fmt(v)}</b> <span class="tag ${say[0]}">${say[1]}</span> <span class="small muted">(until the top of the hour)</span><br><span class="small muted">buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more${
-        m.kabob.owned ? `; you have ${fmt(m.kabob.owned)}` : ""}</span></li>`);
+      const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
+      rows.push({ name: "Steak Kabobs", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1) + " (this hour)",
+        bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steak Kabobs"),
+        info: ["until the top of the hour", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`, m.kabob.owned ? `you have ${fmt(m.kabob.owned)}` : ""] });
     }
-    $("steak-list").innerHTML = out.length ? out.filter(x => x.startsWith("<p")).join("") + `<ul style="margin:0;padding-left:20px">${out.filter(x => x.startsWith("<li")).join("")}</ul>` : "";
+    const old = today ? "" : "These prices are from before today's reset: paste today's Steak Market page for a sell check.";
+    $("steak-list").innerHTML = (old ? `<p class="small" style="margin:0 0 6px">${old}</p>` : "") + (rows.length ? `<ul style="margin:0;padding-left:20px">${rows.map(r =>
+      `<li><b>${r.name}: ${r.price}</b> <span class="tag ${r.cls}">${r.say}</span>${r.bar}${U.detail === "expanded"
+        ? xpList([["Lines", r.info.filter(x => /buy at|sell from/.test(x))], ["Notes", r.info.filter(x => x && !/buy at|sell from/.test(x))]])
+        : `<span class="small muted">${r.info.filter(Boolean).join(" · ")}</span>`}</li>`).join("")}</ul>` : "");
+    $("mono-steak").innerHTML = rows.map(r => monoLi(r.name, `<b>${r.mono}</b> <span class="small muted">${r.price}</span>${r.bar}`)).join("") + (old ? monoLi("Truffles", "Paste today's Steak Market page") : "");
   }
 
   // ---------- Silver goal ----------
@@ -2752,7 +2810,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     const by = x => x.kind === "prod" ? `${esc(x.by)}${BUILDING[x.by] ? ` (${esc(BUILDING[x.by])})` : ""}` : `${UNIT[x.by] || esc(x.by)}s a day`;
     const wordy = U.detail === "expanded";
     const timed = rows.filter(r => r.silverDay != null).slice(0, 6);
-    const line = r => r.kind === "fish"
+    const line = r => wordy ? (r.kind === "fish"
+      ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish${xpList([["Earns", `~${short(r.silverDay)} a day${daysTo(r.silverDay)}`], ["Per net", `~${short(r.perUnit.LN)}; with Shrimp-a-Plenty (+10% silver) and Sea Pincher Special (+10% fish) ~${short(r.perUnit.LN * 1.21)}`],
+          ["Nets", `your ~${short(budget.LN)} a day`], ["Note", "less if you keep rare or cooking fish"]])}</li>`
+      : `<li><b>Craft ${esc(r.item)}</b> and sell${xpList([["Earns", `~${short(r.silverDay)} a day${daysTo(r.silverDay)}`], ["Price", `${fmt(r.price)} each × ~${short(r.perDay)} a day`], ["Limit", by(r.limit)],
+          ["Uses", `${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries`], ["Note", sellNote(r.item, p).trim() || null]])}</li>`)
+      : r.kind === "fish"
       ? `<li><b>Large Nets at ${esc(r.loc)}</b>, sell the fish: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">~${short(r.perUnit.LN)} a net x your ~${short(budget.LN)} nets a day; less if you keep rare or cooking fish. Shrimp-a-Plenty (+10% silver) and Sea Pincher Special (+10% fish) while netting: ~${short(r.perUnit.LN * 1.21)} a net.</span></li>`
       : `<li><b>Craft ${esc(r.item)}</b> and sell: ~${short(r.silverDay)} a day${daysTo(r.silverDay)}<br><span class="small muted">${fmt(r.price)} each x ~${short(r.perDay)} a day, limited by ${by(r.limit)}${
         wordy ? `; uses ${Object.entries(r.uses).map(([i, q]) => `${short(q * r.perDay)} ${esc(i)}`).join(", ")} a day, which then can't go to masteries` : ""}.${sellNote(r.item, p)}</span></li>`;
@@ -3122,6 +3185,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   const SUPPLIES = ["Apple Cider", "Arnold Palmer", "Orange Juice", "Large Net", "Lemonade", "Iced Tea", "Fishing Net", "Grape Juice"];
   const MON = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
   // Days until a special ends: from the paste ("Sep 21 - Oct 31") or the quest data's end date
+  // Days left for a quest: specials end on a date; personal requests end today if you do them every day (General settings)
+  const questDays = (q, data) => q.section === "personal" && S.perks.dailyRequests ? 0 : q.section === "special" ? daysLeft(q, data) : null;
   function daysLeft(q, data) {
     const now = new Date();
     let end = null;
@@ -3267,7 +3332,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!data) return { q, html: `<li><strong>${esc(q.name)}</strong><span class="small muted">Not in the quest data (it may have ended).</span></li>`, rank: 9 };
       const n = questNeeds(data, p);
       const ready = !n.missing.length && !n.levels.length;
-      const days = q.section === "special" ? daysLeft(q, data) : null;
+      const days = questDays(q, data);
       const st = stockText(n.stock);
       // Judged by reward value / cost; the next quests in the chain count a little less each step.
       const val = questValue(data, p);
@@ -3292,7 +3357,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         // A quest that costs (almost) no AP, only waiting on production, would give silly "275x" ratios: say it plainly
         : n.cost + n.stockCost < 10 ? `<span class="tag ok">costs almost no AP, mostly waiting; reward worth about ${short(val.value)} AP</span>`
         : `<span class="tag${eff >= 0.5 ? " ok" : ""}">reward worth about ${pct(eff)} of its cost${chainV >= 5 ? ", counting the next quests" : ""}</span>`;
-      const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ${endsText(days)}` : ""}</span>` : "";
+      const tag = q.kind === "main" ? ` <span class="tag tower">main quest</span>` : q.section === "special" ? ` <span class="tag">special${days != null ? `, ${endsText(days)}` : ""}</span>` : days === 0 ? ` <span class="tag">${endsText(0)}</span>` : "";
       const btn = `<span style="white-space:nowrap">${doneBtn("quest", { name: qkey(q) })} ${hidden.has(qkey(q)) ? `<button type="button" class="small" data-qshow="${esc(qkey(q))}">Show</button>` : `<button type="button" class="small" data-qhide="${esc(qkey(q))}">Hide</button>`}</span>`;
       // Condensed: a short verdict, the to-do lines, the reward items, and the next quest names
       const shortVerdict = unknown ? "" : little ? (val.special.length ? "reward can't be valued" : "little value")
@@ -3403,6 +3468,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const data = await readCode(code);
       const when = data.at ? new Date(data.at).toLocaleString() : "an unknown date";
       if (!confirm(`Load the save from ${when}? This replaces what's on this page now.`)) return;
+      pushUndo("save code", JSON.stringify(S));
       S = Object.assign({ mastery: null, inventory: null, manual: {}, places: {}, hidden: [] }, data.S);
       S.perks = { ...START_PERKS, ...S.perks };
       fixQuestKinds(); fixRates();
@@ -3453,6 +3519,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (!what) throw new Error("bad");
       const when = new Date(o.at).toLocaleString();
       if (!confirm(`Load the ${what} from ${when}? This replaces the ${what} on this page.`)) return;
+      pushUndo("QR code", JSON.stringify(S));
       if (o.k === "c") S = { mastery: S.mastery, inventory: S.inventory, quests: S.quests, questsAt: S.questsAt, manual: {}, places: {}, hidden: [],
         ...got, perks: { ...START_PERKS, ...got.perks } };
       else Object.assign(S, got);
@@ -3693,7 +3760,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   showTab(S.mastery ? startTab : "setup");
 
   let LAST = null;
-  window.__planner = { state: () => S, render, last: () => LAST, coster: () => C };
+  window.__planner = { state: () => S, render, last: () => LAST, coster: () => C, where: () => W };
   render();
   loadQr();
   addEventListener("hashchange", loadQr);

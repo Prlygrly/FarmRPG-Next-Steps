@@ -43,6 +43,14 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   to the next target while the top one only waits. Masteries and quests have Skip (hides them; show again from the AK table
   or the Quests tab).[^player]
 - Next steps layout: Grid = tiles side by side on wide screens (default); List = one column.[^player]
+- "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do
+  these next and the quest picks. A 7-day window marks a special as ending soon. Kitchen never uses meal prices (meals aren't
+  sold).[^player]
+- Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a cold-hot bar: today's price
+  against the lines.[^player]
+- Slow grinds name where to gather the limiting part (Feathers for White Parchment at its explore place). When Grapes are
+  the limit and below the cap, times assume Grapes raised to the cap now and kept there as the cap grows, with the silver
+  that costs (see [building upgrades](/mechanics/building-upgrades.md)).[^player]
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
   cleared by Forget my pastes. The last 3 pastes can be undone.[^player]

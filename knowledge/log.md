@@ -24,3 +24,4 @@
 * **Update (2026-10-05, late)**: mechanics/steak-market.md: the wiki's Steak market, Beef Tips and Truffles pages (reset at midnight Central, steak market states, kabob range, getting Truffles, Black record 619.9M).
 * **Update (2026-10-06)**: planner/rules.md: pastes arrive as plain text (no bullets or links), readers find names by position; daily Truffle prompt exception. mechanics/steak-market.md: player keeps the 9,600 / 10,300 Kabob lines; shared-prices plan and Reddit findings.
 * **Update (2026-10-06)**: planner/rules.md: Monotask picks for each section, Expanded as labelled points, app settings kept apart from game data, undo for the last 3 pastes.
+* **Update (2026-10-06)**: planner/rules.md: personal requests every day, Steak Market hold/sell and cold-hot bar, grind gather places, Grapes kept at the cap. building-upgrades.md: Vineyard has no unit limit.

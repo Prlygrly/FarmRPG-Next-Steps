@@ -2,19 +2,12 @@
 
 Answered questions are removed; their answers live in knowledge/.
 
-## Questions (UI batch, built and committed locally, not pushed)
-1. **Quests in Monotask**: the pick is ready to turn in, else a special ending within **7 days**, else the fewest AP.
-   Is 7 days the right window?
-2. **Kitchen in Monotask**: quest needs first, then a meal a Tower level needs (lowest stock), then lowest stock.
-   There are no meal sell prices, so "most silver" isn't possible yet. OK, or add meal prices?
-3. **Detail buttons**: the Condensed / Expanded buttons on each card are gone; Detail now lives only in ⚙ App settings.
-   Want a quick switch back on the cards (or a key, e.g. D cycles Monotask → Condensed → Expanded)?
-4. **Expanded, other cards**: Do these next, Quests, Slow grinds, Kitchen and Veggie Juice use labelled points now.
-   Spend my, Plant, Daily overflow, Silver goal and Trips were already lists, so Expanded shows them as Condensed does.
-   Want labelled points there too?
-6. **Monotask, untouched cards**: Daily overflow, Steak Market, Wishing well, Trips and the Veggie Juice calculator
-   (hidden in Monotask) stay as they were. Any of those you want cut down?
-7. **Monotask Done**: ✓ Done on a gathering step adds the items it was for (and takes the nets or drinks from your counts);
-   on a final step it marks the mastery done or turns in the quest. Is that how you want it to count?
+## Questions
+1. **Grape price**: you said ~2,000 a vine. Our sampled price (11,000 -> 11,001 Grapes = 22,002,000) says each new Grape a
+   day costs 2,000 x the new amount, so raising 11,003 -> 11,500 costs ~11.2B, then ~414M a day to follow +18 cap. The
+   planner uses that. Is that right?
+2. **Small inventory pastes**: your preview's My Inventory now holds only 7 Shimmer items (11:02 today; a search-filtered
+   copy?). That replaced the whole inventory, so explore places and drink budgets dropped out. Should a much smaller
+   inventory paste merge into the old one instead of replacing it?
 
 ## Waiting on data
