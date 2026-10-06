@@ -279,6 +279,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .xp > li { display: grid; grid-template-columns: 4.6em 1fr; gap: 8px; padding: 2px 0; }
 .xp > li > b { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; padding-top: .2em; }
 .xp ul { margin: 0; padding-left: 16px; }
+/* Phones: the tabs sit in a bar along the bottom; bigger tap targets */
+@media (max-width: 640px) {
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0; flex-wrap: nowrap; overflow-x: auto;
+    background: var(--surface); border-top: 1px solid var(--line); border-bottom: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  .tabs button { flex: 0 0 auto; }
+  main { padding-bottom: 84px; }
+  .head-tools { width: 100%; }
+  .quick-col { flex: 1; max-width: none; }
+  #quick-msg { max-width: none; }
+}
+@media (pointer: coarse) { button:not(.fold), select { min-height: 40px; } }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -3562,6 +3573,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     U = { ...U_DEFAULT, bestOrder: [...BEST_IDS], bestOff: [], folded: {}, open: {} }; saveU(); syncApp(); syncFolds(); applyBestOrder(); render(false);
   });
   syncApp();
+
+  // ---------- Keys: 1-7 switch tabs (not while typing) ----------
+  document.addEventListener("keydown", e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || !$("app-settings").hidden) return;
+    const t = e.target; if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+    const b = document.querySelectorAll(".tabs [data-go]")[+e.key - 1];
+    if (/^[1-9]$/.test(e.key) && b) { e.preventDefault(); b.click(); }
+  });
 
   // ---------- Tabs ----------
   // One tab shows at a time. The choice is remembered on this device; with no Mastery paste yet, start on Setup.
