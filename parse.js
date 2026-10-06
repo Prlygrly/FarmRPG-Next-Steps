@@ -298,14 +298,16 @@
   // 1,589,940 Silver"). Base price = value / count, so it needs the inventory count (or the cap for MAX ON HAND).
   // Returns { items: {name: {value, max}}, perks: % from "extra N% due to your unlocked perks" }.
   function parseMarket(text) {
-    const lines = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim());
+    // Pasted into the site it's plain text (no "* " bullets): the name is the line just above the "− +" buttons
+    const lines = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const items = {};
     let name = null, max = false, on = false;
-    for (const l of lines) {
+    for (let k = 0; k < lines.length; k++) {
+      const l = lines[k];
       if (/UNLOCKED INVENTORY/i.test(l)) { on = true; continue; }       // the item list starts here (skips menus and chat)
       if (!on) continue;
-      const it = l.match(/^\*\s+(.+)$/);
-      if (it) { name = it[1].trim(); max = false; continue; }
+      if (/^Locked Inventory$/i.test(l)) break;
+      if (/^[−-]\s*\+$/.test(l)) { name = lines[k - 1].replace(/^[*•]\s+/, ""); max = false; continue; }
       if (!name) continue;
       if (/^MAX ON HAND$/i.test(l)) { max = true; continue; }
       const v = l.match(/^([\d,]+) Silver\b/i);
@@ -326,29 +328,38 @@
       const t = raw.match(new RegExp("\\[([^\\]]+)\\]\\([^)]*quest\\.php\\?id=" + id + "\\)\\s*\\n\\s*\\[Request from ([^\\]]+)\\]"));
       if (t) { name = t[1].trim(); npc = t[2].replace(/\s*[-–—]\s*(Main Quest|Side Request)\s*$/i, "").trim(); }
     }
-    const lines = raw.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    // A page pasted into the site is plain text: no links and no "* " bullets, so names are found by position
+    const lines = raw.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim().replace(/^[*•]\s+/, "")).filter(Boolean);
     const at = lines.findIndex(l => /^Items Requested$/i.test(l)), rw = lines.findIndex(l => /^Rewards$/i.test(l));
     if (at < 0 || rw < at) return null;
-    if (!name) {                                   // no links: the title is the "* Name" line just above its description
-      for (let i = at - 1; i > 0; i--) if (/^\*\s+/.test(lines[i - 1]) && /[.?!]$/.test(lines[i])) { name = lines[i - 1].replace(/^\*\s+/, ""); break; }
+    if (!npc) { const h = raw.match(/(?:Personal|Special) Request from ([^\n\]]+)/i); if (h) npc = h[1].trim(); }
+    if (!name && npc) {                            // no links: the sidebar lists the title just above "Request from NPC"
+      const k = lines.findIndex(l => l === "Request from " + npc);
+      if (k > 0) name = lines[k - 1];
     }
+    // Items Requested: name / "You have N" / "Nx"
     const need = [], have = {};
-    let item = null;
-    for (const l of lines.slice(at + 1, rw)) {
-      const it = l.match(/^\*\s+(.+)$/), h = l.match(/^You have ([\d,]+)$/i), q = l.match(/^([\d,]+)x$/);
-      if (it) item = it[1].trim();
-      else if (h && item) have[item] = toInt(h[1]);
-      else if (q && item) { need.push([item, toInt(q[1])]); item = null; }
-    }
+    const block = lines.slice(at + 1, rw);
+    block.forEach((l, k) => {
+      const h = l.match(/^You have ([\d,]+)$/i);
+      if (h && k > 0) {
+        const item = block[k - 1], q = (block[k + 1] || "").match(/^([\d,]+)x$/);
+        have[item] = toInt(h[1]);
+        if (q) need.push([item, toInt(q[1])]);
+      }
+    });
+    // Rewards: "Silver" / amount (or Gold), then name / description lines / "Nx"
     const get = [];
-    let silver = 0, gold = 0, cur = null;
-    for (const l of lines.slice(rw + 1)) {
-      const it = l.match(/^\*\s+(.+)$/), q = l.match(/^([\d,]+)x$/), n = l.match(/^([\d,]+)$/);
-      if (it) cur = it[1].trim();
-      else if (n && cur === "Silver") { silver = toInt(n[1]); cur = null; }
-      else if (n && cur === "Gold") { gold = toInt(n[1]); cur = null; }
-      else if (q && cur) { get.push([cur, toInt(q[1])]); cur = null; }
-      else if (/^Consume a meal$/i.test(l)) break;
+    let silver = 0, gold = 0, start = rw + 1;
+    for (let k = rw + 1; k < lines.length; k++) {
+      const l = lines[k];
+      if (/^Consume a meal$/i.test(l)) break;
+      if (/^(Silver|Gold)$/i.test(l) && /^[\d,]+$/.test(lines[k + 1] || "")) {
+        if (/^Silver$/i.test(l)) silver = toInt(lines[k + 1]); else gold = toInt(lines[k + 1]);
+        k++; start = k + 1; continue;
+      }
+      const q = l.match(/^([\d,]+)x$/);
+      if (q && k > start) { get.push([lines[start], toInt(q[1])]); start = k + 1; }
     }
     return need.length ? { id, name, npc, need, have, silver, gold, get } : null;
   }

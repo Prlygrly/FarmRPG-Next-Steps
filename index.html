@@ -307,7 +307,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   <section class="jump small" data-tab="best" id="best-nav" aria-label="Best use sections">Go to:
     <a href="#best" data-jump="best">Spend my…</a> · <a href="#plant" data-jump="plant">What to plant</a> ·
     <a href="#overflow" data-jump="overflow">Daily overflow</a> · <a href="#steak-card" data-jump="steak-card">Steak Market</a> ·
-    <a href="#silver-goal" data-jump="silver-goal">Silver goal</a> · <a href="#kitchen" data-jump="kitchen">Kitchen</a>
+    <a href="#silver-goal" data-jump="silver-goal">Silver goal</a> · <a href="#kitchen" data-jump="kitchen">Kitchen</a> ·
+    <a href="#" data-top>Top ↑</a>
   </section>
   <section class="card" data-tab="best" id="best" aria-labelledby="h-best">
     <div class="row" style="justify-content:space-between;align-items:center">
@@ -2338,6 +2339,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   }
   // Best use "Go to" links scroll to the section (the address bar's "#" part is kept for QR codes)
   $("best-nav").addEventListener("click", e => {
+    const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    if (e.target.closest("[data-top]")) { e.preventDefault(); scrollTo({ top: 0, behavior: smooth }); return; }
     const a = e.target.closest("[data-jump]"); if (!a) return;
     e.preventDefault(); $(a.dataset.jump).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   });

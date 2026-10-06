@@ -99,9 +99,11 @@ console.log("parse tests passed");
   const r = parseRequest(page);
   assert.deepStrictEqual(r, { id: "111", name: "Items Wanted", npc: "Vincent", need: [["Onion", 20], ["Stone Jelly", 5]],
     have: { Onion: 1200, "Stone Jelly": 0 }, silver: 1000000, gold: 0, get: [["Canoe", 3]] });
-  // Without links (plain copy): the title is the line above the description
-  const plain = page.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
-  assert.strictEqual(parseRequest(plain).name, "Items Wanted");
+  // Pasted into the site: plain text, no links and no "* " bullets; the header names the townsperson
+  const plain = ("Personal Request from Vincent\n" + page).replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/^\* /gm, "");
+  const rp = parseRequest(plain);
+  assert.deepStrictEqual({ ...rp, id: "111" }, { ...r, id: "111" });
+  assert.strictEqual(rp.id, null);
 }
 
 // Steak Market page and its history pages (made-up prices)
@@ -124,4 +126,13 @@ console.log("parse tests passed");
   assert.deepStrictEqual(sh.history.steak[1], { date: "Oct 4", price: 49590, market: "Stable", volume: 2595384 });
   const kh = parseSteak("About the Truffle Market Kabob Market History Kabob Price History is limited to previous 24 hours. Time Price Oct 5, 5 PM 9,519 Oct 5, 4 PM 10,116 Price range");
   assert.deepStrictEqual(kh.history.kabob, [{ time: "Oct 5, 5 PM", price: 9519 }, { time: "Oct 5, 4 PM", price: 10116 }]);
+}
+
+// Market page pasted into the site: plain text, no "* " bullets (made-up values)
+{
+  const { parseMarket } = require("../parse.js");
+  const plain = ["You are getting an extra 70% due to your unlocked perks.", "Unlocked Inventory", "Fancy Violin", "− +", "3,000,000 Silver unlock_fill",
+    "Fancy Pipe", "− +", "MAX ON HAND", "50,000 Silver unlock_fill", "Locked Inventory", "Lava Sphere", "6,619 in Inv, Locked, not sellable"].join("\n");
+  assert.deepStrictEqual(parseMarket(plain), { items: { "Fancy Violin": { value: 3000000, max: false }, "Fancy Pipe": { value: 50000, max: true } }, perks: 70 });
+  assert.deepStrictEqual(parseMarket(plain.replace("Fancy Violin", "* Fancy Violin")).items["Fancy Violin"], { value: 3000000, max: false });
 }
