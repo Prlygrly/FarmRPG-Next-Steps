@@ -3130,6 +3130,25 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 
   // ---------- Veggie Juice ----------
   const minText = m => m < 60 ? `${fmt(Math.max(1, Math.round(m)))} min` : m < 48 * 60 ? `${Math.floor(m / 60)} h${Math.round(m % 60) ? ` ${Math.round(m % 60)} min` : ""}` : `${fmt(Math.round(m / 1440 * 10) / 10)} days`;
+  function apFor(item, qty, depth = 0) {
+    if (!(qty >= 1) || depth > 4) return null;
+    if (DROPS.items[item]) {
+      const o = window.FRP.effortOptions(item, qty, DROPS, S.perks, W).find(x => x.unit === "AP");
+      if (o) return { amount: o.amount, places: { [o.loc]: [item] } };          // else (a fishing-only drop): its crafting route
+    }
+    const e = C.effort(item, qty);
+    if (!e || !e.forWhat) return null;
+    let amount = 0; const places = {};
+    for (const its of Object.values(e.forWhat)) for (const [n, q] of Object.entries(its)) {
+      const a = apFor(n, q, depth + 1);
+      if (!a) continue;
+      amount += a.amount;
+      for (const [loc, ns] of Object.entries(a.places)) places[loc] = [...new Set([...(places[loc] || []), ...ns])];
+    }
+    return amount ? { amount, places } : null;
+  }
+  const apText = (a, self) => `~${short(a.amount)} AP at ${Object.entries(a.places).map(([loc, ns]) => { ns = ns.filter(n => n !== self);    // "(Horn)" for Horn says nothing
+    return `${esc(loc)}${ns.length ? ` (${ns.map(esc).join(", ")})` : ""}`; }).join(" + ")}`;
   function renderVJ() {
     const r = RECIPES.items["Veggie Juice"];
     if (!r || !O) return;
@@ -3162,6 +3181,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const cycle = goal;
     // Non-crop ingredients (Twine, Horn, Glass Bottle) that would run out before the crops do
     const parts = rows.filter(x => !x.x), short1 = parts.filter(x => x.have < x.tgt);
+    for (const x of parts) x.ap = apFor(x.item, x.tgt - x.have);           // Horn, and the glass for Glass Bottles
     const names = xs => xs.map(x => esc(x.item)).join(", ").replace(/, ([^,]*)$/, " and $1");
     const harvests = x => x.x && x.x.perRound > 0 ? Math.ceil(Math.max(0, x.tgt - x.have) / x.x.perRound) : 0;
     const harvText = xs => xs.filter(harvests).map(x => `${esc(x.item)} ~${fmt(harvests(x))} harvest${harvests(x) === 1 ? "" : "s"}`).join(", ");
@@ -3180,7 +3200,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       else if (notFull(quick).length) act = fill(notFull(quick));
       else if (notFull(tw).length) act = fill(notFull(tw));
       else if (short1.length) act = `<b>Get ${names(short1)}</b> <span class="small muted">(${short1.map(x => {
-        const how = x.refill.replace(/ <span class="muted">\([^<]*\)<\/span>/g, "");             // "(Horn)" after the place: already named
+        const how = x.ap ? apText(x.ap, x.item) : x.refill.replace(/ <span class="muted">\([^<]*\)<\/span>/g, "");             // "(Horn)" after the place: already named
         return short1.length > 1 ? `${esc(x.item)}: ${how}` : how; }).join("; ")})</span>`;
       else if (beet && notFull([beet]).length) act = fill([beet]);
       else if (now >= 1) act = `<b>Craft ${fmt(Math.min(now, goal))} Veggie Juice</b>`;
@@ -3199,7 +3219,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const stepsHtml = [
       [`Breakfast Boost ${names(quick)} until ${upTo(quick[0])}`, `${full(quick)} of ${quick.length} ready`],
       [`Grow ${names(tw)} (taking turns) until ${upTo(tw[0])}`, `${tw.map(x => `${esc(x.item)} ${short(x.have)}${harvests(x) ? `, ~${fmt(harvests(x))} harvests` : ""}`).join("; ")} · goal ${short(tw[0] ? tw[0].tgt : cap)}`],
-      [`Get ${names(parts)} for the goal`, parts.map(x => `${esc(x.item)} ${short(x.have)} of ${short(x.tgt)}`).join(", ")],
+      [`Get ${names(parts)} for the goal`, parts.map(x => `${esc(x.item)} ${short(x.have)} of ${short(x.tgt)}${x.ap ? `, ${apText(x.ap, x.item)}` : ""}`).join("; ")],
       [`Grape Juice the Beets, then craft until the Tomatoes and Watermelons run out`, beet ? `Beet ${short(beet.have)} of ${short(beet.tgt)}` : ""]
     ].map(([t, st], k) => [t, st, k < at && done[k]])
      .map(([t, st, ok], k) => `<li${k === at ? ' style="font-weight:700"' : ok ? ' class="muted"' : ""}>${ok ? "✓ " : ""}${t}${k === at ? ` <span class="tag good">now</span>` : ""}${
