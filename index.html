@@ -709,7 +709,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     q.value = "";
     $("quick-ok").classList.toggle("show", ok);
     $("quick-msg").innerHTML = msg; $("quick-msg").hidden = !msg;              // what was read (or what went wrong)
-    quickT = setTimeout(() => { $("quick-ok").classList.remove("show"); $("quick-msg").hidden = true; }, ok ? 5000 : 10000);
+    quickT = setTimeout(() => { $("quick-ok").classList.remove("show"); $("quick-msg").hidden = true; }, /data-undo-paste/.test(msg) ? 30000 : ok ? 5000 : 10000);
   });
   $("paste-clear").addEventListener("click", () => { pasteStop(); $("paste").value = ""; $("status").innerHTML = ""; $("paste-clear").hidden = true; $("paste").focus(); });
   $("paste").addEventListener("input", () => {
@@ -719,6 +719,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (!text.trim()) return;
     const kind = detectPage(text);
     let msg = "", done = false;
+    const before = JSON.stringify(S);                                    // for Undo
     // Any page copied with the top bar carries your silver: keep the newest
     const cash = parseSilver(text);
     if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); $("f-silver").value = S.silver; }
@@ -837,10 +838,58 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     } else {
       msg = warn("That doesn't look like Mastery Progress, My Inventory or the Orchard. Copy the whole page with Ctrl+A, then Ctrl+C.");
     }
+    const ok = !msg || done;
+    if (JSON.stringify(S) !== before) {
+      pushUndo(PAGE_NAME[kind] || "a page", before);
+      msg += `<p class="small muted" style="margin:4px 0 0">${msg ? "" : `Read: ${PAGE_NAME[kind] || "page"}. `}<a href="#" data-undo-paste>Undo</a></p>`;
+    }
     $("status").innerHTML = msg;
-    if (!msg || done) { pasteDone(); $("paste-clear").hidden = true; }
+    if (ok) { pasteDone(); $("paste-clear").hidden = true; }
     save();
     render();
+  });
+  // ---------- Undo a paste ----------
+  // The last few states before a paste, kept on this device (not in save codes)
+  const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
+  const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply", friends: "Friendship",
+    steak: "Steak Market", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+  const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
+  function pushUndo(label, state) {
+    let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
+    while (list.length) { try { localStorage.setItem(UNDO_STORE, JSON.stringify(list)); break; } catch (e) { list = list.slice(1); } }   // too big: drop the oldest
+    renderUndo();
+  }
+  function undoPaste(i) {
+    const list = undoList(), u = list[i];
+    if (!u) return;
+    S = JSON.parse(u.S); S.perks = { ...START_PERKS, ...S.perks }; fixQuestKinds(); fixRates();
+    try { localStorage.setItem(UNDO_STORE, JSON.stringify(list.slice(0, i))); } catch (e) {}
+    save(); render();
+    const m = `<p class="small muted" style="margin:4px 0 0">Undone: back to before the ${esc(u.label)} paste.</p>`;
+    $("status").innerHTML = m; $("quick-msg").innerHTML = m;
+    renderUndo();
+  }
+  function renderUndo() {
+    const list = undoList();
+    $("undo-list").innerHTML = list.length ? `<p class="muted" style="margin:0 0 4px">Undo a paste:</p><ul style="margin:0 0 8px;padding-left:18px">${list.map((u, i) =>
+      `<li>Before the ${esc(u.label)} paste <span class="muted">(${new Date(u.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })})</span> <button type="button" class="small" data-undo-at="${i}">Restore</button></li>`).reverse().join("")}</ul>` : "";
+  }
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-undo-paste], [data-undo-at]"); if (!a) return;
+    e.preventDefault();
+    const list = undoList(), i = a.dataset.undoAt != null ? +a.dataset.undoAt : list.length - 1;
+    if (a.dataset.undoAt != null && i < list.length - 1 && !confirm(`Go back to before the ${list[i].label} paste? Later pastes are undone too.`)) return;
+    undoPaste(i);
+  });
+  renderUndo();
+  // Paste anywhere: Ctrl+V outside a text box reads the page like the quick paste box
+  document.addEventListener("paste", e => {
+    const t = e.target;
+    if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+    const text = e.clipboardData && e.clipboardData.getData("text");
+    if (!text || !text.trim()) return;
+    e.preventDefault();
+    const q = $("quick-paste"); q.value = text; q.dispatchEvent(new Event("input"));
   });
   const warn = s => `<div class="note">${s}</div>`;
 
