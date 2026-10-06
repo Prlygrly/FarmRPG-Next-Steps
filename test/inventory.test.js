@@ -179,3 +179,10 @@ assert.strictEqual(detectPage(prof), "friends");
 assert.deepStrictEqual(parseFriends(prof).levels, { "Star Meerif": 7, "Captain Thomas": 3, "Gary Bearson V": 9 });
 
 console.log("inventory tests passed");
+
+// My Inventory on a wide screen carries the farm sidebar too: still an inventory page (made-up numbers)
+{
+  const wide = [farmText, text, "Inventory Stats", "Your inventory contains 5 unique items and 100 items in total."].join("\n");
+  assert.strictEqual(detectPage(wide), "inventory");
+  assert.ok(Object.keys(parseInventory(wide).items).length >= 3);
+}

@@ -416,6 +416,8 @@
     if (/Cap Upgrades/i.test(text) && /Farming Upgrades/i.test(text)) return "supply";
     // The orchard first: in the Steam app the Orchard page also lists the whole farm ("Around Your Farm")
     if (/About the orchard/i.test(text)) return "orchard";
+    // My Inventory on a wide screen also carries the farm sidebar ("Around Your Farm"): its own footer decides
+    if (/Inventory Stats/i.test(text) && /cannot have more than [\d,]+ of any single thing/i.test(text)) return "inventory";
     // A building's own page also carries the farm sidebar, so check for its sentence first
     { const b = parseBuilding(text); if (b.buildings.length || b.cap) return "building"; }
     if (/Around Your Farm/i.test(text)) return "farm";

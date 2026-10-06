@@ -817,6 +817,11 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         const part = nOld >= 50 && nNew < nOld * 0.3;
         S.inventory = { items: part ? { ...old, ...r.items } : r.items, cap: r.cap || (S.inventory && S.inventory.cap), at: part ? S.inventory.at : Date.now() }; S.changes = []; S.stepsDone = [];
         if (part) { done = true; msg = `<div class="note" style="border-color:var(--good)">This looks like part of your inventory (${fmt(nNew)} items; the last copy had ${fmt(nOld)}). Updated those ${fmt(nNew)} and kept the rest. Paste the whole page to refresh everything.</div>`; }
+        // On a wide screen the page also carries the farm sidebar: read its production too (what it shows, keeping the rest)
+        if (/Around Your Farm/i.test(text)) {
+          const f = parseFarm(text);
+          if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
+        }
         // A Market paste waiting for counts: work its prices out now
         if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
       }

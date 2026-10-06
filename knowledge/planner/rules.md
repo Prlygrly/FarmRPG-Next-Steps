@@ -58,6 +58,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
   cleared by Forget my pastes. The last 3 pastes (and save-code loads) can be undone.[^player]
+- My Inventory on a wide screen also shows the farm sidebar; its footer (Inventory Stats) marks it as an inventory, and the
+  farm's production is read from it too.[^player]
 - A My Inventory paste replaces the old one (an item missing from it is 0 now), unless it has under 30% of the last copy's
   items (a search-filtered page): then it updates what it shows and keeps the rest.[^player]
 - **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
