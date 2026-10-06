@@ -811,7 +811,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const r = parseInventory(text);
       if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
       else {
-        S.inventory = { items: r.items, cap: r.cap, at: Date.now() }; S.changes = []; S.stepsDone = [];
+        // Much smaller than the last copy (a search-filtered page): update what it shows and keep the rest; otherwise replace,
+        // since an item missing from a full copy is 0 now
+        const old = S.inventory && S.inventory.items, nOld = old ? Object.keys(old).length : 0, nNew = Object.keys(r.items).length;
+        const part = nOld >= 50 && nNew < nOld * 0.3;
+        S.inventory = { items: part ? { ...old, ...r.items } : r.items, cap: r.cap || (S.inventory && S.inventory.cap), at: part ? S.inventory.at : Date.now() }; S.changes = []; S.stepsDone = [];
+        if (part) { done = true; msg = `<div class="note" style="border-color:var(--good)">This looks like part of your inventory (${fmt(nNew)} items; the last copy had ${fmt(nOld)}). Updated those ${fmt(nNew)} and kept the rest. Paste the whole page to refresh everything.</div>`; }
         // A Market paste waiting for counts: work its prices out now
         if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
       }

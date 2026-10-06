@@ -58,7 +58,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
   cleared by Forget my pastes. The last 3 pastes (and save-code loads) can be undone.[^player]
-- A My Inventory paste always replaces the old one, however small: an item missing from it is 0 now.[^player]
+- A My Inventory paste replaces the old one (an item missing from it is 0 now), unless it has under 30% of the last copy's
+  items (a search-filtered page): then it updates what it shows and keeps the rest.[^player]
 - **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
   and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
   budget.[^player]
