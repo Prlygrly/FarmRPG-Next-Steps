@@ -3249,12 +3249,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const left = getHM("vj-left"), target = Math.max(1, getHM("vj-target") || 1);
     if (!left) { $("vj-out").innerHTML = ""; return; }
     const f = 1 - VJ_CUT, after = n => Math.max(1, left * Math.pow(f, n));
-    const useful = left <= 1 ? 0 : Math.ceil(Math.log(1 / left) / Math.log(f));        // past this, the 1-minute floor wastes them
+    const useful = left <= 1 ? 0 : Math.ceil(Math.log(1 / left) / Math.log(f));        // this many reach the 1-minute floor; the game uses no more than that
     const need = left <= target ? 0 : Math.min(useful, Math.ceil(Math.log(target / left) / Math.log(f)));
     $("vj-cut-text").textContent = `${Math.round(VJ_CUT * 100)}%`;
     const list = Array.from({ length: Math.min(useful, 12) }, (_, i) => i + 1);
     $("vj-out").innerHTML = `<p style="margin:0 0 6px">${need ? `Use <b>${need} Veggie Juice</b> right after planting: ready in ${minText(after(need))}.` : `No juice needed: it's ready in ${minText(left)}.`}
-      ${useful ? `<span class="muted">More than ${useful} is wasted (1 minute is the floor).</span>` : ""}</p>
+      ${useful ? `<span class="muted">${useful} take${useful === 1 ? "s" : ""} it to 1 minute, the floor; using more is fine, the game only uses what it needs.</span>` : ""}</p>
       ${list.length ? `<p class="muted" style="margin:0">${list.map(n => `${n} → ${minText(after(n))}`).join(" · ")}</p>` : ""}`;
   }
   // Hours + minutes boxes, read and written as total minutes (the calculator does the arithmetic, not the player)

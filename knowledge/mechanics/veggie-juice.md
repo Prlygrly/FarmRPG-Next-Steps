@@ -23,6 +23,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Juices to reach the 1-minute floor from `m` minutes left: ceil(ln(m) / -ln(1 - cut)). Example (20%): Cabbage at 48 min -> 18 juices
   (17 leave about 1 min 5 s). Confirmed in game by the player: exactly 18.[^player]
 - Kept for speeding crops, not sold.[^player]
+- Veggie Juice can't be over-applied: using more than it takes to reach 1 minute only uses what's needed; the rest stay
+  in your inventory.[^player]
 
 # The player's cycle
 
