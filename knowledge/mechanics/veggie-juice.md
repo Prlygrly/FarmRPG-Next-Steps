@@ -28,7 +28,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 
 1. Breakfast Boost the five quick crops (Eggplant, Carrot, Peas, Cucumber, Peppers) until full.
 2. Grow Tomato and Watermelon, taking turns, when nothing else needs the plots, until full.
-3. Grape Juice the (Mega) Beets and craft (Craftworks) until Tomato and Watermelon run out. Repeat.[^player]
+3. Gather Horn and make sure there's enough Twine and Glass Bottle for the batch.
+4. Grape Juice the (Mega) Beets and craft (Craftworks) until Tomato and Watermelon run out. Repeat.[^player]
 
 The planner marks the first step whose crops aren't in yet (for the Veggie Juice goal) as the one to do now.[^player]
 
