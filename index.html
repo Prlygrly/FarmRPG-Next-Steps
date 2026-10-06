@@ -293,12 +293,16 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 @media (pointer: coarse) { button:not(.fold), select { min-height: 40px; } }
 /* Cold-hot bar: today's price against the buy / sell lines */
-.heat { position: relative; height: 10px; width: min(420px, calc(100% - 16px)); margin: 8px 8px 22px; border-radius: 5px;
+.heat { position: relative; height: 10px; width: min(420px, calc(100% - 40px)); margin: 26px 20px 22px; border-radius: 5px;
   background: linear-gradient(90deg, #3B6FD0, #7FB3E8 35%, #F2D675 62%, #E8873A 82%, #D23A3A); }
 .heat-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); transform: translateX(-1px); }
 .heat-lbl { position: absolute; top: 13px; transform: translateX(-50%); font-size: .7rem; color: var(--muted); white-space: nowrap; }
-.heat-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink);
+.heat.two { margin-bottom: 34px; }
+.heat-lbl.low { top: 25px; }
+.heat-dot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink);
   transform: translate(-50%, -50%); z-index: 1; }
+.heat-val { position: absolute; top: -22px; transform: translateX(-50%); font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.heat-dot.sell, .heat-dot.buy { background: #2B9A5A; } .heat-dot.hold { background: #D23A3A; } .heat-dot.warn { background: #E0A21B; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } body::before { animation: none !important; } }
 </style>
@@ -2675,12 +2679,14 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     return has && !(S.steakMarket && gameDay(S.steakMarket.at) === gameDay(Date.now()));
   }
   // Cold-hot bar from lo to hi: ticks at the lines, a dot at today's price
-  const heatBar = (lo, hi, ticks, v, what) => {
+  // tone: sell / buy (green dot), hold (red), warn (amber). Every line is labelled: labels too close drop to a second row.
+  const heatBar = (lo, hi, ticks, v, what, tone) => {
     const at = x => Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100)).toFixed(1);
-    let last = -100;                                                      // labels closer than 14% would overlap: the first one keeps its label
-    return `<div class="heat" role="img" aria-label="${esc(`${what}: ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${ticks.map(t => {
-      const x = +at(t.v), lbl = x - last >= 14 ? (last = x, `<span class="heat-lbl" style="left:${x}%">${t.label}</span>`) : "";
-      return `<span class="heat-tick" style="left:${x}%" title="${esc(t.label)}"></span>${lbl}`; }).join("")}<span class="heat-dot" style="left:${at(v)}%" title="${short(v)}"></span></div>`;
+    const last = [-100, -100];
+    const html = ticks.map(t => {
+      const x = +at(t.v), row = x - last[0] >= 14 ? 0 : 1; last[row] = x;
+      return `<span class="heat-tick" style="left:${x}%" title="${esc(t.label)}"></span><span class="heat-lbl${row ? " low" : ""}" style="left:${x}%">${t.label}</span>`; }).join("");
+    return `<div class="heat${last[1] > -100 ? " two" : ""}" role="img" aria-label="${esc(`${what}: today ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${html}<span class="heat-dot ${tone}" style="left:${at(v)}%"></span><span class="heat-val" style="left:${at(v)}%">${short(v)}</span></div>`;
   };
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
@@ -2702,7 +2708,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         const hist = Object.values(H.truffle || {}).map(r => r[k]).filter(x => x > 0), p = pct(hist, price);
         const [lo, hi] = span([...hist, price], L.need * 0.95, L.great * 1.02);
         rows.push({ name: `${kind} Truffles`, price: short(price), say, cls, mono: price >= L.sell ? "Sell" : "Hold",
-          bar: heatBar(lo, hi, [{ v: L.need, label: short(L.need) }, { v: L.sell, label: short(L.sell) }, { v: L.great, label: short(L.great) }], price, `${kind} Truffles`),
+          bar: heatBar(lo, hi, [{ v: L.need, label: short(L.need) }, { v: L.sell, label: short(L.sell) }, { v: L.great, label: short(L.great) }], price, `${kind} Truffles`, price >= L.sell ? "sell" : price >= L.need ? "warn" : "hold"),
           info: [owned ? `your ${fmt(owned)} are worth ~${short(owned * price)}` : "", chance ? `chance it rises at reset: ${esc(chance.toLowerCase())}` : "",
             p != null ? `higher than ${p}% of the last ${hist.length} days` : "", `sell from ${short(L.sell)}, ${short(L.great)}+ is a high day; ${short(L.need)}+ if you need the silver`] });
       }
@@ -2711,7 +2717,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         const say = v <= L.buy && m.steak.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.steak.owned > 0 ? ["good", "sell"] : ["", "hold"];
         const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
         rows.push({ name: "Steaks", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1),
-          bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steaks"),
+          bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steaks", say[1]),
           info: [m.steak.market ? `${esc(m.steak.market)} market${STEAK_STATE[m.steak.market] ? `, usually ${STEAK_STATE[m.steak.market]}` : ""}` : "", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`,
             m.steak.owned ? `you have ${fmt(m.steak.owned)}` : "", m.steak.canBuy ? `can buy ${fmt(m.steak.canBuy)} more` : ""] });
       }
@@ -2722,7 +2728,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
       const say = v <= L.buy && m.kabob.canBuy > 0 ? ["good", "buy"] : v >= L.sell && m.kabob.owned > 0 ? ["good", "sell"] : ["", "hold"];
       const [lo, hi] = span([...hist, v], L.buy * 0.95, L.sell * 1.05);
       rows.push({ name: "Steak Kabobs", price: fmt(v), say: say[1], cls: say[0], mono: say[1][0].toUpperCase() + say[1].slice(1) + " (this hour)",
-        bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steak Kabobs"),
+        bar: heatBar(lo, hi, [{ v: L.buy, label: short(L.buy) }, { v: L.sell, label: short(L.sell) }], v, "Steak Kabobs", say[1]),
         info: ["until the top of the hour", `buy at ${fmt(L.buy)} or less, sell at ${fmt(L.sell)} or more`, m.kabob.owned ? `you have ${fmt(m.kabob.owned)}` : ""] });
     }
     const old = today ? "" : "These prices are from before today's reset: paste today's Steak Market page for a sell check.";
