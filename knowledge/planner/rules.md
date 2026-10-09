@@ -55,6 +55,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   sold).[^player]
 - Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar of today's price
   against the lines: red to green for Truffles; blue (buy) to green (sell) for Steaks and Kabobs.[^player]
+- A small Truffle line sits above every tab (players with Truffles, or a Truffle price pasted before): White and Black,
+  "hold" or a large "SELL" (from the sell line), "???" before today's paste. ✕ hides it for 24 hours; App settings turn it off.[^player]
 - Slow grinds name where to gather the limiting part (Feathers for White Parchment at its explore place). When Grapes are
   the limit and below the cap, times assume Grapes raised to the cap now and kept there as the cap grows, with the silver
   that costs (see [building upgrades](/mechanics/building-upgrades.md)).[^player]

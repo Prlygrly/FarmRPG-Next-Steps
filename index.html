@@ -257,7 +257,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .card.folded { padding-bottom: 10px; }
 .fold { background: none; border: 0; padding: 0 6px 0 0; font-size: .85em; color: var(--muted); vertical-align: middle; }
 .fold:hover { color: var(--ink); }
-#fold-bar { text-align: right; margin: -8px 0 8px; }
+#top-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -8px 0 8px; }
+#fold-bar { margin: 0 0 0 auto; }
+#truffle-strip { display: inline-flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; padding: 2px 4px 2px 10px; border: 1px solid var(--line); border-radius: 999px; }
+#truffle-strip .t-sell { font-size: 1.2em; font-weight: 800; letter-spacing: .04em; color: var(--bg); background: var(--good); padding: 0 8px; border-radius: 6px; }
+#truffle-strip .t-x { border: 0; background: none; padding: 0 6px; min-height: 0; color: inherit; opacity: .6; cursor: pointer; }
+#truffle-strip .t-x:hover, #truffle-strip .t-x:focus-visible { opacity: 1; }
 /* Monotask: one thing per section */
 .card:not(.mono) > .mono-list { display: none; }
 .card.mono .mono-hide, .mono-off, .user-off { display: none !important; }
@@ -356,7 +361,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
   </nav>
-  <p id="fold-bar" class="small"><a href="#" data-fold-all="1">Collapse all</a> · <a href="#" data-fold-all="0">Expand all</a></p>
+  <div id="top-bar"><div id="truffle-strip" class="small" role="status" hidden></div>
+  <p id="fold-bar" class="small"><a href="#" data-fold-all="1">Collapse all</a> · <a href="#" data-fold-all="0">Expand all</a></p></div>
   <div id="stale-banner" class="small" hidden></div>
   <details id="changes" class="card" hidden style="padding:10px 14px">
     <summary id="changes-sum"></summary>
@@ -618,6 +624,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       <button type="button" data-layout="grid" title="Tiles side by side on wide screens: Next steps, and Monotask items on every tab.">Grid</button>
       <button type="button" data-layout="list" title="One column.">List</button>
     </div>
+    <label class="small" style="display:block;margin:10px 0 0"><input type="checkbox" id="truffle-bar-on"> Truffle hold/sell line at the top of every tab</label>
     <h3>Best use order</h3>
     <div id="best-order"></div>
     <h3>Data</h3>
@@ -710,7 +717,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
   const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "kitchen"];
-  const U_DEFAULT = { detail: "condensed", layout: "grid", bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
+  const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
   if (S.nextDetail && !localStorage.getItem(UI_STORE)) U.detail = S.nextDetail;      // older saves kept detail with the game data
@@ -1197,6 +1204,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     VJ_CUT = vjCut(p);
     renderLoaded(p);
     renderChanges();
+    renderTruffleStrip();
     if (syncFields) {
       $("f-level").value = p.level ?? "";
       $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
@@ -2721,6 +2729,24 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       return `<span class="heat-tick" style="left:${x}%" title="${esc(t.label)}"></span><span class="heat-lbl${row ? " low" : ""}" style="left:${x}%">${t.label}</span>`; }).join("");
     return `<div class="heat${swing ? " swing" : ""}${last[1] > -100 ? " two" : ""}" role="img" aria-label="${esc(`${what}: today ${short(v)}; lines at ${ticks.map(t => t.label).join(", ")}`)}">${html}<span class="heat-dot ${tone}" style="left:${at(v)}%"></span><span class="heat-val" style="left:${at(v)}%">${short(v)}</span></div>`;
   };
+  // Small line above every tab: White / Black hold or SELL from today's paste, ??? before one. Only for players with Truffles
+  // (or a Truffle price pasted before); off in App settings, or hidden for a day with ✕.
+  function renderTruffleStrip() {
+    const m = S.steakMarket, inv = (S.inventory && S.inventory.items) || {};
+    const has = (m && m.truffle) || ["Black Truffle", "White Truffle"].some(n => (inv[n] || {}).count > 0);
+    const el = $("truffle-strip");
+    el.hidden = !has || !U.truffleBar || Date.now() < (U.truffleHideUntil || 0);
+    if (el.hidden) return;
+    const today = m && m.truffle && gameDay(m.at) === gameDay(Date.now());
+    el.innerHTML = `<a href="#steak-card" data-go="best" title="Steak Market on Best use"><b>Truffles</b></a>` + ["White", "Black"].map(kind => {
+      const price = today && m.truffle[kind.toLowerCase()];
+      return `<span>${kind}: ${!price ? "???" : price >= TRUFFLE_LINES[kind].sell ? `<span class="t-sell">SELL</span>` : "hold"}</span>`;
+    }).join("") + `<button type="button" class="t-x" id="truffle-x" aria-label="Hide the Truffle line for 24 hours" title="Hide for 24 hours">✕</button>`;
+  }
+  $("truffle-strip").addEventListener("click", e => {
+    if (!e.target.closest("#truffle-x")) return;
+    U.truffleHideUntil = Date.now() + 864e5; saveU(); renderTruffleStrip();
+  });
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
     $("steak-card").hidden = !m && !due;
@@ -3799,7 +3825,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   function syncApp() {
     document.querySelectorAll("[data-detail]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.detail === U.detail)));
     document.querySelectorAll("[data-layout]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.layout === U.layout)));
+    $("truffle-bar-on").checked = U.truffleBar !== false;
   }
+  $("truffle-bar-on").addEventListener("change", e => { U.truffleBar = e.target.checked; U.truffleHideUntil = 0; saveU(); renderTruffleStrip(); });
   let gearFrom = null;
   const openApp = on => {
     $("app-settings").hidden = $("app-shade").hidden = !on;
