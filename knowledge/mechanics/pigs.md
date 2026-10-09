@@ -29,6 +29,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - A slaughtered pig isn't replaced on its own: you buy a new one, which starts at level 1. (The planner assumes an
   instant replacement.)[^player] Each pig bought costs more than the last; the price depends only on how many you
   have (buying the #100 animal always costs the same). All 250 pigs cost 7,781,250 silver in total.[^wiki-slaughter]
+  That total fits 250 silver × pigs already owned (0 + 250 + ... + 62,250), so rebuying into a full pen of 250 costs
+  about 62,250. (Worked out from the total, not stated; cows fit 500 × n the same way.)
 - Pigs use the shared XP table (levels-and-xp.md). A fed pig gets 1,000 XP a day, +350 with Animal Lover, +500 with
   Animal Charmer (1,850 with both). Pigs level up only at feeding time, so a level counts from the feed after the XP is reached.[^planner]
 - At 1,850 XP a day a new pig reaches level 5 on day 7 and level 6 on day 10; level 20 takes about five months.[^planner]
