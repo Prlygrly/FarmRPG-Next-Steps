@@ -29,7 +29,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - Truffles (with a Pig Collar, pigs fed that day): a level L pig finds a White Truffle on L% of days and a Black
   Truffle on L/3% of days, and can find both. So a day's Truffles average total pig level / 100 White and / 300 Black;
   players' logged days match this.[^luna][^planner]
-- Pigs give Bacon from level 70 (the Library's Bacon page: "At Level 70 ... MAKE [Bacon] from the pig pen").[^wiki-bacon]
+- Players can make Bacon from the Pig Pen from player level 70 (the Library's Bacon page; it means the player's level,
+  not the pig's).[^wiki-bacon]
 - Other Bacon sources: some Help Needed rewards; Mount Banon (about 1 in 10,000-20,000 explores); the Wishing Well;
   the Flea Market at 5 Gold each; some event bags. Never sell, toss or eat it.[^wiki-bacon]
 - Quests need about 70,360 Bacon across 29 quests (September 2026); quests also reward about 4,050. Bacon also drops
