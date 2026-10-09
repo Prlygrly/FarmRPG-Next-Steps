@@ -15,7 +15,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 # Rules
 
 - Bacon from slaughtering a level L pig: none below level 5; from level 5, 10 × L − 25 (25 at level 5, 35 at 6, 175 at 20).[^planner]
-- A slaughtered pig is replaced right away by a level 1 pig.[^planner]
+- A slaughtered pig isn't replaced on its own: you buy a new one, which starts at level 1. (The planner assumes an
+  instant replacement.)[^player]
 - Pigs use the shared XP table (levels-and-xp.md). A fed pig gets 1,000 XP a day, +350 with Animal Lover, +500 with
   Animal Charmer (1,850 with both). Pigs level up only at feeding time, so a level counts from the feed after the XP is reached.[^planner]
 - At 1,850 XP a day a new pig reaches level 5 on day 7 and level 6 on day 10; level 20 takes about five months.[^planner]
@@ -33,4 +34,5 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - Bacon per slot per day at 1,850 XP: level 5 = 25 / 7 ≈ 3.6; level 6 = 35 / 10 = 3.5.[^planner]
 
 [^planner]: Community bacon planner (player-shared, 2026-10-09)
+[^player]: Player confirmation (2026-10-09)
 [^buddy-bacon]: buddy.farm Bacon page (quest totals, as cited by the planner)
