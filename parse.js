@@ -205,11 +205,11 @@
       if (/ (Perks|Upgrades)(\s*\(.*\))?$/i.test(l) && !/[.%]/.test(l) || /^Upgrades on Sale/i.test(l)) { block = []; continue; }   // section headings
       block.push(l);
     }
-    return { page, unlocked };
+    return { page, unlocked, misc: /^Miscellaneous Perks/im.test(text) };
   }
 
   // What the unlocked perks mean for the planner's settings. Only returns settings that page can tell us.
-  function perkSettings({ page, unlocked }) {
+  function perkSettings({ page, unlocked, misc }) {
     const has = n => unlocked.some(u => u.name === n);
     const sum = re => unlocked.reduce((s, u) => { const m = u.desc.match(re); return s + (m ? +m[1] : 0); }, 0);
     const out = {
@@ -227,6 +227,7 @@
     if (page === "perks") {
       out.doublePrizes = sum(/^(\d+)% chance a crop will yield 2/);
       out.wanderer = sum(/^(\d+)% chance exploring won't use Stamina/);
+      if (misc) out.animalLover = has("Animal Lover");           // only when the copy reaches that section
     } else {
       out.grapeJuice = (1 + sum(/^\+(\d+) Extra Grape Juice uses/)) * (unlocked.some(u => /Doubles Grape Juice use/.test(u.desc)) ? 2 : 1);
       out.reinforcedNetting = has("Reinforced Netting");

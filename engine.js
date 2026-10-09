@@ -107,7 +107,7 @@
 
   // ---------- Effort: how many AC / AP / Large Nets to gather `left` more of an item ----------
   // knowledge/mechanics/effort-units.md
-  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
+  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, animalLover: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
     plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20, maxSlaughter: 20 };
 
   // Every way to get the item, cheapest first: [{loc, unit, amount}]
@@ -498,7 +498,19 @@
     return rows.filter(x => x.silverDay == null || x.silverDay > 0).sort((a, b) => (b.silverDay ?? -1) - (a.silverDay ?? -1));
   }
 
-  const api = { DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Bacon from pigs (knowledge/mechanics/pigs.md) ----------
+  // Slaughter pigs at level `at` (Bacon 10 x level - 25 from level 5), at most `batch` at a time, rebuy them (level 1) and
+  // slaughter the same pen again once they've grown back: the fewest high-level pigs lost, so the least Truffle silver.
+  // The first round comes from pigs you already have; Bacon arrives at the next reset. levelXp = LEVELS.total.
+  const baconEach = at => at >= 5 ? 10 * at - 25 : 0;
+  function baconPlan(qty, { batch = 20, xpPerDay = 1850, levelXp, at = 5 } = {}) {
+    if (!(qty > 0) || !(batch > 0) || !levelXp) return null;
+    const each = baconEach(at), regrow = Math.ceil(levelXp[at - 1] / xpPerDay);   // pigs level up at feeding: whole days
+    const pigs = Math.ceil(qty / each), rounds = Math.ceil(pigs / batch);
+    return { at, each, pigs, perRound: Math.min(pigs, batch), rounds, regrow, days: 1 + (rounds - 1) * regrow };
+  }
+
+  const api = { baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

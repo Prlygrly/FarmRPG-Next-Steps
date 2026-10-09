@@ -55,6 +55,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   sold).[^player]
 - Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar of today's price
   against the lines: red to green for Truffles; blue (buy) to green (sell) for Steaks and Kabobs.[^player]
+- Bacon comes from pigs, not Mount Banon (unless "Most animals I'll slaughter at one time" is 0): slaughter pigs at
+  level 5 in batches of that size, rebuy them and wait for them to grow back (the same pen each round, so high-level
+  pigs keep finding Truffles). Level 6 is shown too when it takes fewer rounds. Pig XP: 1,000 a feed, +350 Animal Lover
+  (a perk tick, or read from a Perks copy that reaches Miscellaneous Perks), +500 from Tower 40. See mechanics/pigs.md.[^player]
 - A small Truffle line sits above every tab (players with Truffles, or a Truffle price pasted before): White and Black,
   "hold" or a large "SELL" (from the sell line), "???" before today's paste. ✕ hides it for 24 hours; App settings turn it off.[^player]
 - Slow grinds name where to gather the limiting part (Feathers for White Parchment at its explore place). When Grapes are

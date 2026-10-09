@@ -298,3 +298,17 @@ console.log("engine tests passed");
   assert.ok(Math.abs(t.days - 10) < 0.01 && Math.abs(t.parts[0].crafted - 1000) < 1);
   assert.ok(Math.abs(t.parts.find(x => x.kind === "AP").need - 5000) < 5);
 }
+
+// Bacon from pigs: 25 at level 5, 35 at level 6; 1,850 XP a day reaches level 5 on day 7, level 6 on day 10
+{
+  const { baconPlan, baconEach } = require("../engine.js");
+  const { total } = require("../levels.js");
+  assert.deepStrictEqual([4, 5, 6, 20].map(baconEach), [0, 25, 35, 175]);
+  const a = baconPlan(500, { batch: 20, xpPerDay: 1850, levelXp: total });
+  assert.deepStrictEqual([a.pigs, a.rounds, a.regrow, a.days], [20, 1, 7, 1]);
+  const b = baconPlan(1200, { batch: 20, xpPerDay: 1850, levelXp: total });   // 48 pigs: 3 rounds, two regrows
+  assert.deepStrictEqual([b.pigs, b.perRound, b.rounds, b.days], [48, 20, 3, 15]);
+  const c = baconPlan(1200, { batch: 20, xpPerDay: 1000, levelXp: total, at: 6 });   // no XP perks: level 6 on day 18
+  assert.deepStrictEqual([c.pigs, c.rounds, c.regrow, c.days], [35, 2, 18, 19]);
+  assert.strictEqual(baconPlan(500, { batch: 0, levelXp: total }), null);
+}
