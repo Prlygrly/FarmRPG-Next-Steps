@@ -7,6 +7,12 @@ sources:
   - id: planner
     resource: "Which pigs become bacon? A FarmRPG bacon planner (community page, shared by the player as a saved HTML file)"
     title: "Community bacon planner"
+  - id: wiki-bacon
+    resource: https://farmrpg.com/wiki.php?page=Bacon
+    title: "FarmRPG Library: Bacon"
+  - id: luna
+    resource: https://docs.google.com/spreadsheets/d/1f8l9xrguWuGzQsWy0i1VclrAILbCKLDuwzfA5zHbMFw (tab gid 127024427)
+    title: "Luna's Sheets: Truffle drops by total pig level (linked from the Library's Truffles page)"
   - id: buddy-bacon
     resource: https://buddy.farm/i/bacon/
     title: "buddy.farm: Bacon"
@@ -21,7 +27,11 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
   Animal Charmer (1,850 with both). Pigs level up only at feeding time, so a level counts from the feed after the XP is reached.[^planner]
 - At 1,850 XP a day a new pig reaches level 5 on day 7 and level 6 on day 10; level 20 takes about five months.[^planner]
 - Truffles (with a Pig Collar, pigs fed that day): a level L pig finds a White Truffle on L% of days and a Black
-  Truffle on L/3% of days, and can find both. Expected Truffle silver grows in a straight line with level.[^planner]
+  Truffle on L/3% of days, and can find both. So a day's Truffles average total pig level / 100 White and / 300 Black;
+  players' logged days match this.[^luna][^planner]
+- Pigs give Bacon from level 70 (the Library's Bacon page: "At Level 70 ... MAKE [Bacon] from the pig pen").[^wiki-bacon]
+- Other Bacon sources: some Help Needed rewards; Mount Banon (about 1 in 10,000-20,000 explores); the Wishing Well;
+  the Flea Market at 5 Gold each; some event bags. Never sell, toss or eat it.[^wiki-bacon]
 - Quests need about 70,360 Bacon across 29 quests (September 2026); quests also reward about 4,050. Bacon also drops
   exploring Mount Banon.[^planner][^buddy-bacon]
 
@@ -35,4 +45,6 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 
 [^planner]: Community bacon planner (player-shared, 2026-10-09)
 [^player]: Player confirmation (2026-10-09)
+[^wiki-bacon]: FarmRPG Library: Bacon (2026-07-07)
+[^luna]: Luna's Sheets, Truffle tab (community drop logs)
 [^buddy-bacon]: buddy.farm Bacon page (quest totals, as cited by the planner)
