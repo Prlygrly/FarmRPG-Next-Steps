@@ -29,3 +29,4 @@
 * **Update (2026-10-09)**: mechanics/pigs.md (new): Bacon per slaughtered pig (10 x level - 25 from level 5), pig XP and days to level, Truffle odds by level, slaughter lowest first / pen at level 5-6; from a player-shared community bacon planner. planner/rules.md: Truffle line above every tab.
 * **Update (2026-10-09)**: mechanics/pigs.md: Library Bacon, Slaughterhouse pages and Luna's Sheets; pigs are rebought by hand; pig price 250 x pigs owned (derived). planner/rules.md: Bacon from pigs in slaughter batches.
 * **Update (2026-10-11)**: planner/rules.md: Iron always bought; Slow grinds "where to go" follows the real limit.
+* **Update (2026-10-11)**: planner/rules.md: exploring measured in AP everywhere; drinks never named as a grind limit.

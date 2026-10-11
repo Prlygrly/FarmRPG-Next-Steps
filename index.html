@@ -2602,7 +2602,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       def != null ? def : made[k] != null ? `~${short(made[k])}` : ""}" style="width:7em"></label>`).join("");
     if (!S.mastery || !C) { $("grind-list").innerHTML = `<p class="small muted">Paste Mastery Progress (and your farm page) in Setup to see your slow grinds.</p>`; return; }
     if (!Object.keys(perDay).length) { $("grind-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to time your grinds.</p>`; return; }
-    const budgetFor = (pd, mk) => { const v = k => S.perks[k] > 0 ? S.perks[k] : mk[k] || 0; return { LN: v("lnPerDay"), AP: v("apPerDay"), AC: v("acPerDay") }; };
+    // Exploring is counted in AP; Arnold Palmers and Apple Ciders both explore (1 AP = 1 AC), so both go to it
+    const budgetFor = (pd, mk) => { const v = k => S.perks[k] > 0 ? S.perks[k] : mk[k] || 0; return { LN: v("lnPerDay"), AP: v("apPerDay") + v("acPerDay"), AC: v("acPerDay") }; };
     const budget = budgetFor(perDay, made);
     // What if: the same grinds again with the changed numbers
     let alt = null;
@@ -2632,13 +2633,15 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       r.grapes = { now: r.days, cost: window.UPGRADES.upgradeCost("Grapes", Math.round(gDay), capNow), daily: capUp ? window.UPGRADES.upgradeCost("Grapes", capNow, capNow + capUp) : 0 };
       r.days = t.days;
     }
-    // Where to go: if the AP / AC / nets budget is the limit, the place it's mostly spent (Salt Rock at Black Rock Canyon);
-    // else a slow production part you can also gather, and its cost per 1,000. Bought parts (Iron) never count.
+    // Where to go. Drinks and nets can be bought, so they're never the limit: when the time comes from gathering, the limit is
+    // the item gathered most (Salt Rock), as AP at its place. Else a slow production part you can also gather, and its cost
+    // per 1,000. Bought parts (Iron) never count.
     for (const r of rows) {
       const b = r.bottleneck;
       if (b && b.kind !== "prod") {
         const e = C.effort(r.item, r.left), top = Object.entries((e && e.byPlace) || {}).filter(([k]) => k.startsWith(b.kind + "|")).sort((x, y) => y[1] - x[1])[0];
-        if (top) r.gather = { item: Object.keys((e.forWhat || {})[top[0]] || {}).join(", "), unit: b.kind, loc: top[0].split("|")[1], per: null };
+        const its = Object.entries(top ? (e.forWhat || {})[top[0]] || {} : {}).sort((x, y) => y[1] - x[1]);
+        if (its.length) r.gather = { item: its[0][0], qty: its[0][1], unit: b.kind, loc: top[0].split("|")[1], amount: top[1], per: null };
         continue;
       }
       const ps = r.parts.filter(x => x.kind === "prod" && x.item !== "Grapes" && x.days > 0 && perDay[x.item] !== Infinity).sort((a, b) => (b === r.bottleneck) - (a === r.bottleneck) || b.days - a.days);
@@ -2663,7 +2666,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     $("whatif-sort").innerHTML = "";
     const wordy = U.detail === "expanded";
     const UNIT = { LN: "Large Nets", AP: "Arnold Palmers", AC: "Apple Ciders" };
-    const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])}${x.craftedPerDay ? ` + ~${short(x.craftedPerDay)} crafted a day` : ""})` : ""}` : UNIT[x.kind] || esc(x.kind);
+    const partName = x => x.kind === "prod" ? `${esc(x.item)}${BUILDING[x.item] ? ` (${esc(BUILDING[x.item])}${x.craftedPerDay ? ` + ~${short(x.craftedPerDay)} crafted a day` : ""})` : ""}` : x.kind === "AP" ? "AP of exploring (Arnold Palmers + Apple Ciders)" : UNIT[x.kind] || esc(x.kind);
     // Crops: everyone plants one crop in every plot, so a crop need is a number of harvests (and growth time before Veggie Juice)
     const crops = cropInfo();
     const cropNote = x => { const c = x.kind === "prod" && crops[x.item]; if (!c || !(c.perRound > 0)) return "";
@@ -2687,10 +2690,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const hand = {};
       for (const x of r.parts) if (x.kind !== "prod") hand[x.kind] = (hand[x.kind] || 0) + x.need;
       for (const u of r.untimed) hand[u.unit] = (hand[u.unit] || 0) + u.need;
-      const handTxt = Object.entries(hand).map(([u, v]) => `~${short(v)} ${UNIT[u] || esc(u)}`).join(" + ");
+      const handTxt = Object.entries(hand).map(([u, v]) => `~${short(v)} ${u === "AP" ? "AP" : UNIT[u] || esc(u)}`).join(" + ");
       const time = (r.days == null ? "can't be timed yet" : r.days === Infinity ? "no production" : `~${longText(r.days)}${r.grapes ? " (Grapes at your cap)" : ""}`) +
         (r.alt != null ? ` <span class="good">→ ~${longText(r.alt)} (${longText(r.saved)} sooner)</span>` : "");
-      const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${partName(r.bottleneck)}` : "";
+      const lim = r.bottleneck && r.days !== Infinity ? `Limited by: ${r.gather && r.gather.per == null ? `${esc(r.gather.item)} (gathered)` : partName(r.bottleneck)}` : "";
       const parts = r.parts.slice().sort((a, b) => b.days - a.days);
       const lines = [`${short(r.left)} to go (${short(r.have)} / ${short(r.target)})`,
         ...parts.map(x => `${partName(x)}: ${short(x.need)} needed${cropNote(x)}, ${x.kind === "prod" && perDay[x.item] === Infinity ? "bought as needed" : `~${short(x.kind === "prod" ? perDay[x.item] || 0 : budget[x.kind])} a day`}${x.days > 0 ? ` <span class="muted">(${x.days === Infinity ? "none made" : longText(x.days)})</span>` : ""}`),
@@ -2698,12 +2701,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
       if (r.grapes) lines.splice(1, 0, `Grapes kept at your cap: raise them from ${fmt(Math.round(gDay))} to ${fmt(capNow)} a day for ~${short(r.grapes.cost)} silver${
         r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
-      if (r.gather) lines.push(r.gather.per == null ? `Your ${UNIT[r.gather.unit] || esc(r.gather.unit)} go to ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b>`
+      if (r.gather) lines.push(r.gather.per == null ? `${esc(r.gather.item)}: ${short(r.gather.qty)} needed, ~${short(r.gather.amount)} ${UNIT_SHORT[r.gather.unit]} at <b>${esc(r.gather.loc)}</b>`
         : `Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;
       return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
         lim || handTxt ? `<br><span class="small muted">${[lim, handTxt ? `${handTxt} in all` : ""].filter(Boolean).join(" · ")}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
-        ${wordy ? xpList([["Why", towerTipText(r.item, r.have) || "kept going every day"], ["Needs", lines[0]], ["Limit", r.bottleneck && r.days !== Infinity ? `${partName(r.bottleneck)}, ${longText(r.bottleneck.days)}` : "nothing you make feeds it yet"],
+        ${wordy ? xpList([["Why", towerTipText(r.item, r.have) || "kept going every day"], ["Needs", lines[0]], ["Limit", r.bottleneck && r.days !== Infinity ? `${r.gather && r.gather.per == null ? `${esc(r.gather.item)} (gathered)` : partName(r.bottleneck)}, ${longText(r.bottleneck.days)}` : "nothing you make feeds it yet"],
           ["Parts", lines.slice(1)], ["Note", parts.some(x => x.kind !== "prod") ? "Assumes all your Large Nets, Arnold Palmers or Apple Ciders go to it." : null]]) : `<ul class="bite-parts small">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`}</details>`;
     });
     // The drinks' hand-gathered parts (Glass, Tea Leaves): how much exploring that takes a day
@@ -2714,7 +2717,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       return by.length ? `${UNIT[auto[k] === "Large Net" ? "LN" : auto[k] === "Arnold Palmer" ? "AP" : "AC"]}: ~${short(made[k])} a day from your fruit, plus ${by.join(" and ")} for the hand-gathered parts` : "";
     }).filter(Boolean);
     const hand = handLine.length ? `<p class="small muted">${handLine.join(". ")}.</p>` : "";
-    const untimed = !budget.AP || !budget.AC ? `<p class="small muted">Set ${[!budget.AP && "Arnold Palmers", !budget.AC && "Apple Ciders"].filter(Boolean).join(" and ")} a day to time the masteries that need them.</p>` : "";
+    const untimed = !budget.AP ? `<p class="small muted">Set Arnold Palmers or Apple Ciders a day to time the masteries that need exploring.</p>` : "";
     const none = noProd ? `<p class="small muted">${fmt(noProd)} more need something your farm doesn't make (paste the farm page or building pages if it does).</p>` : "";
     // No Storehouse data: times use today's cap for good, which overstates them
     const noStore = !(S.perks.capPerDay > 0) && invCap() !== Infinity ? `<div class="note">No Storehouse data: times use today's cap and don't count it growing each day. Paste your Storehouse page, or set Cap growth a day in <a href="#grind-numbers" data-open="grind-numbers">Your numbers</a>.</div>` : "";
@@ -2722,7 +2725,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const fin = rows.filter(r => r.days != null && r.days !== Infinity), seen = new Set(), out = [];
       const pickR = (label, r) => { if (r && !seen.has(r.item)) { seen.add(r.item); out.push(monoLi(label, `<b>${esc(r.item)}</b> <span class="small muted">${r.tier.toUpperCase()}${
         r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}${r.grapes ? " with Grapes at your cap" : ""}</span>${
-        r.gather ? `<br><span class="small">${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">for ${r.gather.per == null ? "" : "more "}${esc(r.gather.item)}</span></span>` : ""}`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
+        r.gather ? `<br><span class="small">${VERB[r.gather.unit] || "Explore"}${r.gather.per == null ? ` ~${short(r.gather.amount)} ${UNIT_SHORT[r.gather.unit]}` : ""} at <b>${esc(r.gather.loc)}</b> <span class="muted">for ${r.gather.per == null ? `${short(r.gather.qty)} ` : "more "}${esc(r.gather.item)}</span></span>` : ""}`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
       pickR("Nearest Tower level", fin.filter(r => r.towerLv !== Infinity).sort((a, b) => a.towerLv - b.towerLv)[0]);
       pickR("Shortest", fin.slice().sort((a, b) => a.days - b.days)[0]);
       pickR("Longest", fin.slice().sort((a, b) => b.days - a.days)[0]);

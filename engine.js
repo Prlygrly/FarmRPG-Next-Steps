@@ -138,8 +138,10 @@
     // Places you're exploring anyway cost less (where.discount = { loc: factor })
     const disc = where && where.discount;
     if (disc) for (const o of opts) if (disc[o.loc] != null) { o.amount *= disc[o.loc]; o.discounted = true; }
-    // Plain explores can't be compared with AC/AP/nets, so they sort last
-    return opts.sort((a, b) => (a.unit === "explores") - (b.unit === "explores") || a.amount - b.amount);
+    // Exploring is measured in AP (Apple Ciders stay listed after it, for trips and "spend my Apple Ciders");
+    // plain explores can't be compared with AP/nets, so they sort last
+    const rank = o => o.unit === "explores" ? 2 : o.unit === "AC" ? 1 : 0;
+    return opts.sort((a, b) => rank(a) - rank(b) || a.amount - b.amount);
   }
   const bestEffort = (item, left, drops, perks, where) => effortOptions(item, left, drops, perks, where)[0] || null;
 

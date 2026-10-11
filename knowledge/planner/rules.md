@@ -55,9 +55,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   sold).[^player]
 - Steak Market in Monotask: hold / sell (buy for Steaks and Kabobs) only. Every view shows a good-bad bar of today's price
   against the lines: red to green for Truffles; blue (buy) to green (sell) for Steaks and Kabobs.[^player]
-- Iron is always counted as bought (50 silver each, never a limit); Nails too with Iron Depot. In Slow grinds, the
-  "where to go" line follows the real limit: if it's the AP / AC / nets budget, the place most of it goes (Salt: Salt Rock),
-  never a bought or quick part.[^player]
+- Iron is always counted as bought (50 silver each, never a limit); Nails too with Iron Depot. Exploring is measured in AP
+  everywhere (Apple Ciders only where you pick them: trips, "spend my Apple Ciders"); Arnold Palmers and Apple Ciders a day
+  both count toward the AP a day for timing grinds. Drinks and nets can be bought, so they're never named as the limit:
+  a grind limited by gathering names the item (Salt: "Salt Rock, ~2.4M AP at Whispering Creek"), never a bought or quick part.[^player]
 - Bacon comes from pigs, not Mount Banon (unless "Most animals I'll slaughter at one time" is 0): slaughter pigs at
   level 5 in batches of that size, rebuy them and wait for them to grow back (the same pen each round, so high-level
   pigs keep finding Truffles). Level 6 is shown too when it takes fewer rounds. Pig XP: 1,000 a feed, +350 Animal Lover
