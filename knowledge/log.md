@@ -30,3 +30,4 @@
 * **Update (2026-10-09)**: mechanics/pigs.md: Library Bacon, Slaughterhouse pages and Luna's Sheets; pigs are rebought by hand; pig price 250 x pigs owned (derived). planner/rules.md: Bacon from pigs in slaughter batches.
 * **Update (2026-10-11)**: planner/rules.md: Iron always bought; Slow grinds "where to go" follows the real limit.
 * **Update (2026-10-11)**: planner/rules.md: exploring measured in AP everywhere; drinks never named as a grind limit.
+* **Update (2026-10-11)**: mechanics/building-upgrades.md: the farm page shows the Storehouse daily growth ("N Inventory Increase Per Day").

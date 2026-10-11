@@ -830,7 +830,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         // On a wide screen the page also carries the farm sidebar: read its production too (what it shows, keeping the rest)
         if (/Around Your Farm/i.test(text)) {
           const f = parseFarm(text);
-          if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
+          if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; if (f.capPerDay) S.perks.capPerDay = f.capPerDay; S.productionAt = Date.now(); }
         }
         // A Market paste waiting for counts: work its prices out now
         if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
@@ -840,6 +840,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
       else {
         S.production = { ...(S.production || {}), ...window.FRP.storeRates(r) }; done = true;   // update what it shows, keep the rest (a copy can miss a building)
+        if (r.capPerDay) S.perks.capPerDay = r.capPerDay;                // Storehouse growth, for Slow grinds
         if (r.plots && r.plots <= PLOT_SOFT_MAX && r.plots % 4 === 0) S.perks.plots = r.plots;
         else if (r.plots) msg = warn(`Plant All showed ${fmt(r.plots)}, which can't be your crop plots, so they were left at ${fmt(S.perks.plots || 0)}. Check them in Your perks.`);
         S.productionAt = Date.now();
@@ -914,7 +915,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       // The Steam app's Orchard page also carries the farm's building list: read that too
       if (/Around Your Farm/i.test(text)) {
         const f = parseFarm(text);
-        if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; S.productionAt = Date.now(); }
+        if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; if (f.capPerDay) S.perks.capPerDay = f.capPerDay; S.productionAt = Date.now(); }
       }
     } else if (kind === "quests") {
       const all = parseQuests(text), r = all.filter(q => q.section !== "personal");

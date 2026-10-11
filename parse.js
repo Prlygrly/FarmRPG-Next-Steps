@@ -159,6 +159,9 @@
       if (pl) plots = +pl[1];
     }
     if (plots != null) Object.defineProperty(out, "plots", { value: plots, enumerable: false });
+    // Storehouse: "Work to increase max inventory 18 Inventory Increase Per Day" (the cap's daily growth, for Slow grinds)
+    const grow = flat.match(/Storehouse Work to increase max inventory ([\d,]+) Inventory Increase Per Day/i);
+    if (grow) Object.defineProperty(out, "capPerDay", { value: toInt(grow[1]), enumerable: false });
     return out;
   }
 

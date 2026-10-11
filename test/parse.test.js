@@ -136,3 +136,11 @@ console.log("parse tests passed");
   assert.deepStrictEqual(parseMarket(plain), { items: { "Fancy Violin": { value: 3000000, max: false }, "Fancy Pipe": { value: 50000, max: true } }, perks: 70 });
   assert.deepStrictEqual(parseMarket(plain.replace("Fancy Violin", "* Fancy Violin")).items["Fancy Violin"], { value: 3000000, max: false });
 }
+
+// Farm page: the Storehouse's daily cap growth (made-up number), as plain text or as the copied links
+{
+  const { parseFarm } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  assert.strictEqual(parseFarm(["Around Your Farm", "* Storehouse", "Work to increase max inventory", "6 Inventory", "Increase Per Day", "* Farmhouse"].join(nl)).capPerDay, 6);
+  assert.strictEqual(parseFarm(["* [Storehouse](https://x/s)", "[Work to increase max inventory](https://x/s)", "[6 Inventory](https://x/s)", "[Increase Per Day](https://x/s)"].join(nl)).capPerDay, 6);
+}

@@ -53,6 +53,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T12:00:00Z }
 - Each +2 step costs **10× the one before**: the player's +18 → +20 is 10T, +20 → +22 is 100T, then 1 quadrillion
   (2026-10-05).[^player]
 - The Storehouse page states the current daily growth: "it will increase by N each time you work".[^pages]
+  The farm home page shows it too, under Storehouse: "N Inventory Increase Per Day".[^player]
 
 # Planner implications
 
