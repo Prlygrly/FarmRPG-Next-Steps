@@ -1028,7 +1028,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const PERKS = [["ironDepot", "Iron Depot (more explore drops)"], ["runecube", "Runecube (more explore drops)"],
     ["lemonSqueezer", "Lemon Squeezer (Arnold Palmer finds 500 items)"], ["cinnamonSticks", "Cinnamon Sticks (Apple Cider explores 1,250 times)"],
     ["reinforcedNetting", "Reinforced Netting (+150 fish per Large Net)"], ["fishingTrawl", "Fishing Trawl (+100 fish per Large Net)"],
-    ["autoBuyIronNails", "Buys Iron and Nails automatically (counts them as unlimited)"], ["animalLover", "Animal Lover (+350 XP per pig feed)"]];
+    ["autoBuyIronNails", "Buys Nails automatically too (counts them as unlimited; Iron always is)"], ["animalLover", "Animal Lover (+350 XP per pig feed)"]];
   // Where each number comes from, named as on the Perks and Farm Supply pages (knowledge/data/perks.md).
   const tip = t => ` <span class="tip" data-tip="${esc(t)}" aria-label="${esc(t)}" tabindex="0">ⓘ</span>`;
   const tipLines = (...lines) => lines.join("\n");
@@ -1229,7 +1229,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     W = where(p);
     renderPlaces(p);
     // Daily production = items with a known rate (costed in time, not AP)
-    const passive = [...new Set([...Object.entries(allProd()).filter(([, v]) => v > 0).map(([n]) => n), ...Object.keys(S.orchard || {}), ...(S.perks.autoBuyIronNails ? ["Iron", "Nails"] : []), ...(pigsOn() ? ["Bacon"] : [])])];
+    const passive = [...new Set([...Object.entries(allProd()).filter(([, v]) => v > 0).map(([n]) => n), ...Object.keys(S.orchard || {}), ...bought(), ...(pigsOn() ? ["Bacon"] : [])])];
     C = makeCoster(DROPS, RECIPES, S.perks, W, passive);
     const ap = akPlan(p.items, { akTarget, tower: TOWER, fromLevel: p.level, skills: p.skills, drops: DROPS, coster: C, where: W, hidden: S.hidden,
       adjust, timeOf, quickHours: 24, slowHours: (S.perks.slowDays ?? 7) * 24 });
@@ -1580,6 +1580,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // Crops per hour (knowledge/mechanics/crops.md)
   // Best seed per crop: { crop: { seed, minutes (growth after perks), perHour } }
   // Veggie Juice cut: 10%, or 20% once "A Better Juice" counts as done (knowledge/mechanics/veggie-juice.md)
+  // Bought with silver whenever needed, so never a limit: Iron always (50 silver each), Nails too with Iron Depot
+  const bought = () => S.perks.autoBuyIronNails ? ["Iron", "Nails"] : ["Iron"];
   let VJ_CUT = 0.1;
   // Bacon from pigs (knowledge/mechanics/pigs.md): batch = most slaughtered at once (0 = no pigs); 1,000 XP a feed,
   // +350 Animal Lover, +500 Animal Charmer (Tower 40)
@@ -1672,10 +1674,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   function prodTime(p) {
     const orch = S.orchard || {}, prod = allProd();
     const noon = 1 + (S.perks.orchardNoon ?? 10) / 100;
-    const bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    const buy = bought();
     const t = { fruit: {}, fruitDays: 0, slow: null, sawHours: 0, otherHours: 0, rest: {}, bacon: null };
     for (const [n, v] of Object.entries(p || {})) {
-      if (v < 0.5 || bought.includes(n)) continue;
+      if (v < 0.5 || buy.includes(n)) continue;
       if (n === "Bacon" && pigsOn()) {
         const b = t.bacon = baconFor(v), h = b.days * 24;
         if (!t.slow || h > t.slow.hours) t.slow = { item: n, hours: h };
@@ -1765,7 +1767,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       // Always say what you're waiting on: "farming Mushrooms" for crops, "your Stone production" for buildings.
       // If other daily items are involved too, note that they're ready sooner.
       const what = SEEDS.crops[slow.item] ? `farming ${esc(slow.item)}` : `your ${esc(slow.item)} production`;
-      const others = Object.keys(p || {}).filter(n => n !== slow.item && (allProd()[n] > 0 || (S.orchard || {})[n]) && !(S.perks.autoBuyIronNails && ["Iron", "Nails"].includes(n)));
+      const others = Object.keys(p || {}).filter(n => n !== slow.item && (allProd()[n] > 0 || (S.orchard || {})[n]) && !bought().includes(n));
       // Notes go in one bracket: "(the slowest part; or about 117 AP at Ember Lagoon to gather it now)"
       // Skip-the-wait option: gather or craft it now (Stone at Ember Lagoon; Steel from Carbon Sphere + Glass Orb)
       const g = C.activeEffort(slow.item, p[slow.item]);
@@ -1825,10 +1827,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const what = e.forWhat && e.forWhat[k] ? Object.keys(e.forWhat[k]).map(named).join(", ") : "";
       lines.push(`<b>${esc(loc)}</b>: ~${short(v)} ${UNIT_SHORT[u]}${what ? ` <span class="muted">(${what})</span>` : ""}`);
     }
-    const bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    const buy = bought();
     const waits = [];
     for (const [n, v] of Object.entries(e.passive || {})) {
-      if (v < 0.5 || bought.includes(n)) continue;
+      if (v < 0.5 || buy.includes(n)) continue;
       if (n === "Bacon" && pigsOn()) { const b = baconFor(v); waits.push({ h: b.days * 24, t: `<b>Pigs</b>: ${baconText(b)} <span class="muted">(${short(v)} Bacon${b.days > 1 ? `, ~${fmt(b.days)} days` : ", at the next reset"})</span>` }); }
       else if (orch[n]) { const d = Math.ceil(v / fruitPerDay(n)); waits.push({ h: d * 24, t: `<b>Orchard</b>: ${short(v)} ${esc(n)}, ${d} day${d === 1 ? "" : "s"}` }); }
       else if (crops[n] && prod[n] > 0) {
@@ -1841,7 +1843,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       else waits.push({ h: 0, t: `${short(v)} ${esc(n)} from production` });
     }
     waits.sort((a, b) => b.h - a.h);
-    const stock = (e.fromStock || []).filter(x => !bought.includes(x.item)).map(x => `${short(x.used)} ${esc(x.item)}`);
+    const stock = (e.fromStock || []).filter(x => !buy.includes(x.item)).map(x => `${short(x.used)} ${esc(x.item)}`);
     return [...lines, ...waits.map(w => w.t), ...(stock.length ? [`<span class="muted">From your stock: ${stock.join(", ")}</span>`] : [])];
   }
 
@@ -1861,9 +1863,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const [unit, loc] = k.split("|");
       out.push({ kind: "gather", id: `${t.key}|g|${k}`, unit, loc, amount: v, items: (e.forWhat || {})[k] || {} });
     }
-    const crops = cropInfo(), orch = S.orchard || {}, made = allProd(), bought = S.perks.autoBuyIronNails ? ["Iron", "Nails"] : [];
+    const crops = cropInfo(), orch = S.orchard || {}, made = allProd(), buy = bought();
     for (const [n, v] of Object.entries(e.passive || {})) {
-      if (v < 0.5 || bought.includes(n)) continue;
+      if (v < 0.5 || buy.includes(n)) continue;
       if (n === "Bacon" && pigsOn()) out.push({ kind: "slaughter", id: `${t.key}|pigs`, item: n, qty: v, plan: baconFor(v) });
       else if (crops[n] && made[n] > 0 && !orch[n]) out.push({ kind: "grow", id: `${t.key}|grow|${n}`, item: n, qty: v, rounds: Math.ceil(v / crops[n].perRound) });
       else waits.push({ kind: "wait", id: `${t.key}|wait|${n}`, item: n, qty: v });
@@ -2584,7 +2586,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const perDay = {};
     for (const [n, v] of Object.entries(allProd())) if (v > 0 && !prod()[n]) perDay[n] = v * 24;   // crops
     Object.assign(perDay, window.FRP.productionMath(env).perDay());
-    if (S.perks.autoBuyIronNails) { perDay.Iron = Infinity; perDay.Nails = Infinity; }   // bought as needed: never the limit
+    for (const n of bought()) perDay[n] = Infinity;                       // bought as needed: never the limit
     if (S.perks.extraAntlers > 0) perDay.Antler = (perDay.Antler || 0) + S.perks.extraAntlers;
     return perDay;
   }
@@ -2630,9 +2632,16 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       r.grapes = { now: r.days, cost: window.UPGRADES.upgradeCost("Grapes", Math.round(gDay), capNow), daily: capUp ? window.UPGRADES.upgradeCost("Grapes", capNow, capNow + capUp) : 0 };
       r.days = t.days;
     }
-    // The limiting part, if you can also gather it: where, and the cost per 1,000
+    // Where to go: if the AP / AC / nets budget is the limit, the place it's mostly spent (Salt Rock at Black Rock Canyon);
+    // else a slow production part you can also gather, and its cost per 1,000. Bought parts (Iron) never count.
     for (const r of rows) {
-      const ps = r.parts.filter(x => x.kind === "prod" && x.item !== "Grapes").sort((a, b) => (b === r.bottleneck) - (a === r.bottleneck) || b.days - a.days);
+      const b = r.bottleneck;
+      if (b && b.kind !== "prod") {
+        const e = C.effort(r.item, r.left), top = Object.entries((e && e.byPlace) || {}).filter(([k]) => k.startsWith(b.kind + "|")).sort((x, y) => y[1] - x[1])[0];
+        if (top) r.gather = { item: Object.keys((e.forWhat || {})[top[0]] || {}).join(", "), unit: b.kind, loc: top[0].split("|")[1], per: null };
+        continue;
+      }
+      const ps = r.parts.filter(x => x.kind === "prod" && x.item !== "Grapes" && x.days > 0 && perDay[x.item] !== Infinity).sort((a, b) => (b === r.bottleneck) - (a === r.bottleneck) || b.days - a.days);
       for (const x of ps) {
         const g = window.FRP.bestEffort(x.item, 1000, DROPS, S.perks, W);
         if (g && g.unit !== "explores" && g.amount > 0) { r.gather = { item: x.item, unit: g.unit, loc: g.loc, per: g.amount }; break; }
@@ -2689,7 +2698,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
       if (r.grapes) lines.splice(1, 0, `Grapes kept at your cap: raise them from ${fmt(Math.round(gDay))} to ${fmt(capNow)} a day for ~${short(r.grapes.cost)} silver${
         r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
-      if (r.gather) lines.push(`Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
+      if (r.gather) lines.push(r.gather.per == null ? `Your ${UNIT[r.gather.unit] || esc(r.gather.unit)} go to ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b>`
+        : `Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;
       return `<details class="plant-row"><summary><b>${esc(r.item)}</b> <span class="muted small">${r.tier.toUpperCase()}</span>${tower} · <b>${time}</b>${
         lim || handTxt ? `<br><span class="small muted">${[lim, handTxt ? `${handTxt} in all` : ""].filter(Boolean).join(" · ")}</span>` : ""}<div style="height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--good);border-radius:3px"></div></div></summary>
@@ -2712,7 +2722,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const fin = rows.filter(r => r.days != null && r.days !== Infinity), seen = new Set(), out = [];
       const pickR = (label, r) => { if (r && !seen.has(r.item)) { seen.add(r.item); out.push(monoLi(label, `<b>${esc(r.item)}</b> <span class="small muted">${r.tier.toUpperCase()}${
         r.towerLv !== Infinity ? ` · Tower ${r.towerLv}` : ""} · ~${longText(r.days)}${r.grapes ? " with Grapes at your cap" : ""}</span>${
-        r.gather ? `<br><span class="small">${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">for more ${esc(r.gather.item)}</span></span>` : ""}`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
+        r.gather ? `<br><span class="small">${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">for ${r.gather.per == null ? "" : "more "}${esc(r.gather.item)}</span></span>` : ""}`, `<ul>${(r.lines || []).map(l => `<li>${l}</li>`).join("")}</ul>`)); } };
       pickR("Nearest Tower level", fin.filter(r => r.towerLv !== Infinity).sort((a, b) => a.towerLv - b.towerLv)[0]);
       pickR("Shortest", fin.slice().sort((a, b) => a.days - b.days)[0]);
       pickR("Longest", fin.slice().sort((a, b) => b.days - a.days)[0]);
