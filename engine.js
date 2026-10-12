@@ -110,12 +110,14 @@
   const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, reinforcedNetting: true, fishingTrawl: true, animalLover: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
     plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20, maxSlaughter: 20 };
 
+  // Explores per Apple Cider at a place: 1,000 + 10 x its Exploring Effectiveness (perks.ee[loc], 1 if not pasted),
+  // x1.25 with Cinnamon Sticks (knowledge/mechanics/exploring-drinks.md)
+  const ciderExplores = (loc, perks = DEFAULT_PERKS) => Math.round((1000 + 10 * Math.max(1, ((perks.ee || {})[loc]) || 1)) * (perks.cinnamonSticks ? 1.25 : 1));
   // Every way to get the item, cheapest first: [{loc, unit, amount}]
   function effortOptions(item, left, drops, perks = DEFAULT_PERKS, where = null) {
     const it = drops && drops.items[item];
     if (!it || left <= 0) return [];
     const exVar = (perks.ironDepot ? "D" : "") + (perks.runecube ? "R" : "") || "-";
-    const perCider = (perks.cinnamonSticks ? 1250 : 1000) * 0.4;
     const perPalmer = perks.lemonSqueezer ? 500 : 200;
     const perNet = 250 + (perks.reinforcedNetting ? 150 : 0) + (perks.fishingTrawl ? 100 : 0);
     const opts = [];
@@ -131,7 +133,7 @@
         if (rate == null) continue;
         if (L.base) {
           opts.push({ loc, unit: "AP", amount: left * rate / ((1 / L.base) * perPalmer) });
-          opts.push({ loc, unit: "AC", amount: left * rate / (perCider / L.base) });
+          opts.push({ loc, unit: "AC", amount: left * rate / (ciderExplores(loc, perks) * 0.4 / L.base) });     // cider finds 0.40 items an explore
         } else opts.push({ loc, unit: "explores", amount: left * rate });
       }
     }
@@ -529,7 +531,7 @@
     return rows.sort((a, b) => (b.perGold ?? -1) - (a.perGold ?? -1));
   }
 
-  const api = { drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { ciderExplores, drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

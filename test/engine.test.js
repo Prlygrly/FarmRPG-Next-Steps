@@ -325,3 +325,11 @@ console.log("engine tests passed");
   const n = drinkValue({ base: 1 / 3, ee: 104, cinnamon: true, lemon: true, wanderer: 33, neigh: true, price: { AP: 0.04, AC: 0.01, OJ: 0.006 } });
   assert.ok(Math.abs(n.find(r => r.kind === "AC").ojPerAC - 13.668) < 0.01);   // Neigh: 20% less stamina
 }
+
+// Cider at a place uses its EE (1 when not pasted): EE 104 with Cinnamon Sticks explores 2,550 times, the minimum 1,263
+{
+  const { ciderExplores } = require("../engine.js");
+  assert.strictEqual(ciderExplores("Forest", { cinnamonSticks: true, ee: { Forest: 104 } }), 2550);
+  assert.strictEqual(ciderExplores("Small Cave", { cinnamonSticks: true, ee: { Forest: 104 } }), 1263);
+  assert.strictEqual(ciderExplores("Forest", { cinnamonSticks: false }), 1010);
+}

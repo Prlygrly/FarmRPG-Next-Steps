@@ -714,6 +714,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   let S = { mastery: null, inventory: null, manual: {}, perks: { ...START_PERKS }, places: {}, hidden: [] };
   try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
   S.perks = { ...START_PERKS, ...S.perks };
+  if (S.ee) { S.perks.ee = { ...S.ee, ...(S.perks.ee || {}) }; delete S.ee; }          // EE was kept apart for a day (2026-10-11)
   // Production is stored in each item's own unit ({ n, per }); older saves had bare numbers per hour
   const fixRates = () => {
     if (S.production) S.production = window.FRP.migrateRates(S.production);
@@ -900,7 +901,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
       const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
       if (!loc) msg = warn(r ? `"${esc(r.place)}" isn't a place the planner knows.` : "No Exploring Effectiveness was found. Copy the whole page and try again.");
-      else { S.ee = { ...(S.ee || {}), [loc]: r.ee }; S.drinkLoc = loc; done = true;
+      else { S.perks.ee = { ...(S.perks.ee || {}), [loc]: r.ee }; S.drinkLoc = loc; done = true;
         msg = `<div class="note" style="border-color:var(--good)">Exploring Effectiveness at ${esc(loc)}: ${fmt(r.ee)}. See Exploring drinks on Best use.</div>`; }
     } else if (kind === "request") {
       // One request's own page (special and personal requests aren't in buddy.farm's quest data)
@@ -2287,7 +2288,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         if (xp == null) continue;
         let per, unit;
         if (type === "fishing") { per = (75 + xp) * (250 + (k.reinforcedNetting ? 150 : 0) + (k.fishingTrawl ? 100 : 0)); unit = "LN"; }
-        else if (L.base) { per = (125 + xp) * ((k.cinnamonSticks ? 1250 : 1000) * 0.4 / L.base); unit = "AC"; }
+        else if (L.base) { per = (125 + xp) * (window.FRP.ciderExplores(loc, k) * 0.4 / L.base); unit = "AC"; }
         else continue;
         if (!top || per > top.per) top = { loc, per, unit, each: type === "fishing" ? 75 + xp : 125 + xp };
       }
@@ -2821,7 +2822,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const sel = $("drink-loc");
     if (sel.dataset.locs !== locs.join("|")) { sel.innerHTML = locs.map(l => `<option>${esc(l)}</option>`).join(""); sel.dataset.locs = locs.join("|"); }
     sel.value = loc;
-    const ee = (S.ee || {})[loc];
+    const ee = (S.perks.ee || {})[loc];
     if (document.activeElement !== $("drink-ee")) $("drink-ee").value = ee || "";
     $("drink-neigh").checked = !!S.perks.neigh;
     document.querySelectorAll("[data-drink-price]").forEach(el => {
@@ -2843,8 +2844,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   }
   $("drink-loc").addEventListener("change", e => { S.drinkLoc = e.target.value; save(); renderDrinks(); });
   $("drink-ee").addEventListener("input", e => {
-    const v = Math.round(+e.target.value), l = $("drink-loc").value; S.ee = { ...(S.ee || {}) };
-    if (v >= 1) S.ee[l] = v; else delete S.ee[l];
+    const v = Math.round(+e.target.value), l = $("drink-loc").value; S.perks.ee = { ...(S.perks.ee || {}) };
+    if (v >= 1) S.perks.ee[l] = v; else delete S.perks.ee[l];
     save(); renderDrinks(); });
   $("drink-neigh").addEventListener("change", e => { S.perks.neigh = e.target.checked; save(); renderDrinks(); });
   document.querySelectorAll("[data-drink-price]").forEach(el => el.addEventListener("input", () => {
