@@ -422,7 +422,10 @@
     const ee = flat.match(/currently using ([\d,]+) stamina every time you continue exploring/i);
     if (!place || !ee) return null;
     const bars = flat.match(/You have eaten ([\d,]+) Protein Bars? in this location/i);
-    return { place: place[1].trim(), ee: toInt(ee[1]), bars: bars ? toInt(bars[1]) : null };
+    // The next upgrade's fee: "Pay Fee 1.0T Silver" (some places charge an item, e.g. Corn)
+    const fee = flat.match(/Pay Fee ([\d.,]+)\s*([KMBTQ]?)\s+(Silver|[A-Z][A-Za-z']*(?: [A-Z][A-Za-z']*)?)/);
+    const amount = fee && Math.round(parseFloat(fee[1].replace(/,/g, "")) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15 }[fee[2].toUpperCase()] || 1));
+    return { place: place[1].trim(), ee: toInt(ee[1]), bars: bars ? toInt(bars[1]) : null, fee: fee ? { amount, unit: fee[3] } : null };
   }
 
   function detectPage(text) {

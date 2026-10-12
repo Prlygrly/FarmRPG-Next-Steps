@@ -153,6 +153,7 @@ console.log("parse tests passed");
     "You are currently using 37 stamina every time you continue exploring this location.", "", "You have eaten 2 Protein Bars in this location.",
     "* [Pay Fee](https://x/#)", "[5.0B Silver](https://x/#)"].join(nl);
   assert.strictEqual(detectPage(t), "explore-info");
-  assert.deepStrictEqual(parseExploreInfo(t), { place: "Whispering Creek", ee: 37, bars: 2 });
+  assert.deepStrictEqual(parseExploreInfo(t), { place: "Whispering Creek", ee: 37, bars: 2, fee: { amount: 5e9, unit: "Silver" } });
+  assert.deepStrictEqual(parseExploreInfo(t.replace("5.0B Silver", "250K Corn")).fee, { amount: 250000, unit: "Corn" });
   assert.strictEqual(parseExploreInfo(t.replace("about Whispering Creek", "about the Forest")).place, "Forest");
 }

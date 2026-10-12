@@ -66,6 +66,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]
+- Cheap EE upgrades (Exploring drinks, from each pasted EE page): suggest one when it costs little next to what you have:
+  a silver fee of 1% of your silver or less; an item fee (e.g. Corn) or Protein Bar gold of 10% of what you have or less.
+  The first 3 Protein Bars per place need no gold beyond the bar (~10 Gold in trade). Each upgrade adds 2^Sprint Shoes EE.[^player]
 - Exploring drinks (Best use): items per gold for Arnold Palmers, Apple Ciders plus the Orange Juice they use, and Orange
   Juice by hand, at one place. Prices are typed (gold per 1,000; the trade snapshot until then). EE per place comes from
   pasting that place's Exploring Effectiveness page, or typing it. See mechanics/exploring-drinks.md. Every
