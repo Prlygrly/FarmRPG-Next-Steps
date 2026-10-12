@@ -2816,7 +2816,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const DRINK = { AP: "Arnold Palmer", AC: "Apple Cider", OJ: "Orange Juice" };
   const tradeGold = k => (TRADE.trade[DRINK[k]] || {}).gold || 0;
   const drinkPrice = k => (S.drinkPrices || {})[k] > 0 ? S.drinkPrices[k] / 1000 : tradeGold(k);
-  const exploreLocs = () => Object.keys(DROPS.locs).filter(l => DROPS.locs[l].base && !(W && W.places && W.places[l] === false)).sort();
+  // In the game's exploring order (by the Exploring level that opens each), event places last
+  const EXPLORE_ORDER = ["Small Cave", "Forest", "Small Spring", "Highland Hills", "Cane Pole Ridge", "Misty Forest", "Black Rock Canyon", "Mount Banon",
+    "Ember Lagoon", "Whispering Creek", "Jundland Desert", "Gary's Crushroom"];
+  const exploreRank = l => EXPLORE_ORDER.includes(l) ? EXPLORE_ORDER.indexOf(l) : EXPLORE_ORDER.length;
+  const exploreLocs = () => Object.keys(DROPS.locs).filter(l => DROPS.locs[l].base && !(W && W.places && W.places[l] === false))
+    .sort((a, b) => exploreRank(a) - exploreRank(b) || a.localeCompare(b));
   function renderDrinks() {
     const locs = exploreLocs(), loc = locs.includes(S.drinkLoc) ? S.drinkLoc : locs.includes("Forest") ? "Forest" : locs[0];
     const sel = $("drink-loc");
