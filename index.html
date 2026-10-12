@@ -438,6 +438,23 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div class="mono-hide" id="silver-goal-list"></div>
     <ul class="mono-list" id="mono-silver-goal"></ul>
   </section>
+  <section class="card" data-tab="best" id="drinks" aria-labelledby="h-drinks">
+    <h2 id="h-drinks" style="margin:0 0 4px">Exploring drinks</h2>
+    <p class="mono-hide small muted" style="margin:0 0 6px">Items per gold: Arnold Palmers, Apple Ciders (with the Orange Juice they use) or Orange Juice explored by hand. Paste a place's Exploring Effectiveness page (its Info button) to fill in EE. <span class="tip" data-tip="Cider: (1,000 + 10 × EE) explores, ×1.25 with Cinnamon Sticks, finding 0.40 items each anywhere. Palmer: 500 items with Lemon Squeezer (200 without), no stamina. Orange Juice: 100 stamina, explored at the place's own find rate. Items you're maxed on are lost from all three alike." aria-label="How it's worked out" tabindex="0">ⓘ</span></p>
+    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px">
+      <label class="field"><span>Place</span><select id="drink-loc" style="width:auto"></select></label>
+      <label class="field"><span>Exploring Effectiveness</span><input type="number" min="1" max="100000" id="drink-ee" style="width:6em"></label>
+      <label class="small"><input type="checkbox" id="drink-neigh"> Neigh (20% less cider stamina)</label>
+    </div>
+    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px">
+      <span class="muted">Gold per 1,000:</span>
+      <label class="field"><span>Arnold Palmer</span><input type="number" min="0" step="any" data-drink-price="AP" style="width:6em"></label>
+      <label class="field"><span>Apple Cider</span><input type="number" min="0" step="any" data-drink-price="AC" style="width:6em"></label>
+      <label class="field"><span>Orange Juice</span><input type="number" min="0" step="any" data-drink-price="OJ" style="width:6em"></label>
+    </div>
+    <div class="mono-hide" id="drink-list"></div>
+    <ul class="mono-list" id="mono-drinks"></ul>
+  </section>
   <section class="card" data-tab="best" id="kitchen" aria-labelledby="h-kitchen">
     <h2 id="h-kitchen">Kitchen</h2>
     <p class="mono-hide small muted">Meals to cook: quest needs first, then lowest stock. <span class="tip" data-tip="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." aria-label="Quests up to 5 steps ahead count. One meal per oven. Times use your Ovens, Cooking faster % and Stirs per meal (Setup → Your perks)." tabindex="0">ⓘ</span></p>
@@ -684,7 +701,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202610112030"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -716,16 +733,18 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   fixQuestKinds();
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
-  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "kitchen"];
+  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "drinks", "kitchen"];
   const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
+  // Cards added since the order was saved go in at their default place
+  for (const id of BEST_IDS) if (!U.bestOrder.includes(id)) U.bestOrder = [...U.bestOrder.slice(0, BEST_IDS.indexOf(id)), id, ...U.bestOrder.slice(BEST_IDS.indexOf(id))];
   if (S.nextDetail && !localStorage.getItem(UI_STORE)) U.detail = S.nextDetail;      // older saves kept detail with the game data
   U.bestOrder = [...U.bestOrder.filter(x => BEST_IDS.includes(x)), ...BEST_IDS.filter(x => !U.bestOrder.includes(x))];
   const saveU = () => { try { localStorage.setItem(UI_STORE, JSON.stringify(U)); } catch (e) {} };
   const mono = () => U.detail === "mono";
   // Monotask: the cards that show one thing each
-  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "steak-card", "silver-goal", "kitchen", "vj", "quests"];
+  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "steak-card", "silver-goal", "drinks", "kitchen", "vj", "quests"];
   // Expanded: [label, value] rows; a value can be a list. Empty rows drop out.
   const xpList = rows => `<ul class="xp">${rows.filter(([, v]) => v != null && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) =>
     `<li><b>${k}</b><div>${Array.isArray(v) ? (v.length === 1 ? v[0] : `<ul>${v.map(x => `<li>${x}</li>`).join("")}</ul>`) : v}</div></li>`).join("")}</ul>`;
@@ -877,6 +896,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
         msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
       else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
+    } else if (kind === "explore-info") {
+      const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
+      const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
+      if (!loc) msg = warn(r ? `"${esc(r.place)}" isn't a place the planner knows.` : "No Exploring Effectiveness was found. Copy the whole page and try again.");
+      else { S.ee = { ...(S.ee || {}), [loc]: r.ee }; S.drinkLoc = loc; done = true;
+        msg = `<div class="note" style="border-color:var(--good)">Exploring Effectiveness at ${esc(loc)}: ${fmt(r.ee)}. See Exploring drinks on Best use.</div>`; }
     } else if (kind === "request") {
       // One request's own page (special and personal requests aren't in buddy.farm's quest data)
       const r = parseRequest(text);
@@ -946,7 +971,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
   const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply", friends: "Friendship",
-    steak: "Steak Market", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+    steak: "Steak Market", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
@@ -1209,6 +1234,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     renderLoaded(p);
     renderChanges();
     renderTruffleStrip();
+    renderDrinks();
     if (syncFields) {
       $("f-level").value = p.level ?? "";
       $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
@@ -2784,6 +2810,45 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (!e.target.closest("#truffle-x")) return;
     U.truffleHideUntil = Date.now() + 864e5; saveU(); renderTruffleStrip();
   });
+  // ---------- Exploring drinks: items per gold (knowledge/mechanics/exploring-drinks.md) ----------
+  // Prices: yours (gold per 1,000), else the trade-chat snapshot. EE per place, from its Exploring Effectiveness page.
+  const DRINK = { AP: "Arnold Palmer", AC: "Apple Cider", OJ: "Orange Juice" };
+  const tradeGold = k => (TRADE.trade[DRINK[k]] || {}).gold || 0;
+  const drinkPrice = k => (S.drinkPrices || {})[k] > 0 ? S.drinkPrices[k] / 1000 : tradeGold(k);
+  const exploreLocs = () => Object.keys(DROPS.locs).filter(l => DROPS.locs[l].base && !(W && W.places && W.places[l] === false)).sort();
+  function renderDrinks() {
+    const locs = exploreLocs(), loc = locs.includes(S.drinkLoc) ? S.drinkLoc : locs.includes("Forest") ? "Forest" : locs[0];
+    const sel = $("drink-loc");
+    if (sel.dataset.locs !== locs.join("|")) { sel.innerHTML = locs.map(l => `<option>${esc(l)}</option>`).join(""); sel.dataset.locs = locs.join("|"); }
+    sel.value = loc;
+    const ee = (S.ee || {})[loc];
+    if (document.activeElement !== $("drink-ee")) $("drink-ee").value = ee || "";
+    $("drink-neigh").checked = !!S.perks.neigh;
+    document.querySelectorAll("[data-drink-price]").forEach(el => {
+      el.placeholder = +(tradeGold(el.dataset.drinkPrice) * 1000).toFixed(2);
+      if (document.activeElement !== el) el.value = (S.drinkPrices || {})[el.dataset.drinkPrice] || "";
+    });
+    if (!loc) { $("drink-list").innerHTML = ""; $("mono-drinks").innerHTML = ""; return; }
+    const rows = window.FRP.drinkValue({ base: DROPS.locs[loc].base, ee: ee || 1, cinnamon: S.perks.cinnamonSticks, lemon: S.perks.lemonSqueezer,
+      wanderer: S.perks.wanderer, neigh: S.perks.neigh, price: { AP: drinkPrice("AP"), AC: drinkPrice("AC"), OJ: drinkPrice("OJ") } });
+    const what = r => r.kind === "AP" ? `${fmt(r.items)} items, no stamina`
+      : r.kind === "AC" ? `${fmt(r.explores)} explores, ~${short(r.items)} items, uses ~${fmt(Math.ceil(r.ojPerAC))} Orange Juice`
+      : `~${short(r.items)} items explored by hand`;
+    const name = r => r.kind === "AC" ? "Apple Cider + Orange Juice" : r.kind === "OJ" ? "Orange Juice by hand" : DRINK[r.kind];
+    const best = rows[0], gold = c => c >= 0.01 ? c.toFixed(3) : c.toFixed(4);
+    $("drink-list").innerHTML = (ee ? "" : `<p class="small muted" style="margin:0 0 6px">No Exploring Effectiveness for ${esc(loc)} yet, so cider is counted at the minimum. Paste that place's Exploring Effectiveness page, or type it above.</p>`) +
+      `<ol class="small" style="margin:0;padding-left:20px">${rows.map(r => `<li><b${r === best ? ' class="good"' : ""}>${name(r)}</b>: ${r.perGold != null ? `~${short(r.perGold)} items per gold` : "set a price"}` +
+      ` <span class="muted">(${what(r)}; ~${gold(r.cost)} gold each)</span></li>`).join("")}</ol>`;
+    $("mono-drinks").innerHTML = monoLi(`Best at ${esc(loc)}`, best.perGold != null ? `<b>${name(best)}</b> <span class="small muted">~${short(best.perGold)} items per gold</span>` : "Set prices");
+  }
+  $("drink-loc").addEventListener("change", e => { S.drinkLoc = e.target.value; save(); renderDrinks(); });
+  $("drink-ee").addEventListener("input", e => {
+    const v = Math.round(+e.target.value), l = $("drink-loc").value; S.ee = { ...(S.ee || {}) };
+    if (v >= 1) S.ee[l] = v; else delete S.ee[l];
+    save(); renderDrinks(); });
+  $("drink-neigh").addEventListener("change", e => { S.perks.neigh = e.target.checked; save(); renderDrinks(); });
+  document.querySelectorAll("[data-drink-price]").forEach(el => el.addEventListener("input", () => {
+    S.drinkPrices = { ...(S.drinkPrices || {}), [el.dataset.drinkPrice]: +el.value > 0 ? +el.value : undefined }; save(); renderDrinks(); }));
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
     $("steak-card").hidden = !m && !due;
@@ -3835,7 +3900,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
 
   // ---------- Best use order (App settings) ----------
-  const BEST_NAME = { best: "Spend my…", plant: "What to plant", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", kitchen: "Kitchen" };
+  const BEST_NAME = { best: "Spend my…", plant: "What to plant", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", drinks: "Exploring drinks", kitchen: "Kitchen" };
   function applyBestOrder() {
     let at = $("best-nav");
     for (const id of U.bestOrder) { at.after($(id)); at = $(id); $(id).classList.toggle("user-off", U.bestOff.includes(id)); }

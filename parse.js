@@ -411,7 +411,20 @@
     return out;
   }
 
+  // A place's Exploring Effectiveness page (its Info button): "George is very knowledgeable about the Forest and can help you
+  // explore it more effectively ... You are currently using 104 stamina every time you continue exploring this location."
+  // The stamina per tap is the Exploring Effectiveness. knowledge/mechanics/exploring-drinks.md
+  function parseExploreInfo(text) {
+    const flat = flatText(text);
+    const place = flat.match(/is very knowledgeable about (?:the )?(.+?) and can help you explore it more effectively/i);
+    const ee = flat.match(/currently using ([\d,]+) stamina every time you continue exploring/i);
+    if (!place || !ee) return null;
+    const bars = flat.match(/You have eaten ([\d,]+) Protein Bars? in this location/i);
+    return { place: place[1].trim(), ee: toInt(ee[1]), bars: bars ? toInt(bars[1]) : null };
+  }
+
   function detectPage(text) {
+    if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
     if (/About the Truffle Market/i.test(text) && /About the Steak Market/i.test(text)) return "steak";
     if (/due to your unlocked perks/i.test(text) && /UNLOCKED INVENTORY/i.test(text)) return "market";
@@ -465,7 +478,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

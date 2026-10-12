@@ -144,3 +144,15 @@ console.log("parse tests passed");
   assert.strictEqual(parseFarm(["Around Your Farm", "* Storehouse", "Work to increase max inventory", "6 Inventory", "Increase Per Day", "* Farmhouse"].join(nl)).capPerDay, 6);
   assert.strictEqual(parseFarm(["* [Storehouse](https://x/s)", "[Work to increase max inventory](https://x/s)", "[6 Inventory](https://x/s)", "[Increase Per Day](https://x/s)"].join(nl)).capPerDay, 6);
 }
+
+// A place's Exploring Effectiveness page (made-up numbers): the place, the stamina per tap (= EE) and Protein Bars eaten
+{
+  const { parseExploreInfo, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Exploring Effectiveness", "Nadia is very knowledgeable about Whispering Creek and can help you explore it more effectively for a small fee.", "",
+    "You are currently using 37 stamina every time you continue exploring this location.", "", "You have eaten 2 Protein Bars in this location.",
+    "* [Pay Fee](https://x/#)", "[5.0B Silver](https://x/#)"].join(nl);
+  assert.strictEqual(detectPage(t), "explore-info");
+  assert.deepStrictEqual(parseExploreInfo(t), { place: "Whispering Creek", ee: 37, bars: 2 });
+  assert.strictEqual(parseExploreInfo(t.replace("about Whispering Creek", "about the Forest")).place, "Forest");
+}

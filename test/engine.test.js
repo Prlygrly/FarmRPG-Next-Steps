@@ -312,3 +312,16 @@ console.log("engine tests passed");
   assert.deepStrictEqual([c.pigs, c.rounds, c.regrow, c.days], [35, 2, 18, 19]);
   assert.strictEqual(baconPlan(500, { batch: 0, levelXp: total }), null);
 }
+
+// Exploring drinks, the player's Forest check: EE 104, Cinnamon Sticks, Lemon Squeezer, Wanderer 33%; 6 / 40 / 10 gold per 1,000
+{
+  const { drinkValue } = require("../engine.js");
+  const rows = drinkValue({ base: 1 / 3, ee: 104, cinnamon: true, lemon: true, wanderer: 33, price: { AP: 0.04, AC: 0.01, OJ: 0.006 } });
+  const by = Object.fromEntries(rows.map(r => [r.kind, r]));
+  assert.deepStrictEqual(rows.map(r => r.kind), ["AP", "AC", "OJ"]);
+  assert.strictEqual(by.AC.explores, 2550);
+  assert.ok(Math.abs(by.AC.ojPerAC - 17.085) < 0.01 && Math.abs(by.AC.items - 1020) < 1e-9);
+  assert.ok(Math.abs(by.AP.perGold - 12500) < 1e-6 && Math.round(by.AC.perGold) === 9066 && Math.round(by.OJ.perGold) === 8292);
+  const n = drinkValue({ base: 1 / 3, ee: 104, cinnamon: true, lemon: true, wanderer: 33, neigh: true, price: { AP: 0.04, AC: 0.01, OJ: 0.006 } });
+  assert.ok(Math.abs(n.find(r => r.kind === "AC").ojPerAC - 13.668) < 0.01);   // Neigh: 20% less stamina
+}

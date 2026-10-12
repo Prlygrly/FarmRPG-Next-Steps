@@ -512,7 +512,24 @@
     return { at, each, pigs, perRound: Math.min(pigs, batch), rounds, regrow, days: 1 + (rounds - 1) * regrow };
   }
 
-  const api = { baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Exploring drinks: items per gold (knowledge/mechanics/exploring-drinks.md) ----------
+  // o = { base: the place's find rate, ee: Exploring Effectiveness there, cinnamon, lemon, wanderer %, neigh,
+  //       price: { AP, AC, OJ } gold each }. Cider: (1,000 + 10 x EE) explores (x1.25 Cinnamon Sticks) at 0.40 items each,
+  //       paid for in Orange Juice (100 stamina). Palmer: 200 / 500 items, no stamina. OJ by hand: 100 stamina at the base rate.
+  function drinkValue(o) {
+    const keep = 1 - Math.min(33, o.wanderer || 0) / 100;
+    const explores = Math.round((1000 + 10 * Math.max(1, o.ee || 1)) * (o.cinnamon ? 1.25 : 1));     // 1,263 at the least with Cinnamon Sticks
+    const ojPerAC = explores * keep * (o.neigh ? 0.8 : 1) / 100;
+    const rows = [
+      { kind: "AP", items: o.lemon ? 500 : 200, cost: o.price.AP },
+      { kind: "AC", items: explores * 0.4, cost: o.price.AC + ojPerAC * o.price.OJ, explores, ojPerAC },
+      { kind: "OJ", items: 100 / keep * o.base, cost: o.price.OJ }
+    ];
+    for (const r of rows) r.perGold = r.cost > 0 ? r.items / r.cost : null;
+    return rows.sort((a, b) => (b.perGold ?? -1) - (a.perGold ?? -1));
+  }
+
+  const api = { drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

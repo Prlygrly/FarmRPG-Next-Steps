@@ -32,3 +32,4 @@
 * **Update (2026-10-11)**: planner/rules.md: exploring measured in AP everywhere; drinks never named as a grind limit.
 * **Update (2026-10-11)**: mechanics/building-upgrades.md: the farm page shows the Storehouse daily growth ("N Inventory Increase Per Day").
 * **Update (2026-10-11)**: mechanics/exploring-drinks.md (new): Exploring Effectiveness, Apple Cider explores / stamina / 0.40 find rate, Arnold Palmer fixed items, Orange Juice by hand, items per gold; from the Library and player measurements.
+* **Update (2026-10-11)**: planner/rules.md: Exploring drinks calculator; EE from the Exploring Effectiveness page.
