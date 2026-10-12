@@ -441,11 +441,11 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   <section class="card" data-tab="best" id="drinks" aria-labelledby="h-drinks">
     <h2 id="h-drinks" style="margin:0 0 4px">Exploring drinks</h2>
     <p class="mono-hide small muted" style="margin:0 0 6px">Items per gold: Arnold Palmers, Apple Ciders (with the Orange Juice they use) or Orange Juice explored by hand. Paste a place's Exploring Effectiveness page (its Info button) to fill in EE. <span class="tip" data-tip="Cider: (1,000 + 10 × EE) explores, ×1.25 with Cinnamon Sticks, finding 0.40 items each anywhere. Palmer: 500 items with Lemon Squeezer (200 without), no stamina. Orange Juice: 100 stamina, explored at the place's own find rate. Items you're maxed on are lost from all three alike." aria-label="How it's worked out" tabindex="0">ⓘ</span></p>
-    <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px">
+    <div class="row small" id="drink-place-row" style="gap:10px;align-items:flex-end;margin:0 0 8px">
       <label class="field"><span>Place</span><select id="drink-loc" style="width:auto"></select></label>
       <label class="field"><span>Exploring Effectiveness</span><input type="number" min="1" max="100000" id="drink-ee" style="width:6em"></label>
-      <label class="small"><input type="checkbox" id="drink-neigh"> Neigh (20% less cider stamina)</label>
     </div>
+    <label class="small" style="display:block;margin:0 0 8px"><input type="checkbox" id="drink-neigh"> Neigh (20% less cider stamina)</label>
     <div class="row small" style="gap:10px;align-items:flex-end;margin:0 0 8px">
       <span class="muted">Gold per 1,000:</span>
       <label class="field"><span>Arnold Palmer</span><input type="number" min="0" step="any" data-drink-price="AP" style="width:6em"></label>
@@ -703,7 +703,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 (function () {
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
-  const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, reinforcedNetting: false,
+  const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n).toLocaleString("en-US");
@@ -1063,6 +1063,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     reinforcedNetting: tipLines("Farm Supply › Fishing Upgrades", "• Reinforced Netting"),
     fishingTrawl: tipLines("Perks › Artifact Perks", "• Fishing Trawl (Tower 70)"),
     lemonSqueezer: tipLines("Farm Supply › Exploring Upgrades", "• Lemon Squeezer"),
+    sprintShoes: tipLines("Farm Supply › Exploring Upgrades", "• Sprint Shoes I-III: each doubles the Exploring Effectiveness an upgrade adds"),
     cinnamonSticks: tipLines("Farm Supply › Exploring Upgrades", "• Cinnamon Sticks"),
     autoBuyIronNails: tipLines("Farm Supply › Quality of Life Upgrades", "• Iron Depot"),
     wanderer: tipLines("Perks › Exploring Perks", "• Wanderer I-IV: 4 + 7 + 9 + 13", "The Explore page shows your total."),
@@ -1096,7 +1097,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     perkField("Free wishing well tosses a day", "wwTosses", 100) + perkField("Ovens", "ovens", 100, 1) +
     perkField("Cooking faster %", "cookFaster", 90) + perkField("Crop growth cut %", "cropGrowthCut", 99) +
     perkField("Corn extra cut %", "cornGrowthCut", 99) + perkField("Double crops chance %", "doublePrizes", 100) +
-    perkField("Friendship gift bonus %", "friendBonus", 500);
+    perkField("Friendship gift bonus %", "friendBonus", 500) + perkField("Sprint Shoes (0-3)", "sprintShoes", 3);
   // General settings: how you play, not what the game gives you.
   $("general").innerHTML =
     `<label class="field"><span>I spend about … AP a minute${tip(TIPS.apm)}</span> <input type="number" min="1" max="100000" data-perk="apPerMin"></label>` +
@@ -2835,14 +2836,27 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (document.activeElement !== el) el.value = (S.drinkPrices || {})[el.dataset.drinkPrice] || "";
     });
     if (!loc) { $("drink-list").innerHTML = ""; $("mono-drinks").innerHTML = ""; return; }
-    const rows = window.FRP.drinkValue({ base: DROPS.locs[loc].base, ee: ee || 1, cinnamon: S.perks.cinnamonSticks, lemon: S.perks.lemonSqueezer,
+    const valueAt = l => window.FRP.drinkValue({ base: DROPS.locs[l].base, ee: (S.perks.ee || {})[l] || 1, cinnamon: S.perks.cinnamonSticks, lemon: S.perks.lemonSqueezer,
       wanderer: S.perks.wanderer, neigh: S.perks.neigh, price: { AP: drinkPrice("AP"), AC: drinkPrice("AC"), OJ: drinkPrice("OJ") } });
+    const rows = valueAt(loc);
+    // Expanded: every place at once, best per row; EE as pasted (— = not yet, counted at the minimum)
+    const grid = U.detail === "expanded";
+    $("drink-place-row").hidden = grid;
+    if (grid) {
+      const cell = (r, top) => r.perGold == null ? "—" : `${r === top ? "<b class=\"good\">" : ""}${short(r.perGold)}${r === top ? "</b>" : ""}`;
+      $("drink-list").innerHTML = `<div style="overflow-x:auto"><table class="small" style="border-collapse:collapse;width:100%;white-space:nowrap">
+        <thead><tr><th style="text-align:left;padding:4px 8px">Items per gold</th><th style="padding:4px 8px">EE</th><th style="padding:4px 8px">Arnold Palmer</th><th style="padding:4px 8px">Apple Cider + Orange Juice</th><th style="padding:4px 8px">Orange Juice by hand</th></tr></thead><tbody>${
+        locs.map(l => { const rs = valueAt(l), by = Object.fromEntries(rs.map(r => [r.kind, r]));
+          return `<tr style="border-top:1px solid var(--line)"><td style="padding:4px 8px">${esc(l)}</td><td style="text-align:right;padding:4px 8px">${(S.perks.ee || {})[l] ? fmt(S.perks.ee[l]) : "<span class=\"muted\">—</span>"}</td>${
+            ["AP", "AC", "OJ"].map(k => `<td style="text-align:right;padding:4px 8px">${cell(by[k], rs[0])}</td>`).join("")}</tr>`; }).join("")}</tbody></table></div>
+        <p class="small muted" style="margin:6px 0 0">EE — = not pasted yet; cider is counted at the minimum there. Paste a place's Exploring Effectiveness page to fill it in.</p>`;
+    }
     const what = r => r.kind === "AP" ? `${fmt(r.items)} items, no stamina`
       : r.kind === "AC" ? `${fmt(r.explores)} explores, ~${short(r.items)} items, uses ~${fmt(Math.ceil(r.ojPerAC))} Orange Juice`
       : `~${short(r.items)} items explored by hand`;
     const name = r => r.kind === "AC" ? "Apple Cider + Orange Juice" : r.kind === "OJ" ? "Orange Juice by hand" : DRINK[r.kind];
     const best = rows[0], gold = c => c >= 0.01 ? c.toFixed(3) : c.toFixed(4);
-    $("drink-list").innerHTML = (ee ? "" : `<p class="small muted" style="margin:0 0 6px">No Exploring Effectiveness for ${esc(loc)} yet, so cider is counted at the minimum. Paste that place's Exploring Effectiveness page, or type it above.</p>`) +
+    if (!grid) $("drink-list").innerHTML = (ee ? "" : `<p class="small muted" style="margin:0 0 6px">No Exploring Effectiveness for ${esc(loc)} yet, so cider is counted at the minimum. Paste that place's Exploring Effectiveness page, or type it above.</p>`) +
       `<ol class="small" style="margin:0;padding-left:20px">${rows.map(r => `<li><b${r === best ? ' class="good"' : ""}>${name(r)}</b>: ${r.perGold != null ? `~${short(r.perGold)} items per gold` : "set a price"}` +
       ` <span class="muted">(${what(r)}; ~${gold(r.cost)} gold each)</span></li>`).join("")}</ol>`;
     $("mono-drinks").innerHTML = monoLi(`Best at ${esc(loc)}`, best.perGold != null ? `<b>${name(best)}</b> <span class="small muted">~${short(best.perGold)} items per gold</span>` : "Set prices");

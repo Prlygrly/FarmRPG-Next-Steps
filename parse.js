@@ -236,6 +236,8 @@
       out.reinforcedNetting = has("Reinforced Netting");
       out.lemonSqueezer = has("Lemon Squeezer");
       out.cinnamonSticks = has("Cinnamon Sticks");
+      // Sprint Shoes I-III (each doubles the EE an upgrade adds): the highest one unlocked
+      out.sprintShoes = Math.max(0, ...unlocked.map(u => (u.name.match(/^Sprint Shoes (I{1,3})$/i) || [, ""])[1].length));
       out.autoBuyIronNails = has("Iron Depot");
       out.orchardNoon = unlocked.some(u => /10% of Orchard Production/i.test(u.desc)) ? 10 : 0;   // Tree Shaker (Tower 170)
       out.antlerNoon = unlocked.some(u => /10% of Antler Production/i.test(u.desc)) ? 10 : 0;     // Antler Snare (Tower 160)

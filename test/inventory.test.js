@@ -186,3 +186,12 @@ console.log("inventory tests passed");
   assert.strictEqual(detectPage(wide), "inventory");
   assert.ok(Object.keys(parseInventory(wide).items).length >= 3);
 }
+
+// Sprint Shoes: the highest tier unlocked on Farm Supply (made-up page section)
+{
+  const nl = String.fromCharCode(10);
+  const t = ["Cap Upgrades", "Farming Upgrades", "Exploring Upgrades", "* Sprint Shoes I", "Doubles Stamina Effectiveness", "Unlocked",
+    "* Sprint Shoes II", "Doubles Stamina Effectiveness", "Unlocked", "* Sprint Shoes III", "Doubles Stamina Effectiveness", "100 Gold"].join(nl);
+  assert.strictEqual(perkSettings(parsePerks(t)).sprintShoes, 2);
+  assert.strictEqual(ss.sprintShoes, 0);
+}
