@@ -470,7 +470,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <ol style="margin:0 0 8px;padding-left:20px">
       <li><b>Mastery Progress</b> (needed) <span class="tip" data-tip="Home → Perks, Mastery & More → Mastery Progress. Open every tier before copying." aria-label="Home → Perks, Mastery & More → Mastery Progress. Open every tier before copying." tabindex="0">ⓘ</span></li>
       <li><b>My Inventory</b> and <b>Help Needed</b></li>
-      <li>Optional: <b>Perks</b>, <b>Farm Supply</b>, your <b>farm page</b> and the <b>Orchard</b></li>
+      <li>Optional: <b>Perks</b>, <b>Farm Supply</b> perks (in Town), your <b>farm page</b> and the <b>Orchard</b></li>
     </ol>
     <p class="small muted" style="margin:0">Computer: Ctrl+A, Ctrl+C, paste below. Phone: save the page, then <b>Upload a saved page</b>. Nothing leaves this browser.</p>
   </section>
@@ -505,7 +505,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 
   <section class="card" data-tab="setup" id="settings" aria-labelledby="h-settings">
     <h2 id="h-settings">Your settings</h2>
-    <p class="small muted" style="margin:0">Paste your <b>Perks</b> and <b>Farm Supply</b> pages to auto-fill these, or fill them in by hand. Hover or tap ⓘ to see where each one is in the game.</p>
+    <p class="small muted" style="margin:0">Paste your <b>Perks</b> and <b>Farm Supply</b> (in Town) pages to auto-fill these, or fill them in by hand. Hover or tap ⓘ to see where each one is in the game.</p>
     <details id="d-perks">
       <summary>Your perks</summary>
       <div class="row" id="perks"></div>
@@ -889,7 +889,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
       done = true;
       const other = kind === "perks" ? "supply" : "perks";
-      msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
+      msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply perks"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
     } else if (kind === "friends") {
       // Optional: friendship levels make gift suggestions say how far each townsperson is from a level a quest needs
       const f = parseFriends(text);
@@ -989,7 +989,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // ---------- Undo a paste ----------
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
-  const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply", friends: "Friendship",
+  const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply perks (Town)", friends: "Friendship",
     steak: "Steak Market", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
@@ -1427,8 +1427,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const pp = S.perkPages || {}, pat = k => (S.perkAt || {})[k] || S.perkPagesAt;
     li.push(pp.perks ? `<li>Perks: read <span class="muted small">(${ago(pat("perks"))})</span></li>`
                      : `<li class="missing">Perks page: not pasted yet (optional, fills in Your perks)</li>`);
-    li.push(pp.supply ? `<li>Farm Supply: read <span class="muted small">(${ago(pat("supply"))})</span></li>`
-                      : `<li class="missing">Farm Supply page: not pasted yet (optional, fills in Your perks)</li>`);
+    li.push(pp.supply ? `<li>Farm Supply perks (Town): read <span class="muted small">(${ago(pat("supply"))})</span></li>`
+                      : `<li class="missing">Farm Supply perks page (in Town, not your farm): not pasted yet (optional, fills in Your perks)</li>`);
     $("loaded").innerHTML = li.join("");
     if (m && !m.tower && p.level == null) $("status").innerHTML ||= warn("Your Tower level wasn't in that paste. Type it in the box below.");
   }
@@ -3262,7 +3262,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     }
     // Only with no other way in, or when tossing is cheaper; today's free tosses only (rules.md).
     const free = S.perks.wwTosses || 0;
-    if (!free) { $("ww-list").innerHTML = `<p class="small muted">How many free tosses do you get a day? Paste your <b>Farm Supply</b> page (it reads the Extra Wish perks) or set <b>Free wishing well tosses a day</b> in Setup → Your perks (3, up to 29 with perks, +1 for beta testers). Tosses that cost gold are never suggested.</p>`; return; }
+    if (!free) { $("ww-list").innerHTML = `<p class="small muted">How many free tosses do you get a day? Paste your <b>Farm Supply</b> perks page from Town (it reads the Extra Wish perks) or set <b>Free wishing well tosses a day</b> in Setup → Your perks (3, up to 29 with perks, +1 for beta testers). Tosses that cost gold are never suggested.</p>`; return; }
     const worth = x => x.gather == null ? !x.otherWay : x.opts[0].cost != null && x.opts[0].cost < x.gather;
     const picks = rows.filter(x => worth(x) && x.opts[0].tosses / free <= 30)
       .sort((a, b) => a.opts[0].tosses - b.opts[0].tosses);                       // quickest to finish first
