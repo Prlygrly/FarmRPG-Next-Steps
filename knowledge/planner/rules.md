@@ -63,6 +63,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   level 5 in batches of that size, rebuy them and wait for them to grow back (the same pen each round, so high-level
   pigs keep finding Truffles). Level 6 is shown too when it takes fewer rounds. Pig XP: 1,000 a feed, +350 Animal Lover
   (a perk tick, or read from a Perks copy that reaches Miscellaneous Perks), +500 from Tower 40. See mechanics/pigs.md.[^player]
+- A personal request copied as plain text is named from the Personal Requests list ("Items Wanted"), never from a quest
+  by the same townsfolk higher up the sidebar; it shows as "Thomas's personal request".[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]

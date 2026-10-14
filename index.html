@@ -715,6 +715,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   let S = { mastery: null, inventory: null, manual: {}, perks: { ...START_PERKS }, places: {}, hidden: [] };
   try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
   S.perks = { ...START_PERKS, ...S.perks };
+  // A personal request pasted before 2026-10-14 could take the name of a quest from the same townsfolk: rename it
+  for (const r of Object.values(S.requests || {})) { const q = QUESTS.quests[r.name];
+    if (q && JSON.stringify(q.need) !== JSON.stringify(r.need)) r.name = "Items Wanted"; }
   if (S.ee) { S.perks.ee = { ...S.ee, ...(S.perks.ee || {}) }; delete S.ee; }          // EE was kept apart for a day (2026-10-11)
   // Production is stored in each item's own unit ({ n, per }); older saves had bare numbers per hour
   const fixRates = () => {
@@ -3462,7 +3465,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       return m ? { ...q, req: m[0] } : q;
     });
     for (const [key, r] of Object.entries(S.requests || {})) if (!used.has(key))
-      list.push({ name: r.name || "Request", section: "personal", npc: r.npc, kind: null, ready: false, req: key });
+      list.push({ name: r.name && r.name !== "Items Wanted" ? r.name : `${r.npc || "A"}'s personal request`, section: "personal", npc: r.npc, kind: null, ready: false, req: key });
     return list;
   }
   // Hide and Done key: a request's own id (every personal request is generated fresh, even with the same name), else the name

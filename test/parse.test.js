@@ -157,3 +157,16 @@ console.log("parse tests passed");
   assert.deepStrictEqual(parseExploreInfo(t.replace("5.0B Silver", "250K Corn")).fee, { amount: 250000, unit: "Corn" });
   assert.strictEqual(parseExploreInfo(t.replace("about Whispering Creek", "about the Forest")).place, "Forest");
 }
+
+// A personal request copied as plain text takes its name from the Personal Requests list, not from a quest by the same
+// townsfolk higher up the sidebar (made-up page)
+{
+  const { parseRequest } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Help Needed", "Personal Request from Thomas", "Some Long Quest II", "Request from Thomas", "Personal Requests (1)", "Items Wanted",
+    "Request from Thomas", "Items Requested", "Lemon", "You have 50", "35x", "Rewards", "Silver", "1,000", "Consume a meal"].join(nl);
+  const r = parseRequest(t);
+  assert.strictEqual(r.name, "Items Wanted");
+  assert.strictEqual(r.npc, "Thomas");
+  assert.deepStrictEqual(r.need, [["Lemon", 35]]);
+}

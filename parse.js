@@ -338,9 +338,13 @@
     const lines = raw.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").split(/\r?\n/).map(l => l.trim().replace(/^[*•]\s+/, "")).filter(Boolean);
     const at = lines.findIndex(l => /^Items Requested$/i.test(l)), rw = lines.findIndex(l => /^Rewards$/i.test(l));
     if (at < 0 || rw < at) return null;
-    if (!npc) { const h = raw.match(/(?:Personal|Special) Request from ([^\n\]]+)/i); if (h) npc = h[1].trim(); }
+    const head = raw.match(/(Personal|Special) Request from ([^\n\]]+)/i);
+    if (!npc && head) npc = head[2].trim();
     if (!name && npc) {                            // no links: the sidebar lists the title just above "Request from NPC"
-      const k = lines.findIndex(l => l === "Request from " + npc);
+      // A personal request is listed under "Personal Requests (N)": look only there, or a quest from the same
+      // townsfolk higher up the sidebar ("A Way Back XXVII / Request from Thomas") lends it its name
+      const from = head && /personal/i.test(head[1]) ? Math.max(0, lines.findIndex(l => /^Personal Requests \(\d+\)$/i.test(l))) : 0;
+      const k = lines.findIndex((l, i) => i > from && l === "Request from " + npc);
       if (k > 0) name = lines[k - 1];
     }
     // Items Requested: name / "You have N" / "Nx"
