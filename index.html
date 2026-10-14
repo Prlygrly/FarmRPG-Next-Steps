@@ -715,9 +715,11 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   let S = { mastery: null, inventory: null, manual: {}, perks: { ...START_PERKS }, places: {}, hidden: [] };
   try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
   S.perks = { ...START_PERKS, ...S.perks };
-  // A personal request pasted before 2026-10-14 could take the name of a quest from the same townsfolk: rename it
-  for (const r of Object.values(S.requests || {})) { const q = QUESTS.quests[r.name];
-    if (q && JSON.stringify(q.need) !== JSON.stringify(r.need)) r.name = "Items Wanted"; }
+  // A request copied as plain text can borrow the name of another quest from the same townsfolk (the sidebar lists it
+  // above "Request from NPC"). A known quest's name with other items isn't this request's: drop it. Older pastes too.
+  const needKey = need => need.map(([n, q]) => n + ":" + q).sort().join("|");
+  const wrongName = r => { const q = QUESTS.quests[r.name]; return !!q && needKey(q.need) !== needKey(r.need); };
+  for (const r of Object.values(S.requests || {})) if (wrongName(r)) r.name = null;
   if (S.ee) { S.perks.ee = { ...S.ee, ...(S.perks.ee || {}) }; delete S.ee; }          // EE was kept apart for a day (2026-10-11)
   // Production is stored in each item's own unit ({ n, per }); older saves had bare numbers per hour
   const fixRates = () => {
@@ -911,6 +913,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     } else if (kind === "request") {
       // One request's own page (special and personal requests aren't in buddy.farm's quest data)
       const r = parseRequest(text);
+      if (r && wrongName(r)) r.name = null;
       if (!r) msg = warn("No requested items were found. Copy the whole request page and try again.");
       else {
         const old = Object.keys(S.requests || {}).filter(k => S.requests[k].name === r.name && S.requests[k].npc === r.npc && k !== (r.id || r.name));   // handed in
@@ -956,7 +959,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         // A pasted request Help Needed no longer lists is done (or gone). Match by id when the copy has links: names repeat
         const ids = new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1]));
         for (const [key, q] of Object.entries(S.requests || {})) {
-          const listed = ids.size && q.id ? ids.has(q.id) : all.some(x => x.name === q.name && (!x.npc || !q.npc || x.npc === q.npc));
+          const listed = ids.size && q.id ? ids.has(q.id) : all.some(x => (q.name == null || x.name === q.name) && (!x.npc || !q.npc || x.npc === q.npc));   // no name: any request from that townsfolk
           if (!listed) { delete S.requests[key]; S.questHidden = (S.questHidden || []).filter(h => h !== "req:" + key); }
         }
       }
@@ -3465,7 +3468,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       return m ? { ...q, req: m[0] } : q;
     });
     for (const [key, r] of Object.entries(S.requests || {})) if (!used.has(key))
-      list.push({ name: r.name && r.name !== "Items Wanted" ? r.name : `${r.npc || "A"}'s personal request`, section: "personal", npc: r.npc, kind: null, ready: false, req: key });
+      list.push({ name: r.name && r.name !== "Items Wanted" ? r.name : `${r.npc || "A"}'s ${r.kind === "special" ? "special " : r.kind === "personal" || r.name ? "personal " : ""}request`, section: "personal", npc: r.npc, kind: null, ready: false, req: key });
     return list;
   }
   // Hide and Done key: a request's own id (every personal request is generated fresh, even with the same name), else the name

@@ -371,7 +371,7 @@
       const q = l.match(/^([\d,]+)x$/);
       if (q && k > start) { get.push([lines[start], toInt(q[1])]); start = k + 1; }
     }
-    return need.length ? { id, name, npc, need, have, silver, gold, get } : null;
+    return need.length ? { id, name, npc, kind: head ? head[1].toLowerCase() : null, need, have, silver, gold, get } : null;
   }
 
   // The Steak Market page (steaks, hourly Steak Kabobs, daily Truffles), plus any of its three history pages.

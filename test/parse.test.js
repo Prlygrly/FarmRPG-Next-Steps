@@ -97,12 +97,12 @@ console.log("parse tests passed");
     "", "Consume a meal"].join("\n");
   assert.strictEqual(detectPage(page), "request");
   const r = parseRequest(page);
-  assert.deepStrictEqual(r, { id: "111", name: "Items Wanted", npc: "Vincent", need: [["Onion", 20], ["Stone Jelly", 5]],
+  assert.deepStrictEqual(r, { id: "111", name: "Items Wanted", npc: "Vincent", kind: null, need: [["Onion", 20], ["Stone Jelly", 5]],
     have: { Onion: 1200, "Stone Jelly": 0 }, silver: 1000000, gold: 0, get: [["Canoe", 3]] });
   // Pasted into the site: plain text, no links and no "* " bullets; the header names the townsperson
   const plain = ("Personal Request from Vincent\n" + page).replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/^\* /gm, "");
   const rp = parseRequest(plain);
-  assert.deepStrictEqual({ ...rp, id: "111" }, { ...r, id: "111" });
+  assert.deepStrictEqual({ ...rp, id: "111" }, { ...r, id: "111", kind: "personal" });
   assert.strictEqual(rp.id, null);
 }
 
@@ -169,4 +169,14 @@ console.log("parse tests passed");
   assert.strictEqual(r.name, "Items Wanted");
   assert.strictEqual(r.npc, "Thomas");
   assert.deepStrictEqual(r.need, [["Lemon", 35]]);
+}
+
+// Special requests copied as plain text say what kind they are, so the page can label them when no name can be trusted
+{
+  const { parseRequest } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Special Request from Rosalie", "Pie Inversion II", "Request from Rosalie", "Items Requested", "Apple", "You have 9", "20x", "Rewards", "Consume a meal"].join(nl);
+  const r = parseRequest(t);
+  assert.strictEqual(r.kind, "special");
+  assert.strictEqual(r.name, "Pie Inversion II");      // the page checks this against known quests (index.html wrongName)
 }
