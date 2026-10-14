@@ -37,3 +37,4 @@
 * **Update (2026-10-12)**: planner/rules.md: never recommend the Flea Market (Protein Bar ~10 Gold in trade); Exploring drinks grid in Expanded; Sprint Shoes from Farm Supply.
 * **Update (2026-10-12)**: planner/rules.md: cheap EE upgrade hints (1% of silver; 10% of an item or gold).
 * **Update (2026-10-14)**: planner/rules.md: personal requests named from the Personal Requests list.
+* **Update (2026-10-14)**: planner/rules.md: Help Needed replaces personal requests too.

@@ -67,6 +67,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   by the same townsfolk higher up the sidebar; it shows as "Thomas's personal request". For any request (personal,
   special or active, any townsfolk), a name that belongs to a known quest with different items is dropped ("Rosalie's
   special request"); pastes with links are matched by quest id and never guessed.[^player]
+- A Help Needed paste replaces every quest, personal requests included (3-4 at most). A pasted request it no longer
+  lists was turned in and goes; as plain text, personal requests are kept per townsfolk only up to the number listed
+  (newest first). A listed personal request whose page wasn't pasted shows last: "paste this request's page".[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]

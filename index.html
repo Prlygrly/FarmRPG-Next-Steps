@@ -952,14 +952,21 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; if (f.capPerDay) S.perks.capPerDay = f.capPerDay; S.productionAt = Date.now(); }
       }
     } else if (kind === "quests") {
-      const all = parseQuests(text), r = all.filter(q => q.section !== "personal");
-      if (!r.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
+      const all = parseQuests(text);
+      if (!all.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
       else {
-        S.quests = r; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
-        // A pasted request Help Needed no longer lists is done (or gone). Match by id when the copy has links: names repeat
+        // The page replaces every quest, personal requests included (a player has 3-4 of those at most)
+        S.quests = all; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
+        // A pasted request Help Needed no longer lists was turned in (or is gone). Match by id when the copy has links;
+        // as plain text, personal requests all read "Items Wanted", so keep only as many per townsfolk as are listed (newest first)
         const ids = new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1]));
-        for (const [key, q] of Object.entries(S.requests || {})) {
-          const listed = ids.size && q.id ? ids.has(q.id) : all.some(x => (q.name == null || x.name === q.name) && (!x.npc || !q.npc || x.npc === q.npc));   // no name: any request from that townsfolk
+        const left = {};
+        for (const x of all) if (x.section === "personal") left[x.npc] = (left[x.npc] || 0) + 1;
+        for (const [key, q] of Object.entries(S.requests || {}).sort((a, b) => (b[1].at || 0) - (a[1].at || 0))) {
+          const personal = q.kind === "personal" || q.name === "Items Wanted";
+          const listed = ids.size && q.id ? ids.has(q.id)
+            : personal ? left[q.npc] > 0 && left[q.npc]-- > 0
+            : all.some(x => (q.name == null || x.name === q.name) && (!x.npc || !q.npc || x.npc === q.npc));   // no name: any request from that townsfolk
           if (!listed) { delete S.requests[key]; S.questHidden = (S.questHidden || []).filter(h => h !== "req:" + key); }
         }
       }
@@ -3458,14 +3465,15 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // What a quest still needs and what that costs: { missing: [{item, need, have, left, effort}], cost, uncosted, levels }
   // Pasted request pages (S.requests): personal requests and specials buddy.farm doesn't know, shaped like quest data
   const reqData = r => ({ npc: r.npc, need: r.need, get: r.get, rSilver: r.silver || 0, rGold: r.gold || 0, request: true });
-  const matchReq = q => Object.entries(S.requests || {}).find(([, r]) => r.name === q.name && (!q.npc || !r.npc || r.npc === q.npc));
+  const matchReq = (q, used = new Set()) => Object.entries(S.requests || {}).find(([k, r]) => !used.has(k) && (!q.npc || !r.npc || r.npc === q.npc) &&
+    (r.name === q.name || (q.section === "personal" && (r.kind === "personal" || r.name === "Items Wanted" || r.name == null))));
   // Your quests from Help Needed, plus pasted requests it doesn't list (personal ones never come from Help Needed)
   function questList() {
     const used = new Set();
     const list = (S.quests || []).map(q => {
-      const m = !QUESTS.quests[q.name] && matchReq(q);
+      const m = !QUESTS.quests[q.name] && matchReq(q, used);
       if (m) used.add(m[0]);
-      return m ? { ...q, req: m[0] } : q;
+      return m ? { ...q, req: m[0], name: q.section === "personal" ? `${q.npc || "A"}'s personal request` : q.name } : q;
     });
     for (const [key, r] of Object.entries(S.requests || {})) if (!used.has(key))
       list.push({ name: r.name && r.name !== "Items Wanted" ? r.name : `${r.npc || "A"}'s ${r.kind === "special" ? "special " : r.kind === "personal" || r.name ? "personal " : ""}request`, section: "personal", npc: r.npc, kind: null, ready: false, req: key });
@@ -3589,7 +3597,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const hidden = new Set(S.questHidden || []);
     const cards = questList().map(q => {
       const data = questData(q);
-      if (!data) return { q, html: `<li><strong>${esc(q.name)}</strong><span class="small muted">Not in the quest data (it may have ended).</span></li>`, rank: 9 };
+      if (!data) return { q, html: q.section === "personal"
+        ? `<li><strong>${esc(q.npc || "A")}'s personal request</strong><span class="small muted">Paste this request's page to see what it needs.</span></li>`
+        : `<li><strong>${esc(q.name)}</strong><span class="small muted">Not in the quest data (it may have ended).</span></li>`, rank: q.section === "personal" ? 7 : 9 };   // listed last
       const n = questNeeds(data, p);
       const ready = !n.missing.length && !n.levels.length;
       const days = questDays(q, data);
