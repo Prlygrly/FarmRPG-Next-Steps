@@ -720,6 +720,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const needKey = need => need.map(([n, q]) => n + ":" + q).sort().join("|");
   const wrongName = r => { const q = QUESTS.quests[r.name]; return !!q && needKey(q.need) !== needKey(r.need); };
   for (const r of Object.values(S.requests || {})) if (wrongName(r)) r.name = null;
+  if (S.quests && S.questsAt) setTimeout(() => { pruneRequests(S.quests, new Set(), S.questsAt); save(); render(false); });   // after the page has set up
   if (S.ee) { S.perks.ee = { ...S.ee, ...(S.perks.ee || {}) }; delete S.ee; }          // EE was kept apart for a day (2026-10-11)
   // Production is stored in each item's own unit ({ n, per }); older saves had bare numbers per hour
   const fixRates = () => {
@@ -960,18 +961,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       else {
         // The page replaces every quest, personal requests included (a player has 3-4 of those at most)
         S.quests = all; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
-        // A pasted request Help Needed no longer lists was turned in (or is gone). Match by id when the copy has links;
-        // as plain text, personal requests all read "Items Wanted", so keep only as many per townsfolk as are listed (newest first)
-        const ids = new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1]));
-        const left = {};
-        for (const x of all) if (x.section === "personal") left[x.npc] = (left[x.npc] || 0) + 1;
-        for (const [key, q] of Object.entries(S.requests || {}).sort((a, b) => (b[1].at || 0) - (a[1].at || 0))) {
-          const personal = q.kind === "personal" || q.name === "Items Wanted";
-          const listed = ids.size && q.id ? ids.has(q.id)
-            : personal ? left[q.npc] > 0 && left[q.npc]-- > 0
-            : all.some(x => (q.name == null || x.name === q.name) && (!x.npc || !q.npc || x.npc === q.npc));   // no name: any request from that townsfolk
-          if (!listed) { delete S.requests[key]; S.questHidden = (S.questHidden || []).filter(h => h !== "req:" + key); }
-        }
+        pruneRequests(all, new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1])));
       }
     } else {
       msg = warn("That isn't a page this planner reads. Open the game page, press Ctrl+A, then Ctrl+C, and paste again.");
@@ -3470,19 +3460,36 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // What a quest still needs and what that costs: { missing: [{item, need, have, left, effort}], cost, uncosted, levels }
   // Pasted request pages (S.requests): personal requests and specials buddy.farm doesn't know, shaped like quest data
   const reqData = r => ({ npc: r.npc, need: r.need, get: r.get, rSilver: r.silver || 0, rGold: r.gold || 0, request: true });
-  const matchReq = (q, used = new Set()) => Object.entries(S.requests || {}).find(([k, r]) => !used.has(k) && (!q.npc || !r.npc || r.npc === q.npc) &&
-    (r.name === q.name || (q.section === "personal" && (r.kind === "personal" || r.name === "Items Wanted" || r.name == null))));
+  const matchReq = (q, used = new Set()) => {
+    const open = Object.entries(S.requests || {}).filter(([k, r]) => !used.has(k) && (!q.npc || !r.npc || r.npc === q.npc));
+    return open.find(([, r]) => r.name === q.name)
+      || (q.section === "personal" ? open.filter(([, r]) => !r.name || r.name === "Items Wanted").sort((a, b) => (b[1].at || 0) - (a[1].at || 0))[0] : null);
+  };
   // Your quests from Help Needed, plus pasted requests it doesn't list (personal ones never come from Help Needed)
   function questList() {
     const used = new Set();
     const list = (S.quests || []).map(q => {
       const m = !QUESTS.quests[q.name] && matchReq(q, used);
       if (m) used.add(m[0]);
-      return m ? { ...q, req: m[0], name: q.section === "personal" ? `${q.npc || "A"}'s personal request` : q.name } : q;
+      return m ? { ...q, req: m[0], name: q.section === "personal" && (!q.name || q.name === "Items Wanted") ? `${q.npc || "A"}'s personal request` : q.name } : q;
     });
     for (const [key, r] of Object.entries(S.requests || {})) if (!used.has(key))
       list.push({ name: r.name && r.name !== "Items Wanted" ? r.name : `${r.npc || "A"}'s ${r.kind === "special" ? "special " : r.kind === "personal" || r.name ? "personal " : ""}request`, section: "personal", npc: r.npc, kind: null, ready: false, req: key });
     return list;
+  }
+  // A pasted request Help Needed no longer lists was turned in (or is gone). Each listed quest keeps at most one pasted
+  // request: by id when the copy has links; else the same name; else (no name, or "Items Wanted") a personal request
+  // from the same townsfolk, newest first. Everything else goes. `before`: only requests pasted before that time.
+  function pruneRequests(all, ids, before = Infinity) {
+    const slots = all.map(x => ({ ...x, taken: false }));
+    const take = test => { const x = slots.find(y => !y.taken && test(y)); if (x) x.taken = true; return !!x; };
+    const reqs = Object.entries(S.requests || {}).sort((a, b) => (b[1].at || 0) - (a[1].at || 0)), keep = new Set();
+    const byId = q => ids.size && q.id;
+    for (const [key, q] of reqs) if (byId(q) && ids.has(q.id)) keep.add(key);
+    for (const [key, q] of reqs) if (!keep.has(key) && !byId(q) && q.name && q.name !== "Items Wanted" && take(x => x.name === q.name && (!x.npc || !q.npc || x.npc === q.npc))) keep.add(key);
+    for (const [key, q] of reqs) if (!keep.has(key) && !byId(q) && (!q.name || q.name === "Items Wanted") && take(x => x.section === "personal" && x.npc === q.npc)) keep.add(key);
+    for (const [key, q] of reqs) if ((q.at || 0) > before) keep.add(key);          // pasted since: Help Needed may not list it yet
+    for (const [key] of reqs) if (!keep.has(key)) { delete S.requests[key]; S.questHidden = (S.questHidden || []).filter(h => h !== "req:" + key); }
   }
   // Hide and Done key: a request's own id (every personal request is generated fresh, even with the same name), else the name
   const qkey = q => q.req ? "req:" + q.req : q.name;
