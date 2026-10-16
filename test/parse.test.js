@@ -233,3 +233,13 @@ console.log("parse tests passed");
   assert.deepStrictEqual(parseFarmToday(["Around Your Farm", "* Chicken Coop", "Add chickens to produce eggs daily", "today", "* Cow Pasture", "Add cows", "100 Milk",
     "* Raptor Pen", "Raise Raptors to hunt daily", "today"].join(nl)), ["Chicken Coop", "Raptor Pen"]);
 }
+
+// A Bank page copied on a wide screen also carries the Town list: still the bank; the Town list's bank figure is rounded
+{
+  const { detectPage, parseTown } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const town = ["Market District", "* Country Store", "Buy seeds", "Borgen's District", "* Wheel of Borgen", "Spin daily", "READY!", "Finance & Investing District", "* Bank", "Deposit your Silver", "2.5T"];
+  assert.strictEqual(detectPage([...town, "About the bank", "Currently in Bank: 100 Silver"].join(nl)), "bank");
+  assert.strictEqual(detectPage(town.join(nl)), "town");
+  assert.strictEqual(parseTown(town.join(nl)).bank, 2.5e12);
+}

@@ -933,6 +933,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const r = parseTown(text), n = Object.keys(r).length;
       if (!n) msg = warn("Nothing was read from the Town page. Copy the whole page and try again.");
       else { S.town = { places: r, day: gameDay(Date.now()) }; done = true;
+        if (r.bank && !(S.bank && S.bank.bank != null && Math.abs(S.bank.bank - r.bank) < r.bank * 0.05)) S.bank = { ...(S.bank || {}), bank: r.bank, at: Date.now(), rounded: true };
         const open = Object.entries(r).filter(([, v]) => v.ready).map(([k]) => esc(k));
         msg = `<div class="note" style="border-color:var(--good)">Read the Town page: ${open.length ? `still to do today: ${open.join(", ")}` : "the daily places are done"}. See the Checklist tab.</div>`; }
     } else if (kind === "bank") {
@@ -940,6 +941,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (!r) msg = warn("Nothing was read from the bank page. Copy the whole page and try again.");
       else {
         S.bank = { ...r, at: Date.now() }; done = true;
+        if (/^\s*Market District\s*$/im.test(text)) { const t = parseTown(text); if (Object.keys(t).length) S.town = { places: t, day: gameDay(Date.now()) }; }
         if (r.onHand != null) { S.silver = r.onHand; S.silverAt = Date.now(); }        // "Deposit All" is the silver on hand
         msg = `<div class="note" style="border-color:var(--good)">Read the bank${r.bank != null ? `: ${short(r.bank)} banked` : ""}${r.onHand != null ? `, ${short(r.onHand)} on hand` : ""}. See the Checklist tab.</div>`;
       }

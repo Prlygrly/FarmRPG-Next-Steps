@@ -439,6 +439,8 @@
       const st = lines[k + 2] || "", left = st.match(/^([\d,]+) Left$/i);
       out[name] = { ready: /^READY!?$/i.test(st) || !!left, left: left ? toInt(left[1]) : 0 };
     }
+    const b = lines.findIndex(l => l === "Bank"), amt = b >= 0 && (lines[b + 2] || "").match(/^([\d.]+)\s*([KMBTQ]?)$/i);
+    if (amt) Object.defineProperty(out, "bank", { value: Math.round(parseFloat(amt[1]) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15 }[amt[2].toUpperCase()] || 1)), enumerable: false });
     return out;
   }
   // Farm page: a building not done today shows "today" (a calendar mark) instead of its numbers: "Raptor Pen / Raise
@@ -503,7 +505,6 @@
   }
 
   function detectPage(text) {
-    if (/^\s*Market District\s*$/im.test(text) && /Borgen's District/i.test(text)) return "town";
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
@@ -525,6 +526,8 @@
     if (/[\d,]+\s*\/\s*([\d,]+|∞)\s*Progress/.test(text)) return "mastery";
     // One request's page carries the Help Needed sidebar, so check for its own headings first
     if (/^\s*Items Requested\s*$/im.test(text) && /^\s*Rewards\s*$/im.test(text)) return "request";
+    // The Town page last: its list also shows on the Bank and Temple pages (wide screens), which are read first
+    if (/^\s*Market District\s*$/im.test(text) && /Borgen's District/i.test(text)) return "town";
     if (/Active Requests|Special Requests/i.test(text)) return "quests";
     return null;
   }
