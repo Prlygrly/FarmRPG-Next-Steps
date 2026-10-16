@@ -3036,7 +3036,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     S.drinkPrices = { ...(S.drinkPrices || {}), [el.dataset.drinkPrice]: +el.value > 0 ? +el.value : undefined }; save(); renderDrinks(); }));
   // ---------- Checklist (the Library's Reset Checklist; nothing that costs real money) ----------
   // Ticks live in S.checks: { day, d: [ids], month, m: [ids] }, cleared when the game day / month changes. S.checksHidden: [ids].
-  const G = path => `https://farmrpg.com/${path}`;
+  // Each item: [id, text, game page] (the page is kept for reference; links out of the app don't open the game properly)
   const CHECKS = {
     daily: { title: "Every day", items: [
       ["bank", "Bank your silver", "bank.php"], ["cc", "Donate to the Community Center", "comm.php"],
@@ -3106,7 +3106,6 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         const h = checkHint(id), isHidden = hidden.has(key + ":" + id);
         return `<li class="${done.has(id) ? "done" : ""}"><input type="checkbox" id="ck-${key}-${id}" data-check="${key}:${id}"${done.has(id) ? " checked" : ""}>
           <label for="ck-${key}-${id}">${esc(text)}${h ? ` <span class="small muted">· ${h}</span>` : ""}</label>
-          <a class="small" href="${G(path)}" target="_blank" rel="noopener" title="Open in the game">open</a>
           <button type="button" class="ck-hide" data-check-hide="${key}:${id}" title="${isHidden ? "Show it again" : "Hide: I never do this"}">${isHidden ? "show" : "hide"}</button></li>`; }).join("")}</ul>`;
     }).join("") + (hidden.size ? `<p class="small" style="margin:10px 0 0"><a href="#" id="check-show">${checkShowHidden ? "Hide the hidden ones again" : `Show ${hidden.size} hidden`}</a></p>` : "");
   }
