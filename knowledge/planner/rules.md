@@ -73,6 +73,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   Each listed quest keeps one pasted request at most: by id, else the same name, else a nameless one from that
   townsfolk. Personal requests can have real titles ("Special Gift"); those are shown as is. On load, requests older
   than the last Help Needed paste are checked the same way.[^player]
+- Quest crafts list the ingredients you'll have to craft first (stock won't cover them), deepest first: "Craft first ~690
+  Twine", then "Craft 1,000 Horn Powder". An item that's both an ingredient and wanted itself is one craft of the total.
+  The same order is used for Monotask steps.[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]

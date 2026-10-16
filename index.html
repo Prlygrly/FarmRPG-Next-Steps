@@ -1957,7 +1957,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   }
   const masteryTarget = (item, tier, left, effort) => ({ type: "mastery", key: "m:" + item, item, tier, left, effort });
   const questTarget = (q, n) => ({ type: "quest", key: qkey(q), name: q.name, effort: { byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive },
-    crafts: n.missing.filter(m => m.effort && (m.effort.how === "craft" || m.effort.how === "cook")).map(m => ({ item: m.item, qty: m.left, how: m.effort.how })) });
+    crafts: craftOrder(n.missing) });
   // Why something can't be costed: the places it (or a part of it) comes from look closed
   const closedText = item => {
     const r = RECIPES.items[item], from = [item, ...((r && r.recipe) || []).map(([i]) => i)];
@@ -2028,10 +2028,44 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   }
 
   // A quest's to-do lines: levels it needs, what to craft or cook, where to go, what to grow or wait on
+  // Ingredients you'll craft (or cook) first because your stock won't cover them, deepest first: Twine before Horn Powder.
+  // Each level takes your stock off once; Resource Saver counts for crafts. { item: qty }
+  function subCrafts(item, qty, depth = 0, out = {}) {
+    const r = RECIPES.items[item];
+    if (!r || !r.recipe || depth > 3 || !(qty > 0)) return out;
+    const runs = Math.ceil(qty / (r.craft ? 1 + (S.perks.resourceSaver ?? 0) / 100 : 1)), onHand = O ? O.onHand : {};
+    for (const [ing, q] of r.recipe) {
+      const u = C.unit(ing), lack = q * runs - (onHand[ing] || 0);
+      if (!u || (u.how !== "craft" && u.how !== "cook") || lack < 1) continue;
+      subCrafts(ing, lack, depth + 1, out);
+      out[ing] = (out[ing] || 0) + lack;
+    }
+    return out;
+  }
+  const subCraftsOf = missing => {
+    const all = {};
+    for (const m of missing) if (m.effort && (m.effort.how === "craft" || m.effort.how === "cook")) for (const [k, v] of Object.entries(subCrafts(m.item, m.left))) all[k] = (all[k] || 0) + v;
+    return all;
+  };
+  // Every craft a quest takes, in order: ingredients first, then what it asks for. An item that's both (Wooden Plank for
+  // Wooden Box, and wanted itself) is one craft of the total, at the ingredient's place. [{ item, qty, how, first }]
+  function craftOrder(missing) {
+    const tops = missing.filter(m => m.effort && (m.effort.how === "craft" || m.effort.how === "cook"));
+    const subs = subCraftsOf(missing), out = [];
+    for (const [item, qty] of Object.entries(subs)) {
+      const top = tops.find(m => m.item === item);
+      // Stock is already off the ingredient amount, so add the quest's full need
+      out.push({ item, qty: Math.ceil(qty + (top ? top.need : 0)), how: (C.unit(item) || {}).how === "cook" ? "cook" : "craft", first: true });
+    }
+    for (const m of tops) if (!(m.item in subs)) out.push({ item: m.item, qty: m.left, how: m.effort.how, first: false });
+    return out;
+  }
   function questTodo(n) {
+    const order = craftOrder(n.missing), first = order.filter(c => c.first);
     return [
       ...n.levels.map(l => `<b class="bad">Needs ${l}</b>`),
-      ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
+      ...(first.length ? [`<b>Craft first</b> ${first.map(c => `~${short(c.qty)} ${esc(c.item)}`).join(", ")} <span class="muted">(not enough in stock)</span>`] : []),
+      ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how && !first.some(c => c.item === m.item)); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
       ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive }, Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
       ...n.missing.filter(m => !m.effort).map(m => { const src = questSourceText(m.item); return `${short(m.left)} ${esc(m.item)} ${src || `<span class="muted">(can't cost yet)</span>`}`; })
     ];
@@ -3656,6 +3690,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ${nextNames.length ? `<span class="small muted" style="display:block">Next: ${nextNames[0]}</span>` : ""}</li>`;
       const xpQ = xpList([
         ["Why", `${verdict ? verdict + " " : ""}${rewardText(data, p)}${val.special.length ? ` <span class="muted">(can't value: ${val.special.slice(0, 3).map(esc).join(", ")}${val.special.length > 3 ? "…" : ""})</span>` : ""}`],
+        ["Craft first", ready ? null : craftOrder(n.missing).filter(c => c.first).map(c => `~${short(c.qty)} ${esc(c.item)}`).join(", ") || null],
         ["Cost", ready ? null : n.cost || Object.keys(n.passive).length ? [passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ") : n.uncosted.length ? `<span class="muted">can't cost ${n.uncosted.map(esc).join(", ")}</span>` : null],
         ["Needs", ready ? `<b class="ok">ready to turn in</b>${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}`), ...(st ? [`<span class="muted">then uses ${st}</span>`] : [])]],
         ["Where", ready ? null : questTodo({ ...n, levels: [] })],
