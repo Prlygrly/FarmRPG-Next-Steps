@@ -123,7 +123,14 @@ main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
 main[data-tab="trips"] > section[data-tab="trips"]:not([hidden]),
 main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
+main[data-tab="check"] > section[data-tab="check"]:not([hidden]),
 main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
+/* Checklist: tick boxes with a link to the game page and a small Hide */
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.checks li.done label { color: var(--muted); text-decoration: line-through; }
+.checks label { flex: 1; cursor: pointer; }
+.checks .ck-hide { border: 0; background: none; padding: 0 4px; min-height: 0; color: var(--muted); font-size: .8em; cursor: pointer; }
 /* Best use: a "Go to" line that stays at the top while scrolling */
 .jump { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 6px 0; margin: 0 0 8px; }
 .jump a { white-space: nowrap; }
@@ -359,6 +366,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <button type="button" role="tab" data-go="grinds" title="The masteries that take months at your production: how long each takes, what holds it back, and the year-long ones to keep going every day.">Slow grinds</button>
     <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
     <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
+    <button type="button" role="tab" data-go="check" title="Daily and monthly checklists (they untick themselves at reset and on the 1st), and the Steak Market.">Checklist</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
   </nav>
   <div id="top-bar"><div id="truffle-strip" class="small" role="status" hidden></div>
@@ -431,7 +439,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <ul class="mono-list" id="mono-grinds"></ul>
     <div class="mono-hide" id="grind-standing"></div>
   </section>
-  <section class="card" data-tab="best" id="steak-card" aria-labelledby="h-steak" hidden>
+  <section class="card" data-tab="check" id="checklist" aria-labelledby="h-checklist">
+    <h2 id="h-checklist" style="margin:0 0 4px">Checklist</h2>
+    <p class="small muted" style="margin:0 0 8px">Ticks clear at reset (midnight game time); the monthly list on the 1st. Hide what you never do. From the Library's Reset Checklist.</p>
+    <div id="check-lists"></div>
+  </section>
+  <section class="card" data-tab="check" id="steak-card" aria-labelledby="h-steak" hidden>
     <h2 id="h-steak" style="margin:0 0 4px">Steak Market today</h2>
     <p class="mono-hide small muted" style="margin:0 0 6px">From your Steak Market paste. Truffles and Steaks change at reset, Kabobs every hour.</p>
     <div class="mono-hide" id="steak-list"></div>
@@ -672,7 +685,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       <div id="save-status" aria-live="polite"></div>
     </div>
     <h3>Keys</h3>
-    <p class="small muted" style="margin:0">1–7 switch tabs; Esc closes this panel. Ctrl+V anywhere (outside a text box) reads a game page.</p>
+    <p class="small muted" style="margin:0">1–8 switch tabs; Esc closes this panel. Ctrl+V anywhere (outside a text box) reads a game page.</p>
     <p style="margin:12px 0 0"><button type="button" id="app-reset">Reset app settings</button></p>
   </aside>
   <div id="toast" class="small" role="status" aria-live="polite" hidden></div>
@@ -747,11 +760,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   fixQuestKinds();
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
-  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "pets-card", "overflow", "steak-card", "silver-goal", "drinks", "kitchen"];
+  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "pets-card", "overflow", "silver-goal", "drinks", "kitchen"];
   const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
-  // Cards added since the order was saved go in at their default place
+  // Cards moved off Best use (the Steak Market went to Checklist) leave the saved order; new ones go in at their place
+  U.bestOrder = U.bestOrder.filter(id => BEST_IDS.includes(id)); U.bestOff = (U.bestOff || []).filter(id => BEST_IDS.includes(id));
   for (const id of BEST_IDS) if (!U.bestOrder.includes(id)) U.bestOrder = [...U.bestOrder.slice(0, BEST_IDS.indexOf(id)), id, ...U.bestOrder.slice(BEST_IDS.indexOf(id))];
   if (S.nextDetail && !localStorage.getItem(UI_STORE)) U.detail = S.nextDetail;      // older saves kept detail with the game data
   U.bestOrder = [...U.bestOrder.filter(x => BEST_IDS.includes(x)), ...BEST_IDS.filter(x => !U.bestOrder.includes(x))];
@@ -1268,6 +1282,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     renderChanges();
     renderTruffleStrip();
     renderDrinks();
+    renderChecklist();
     if (syncFields) {
       $("f-level").value = p.level ?? "";
       $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
@@ -2915,7 +2930,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     el.hidden = !has || !U.truffleBar || Date.now() < (U.truffleHideUntil || 0);
     if (el.hidden) return;
     const today = m && m.truffle && gameDay(m.at) === gameDay(Date.now());
-    el.innerHTML = `<a href="#steak-card" data-go="best" title="Steak Market on Best use"><b>Truffles</b></a>` + ["White", "Black"].map(kind => {
+    el.innerHTML = `<a href="#steak-card" data-go="check" title="Steak Market on the Checklist tab"><b>Truffles</b></a>` + ["White", "Black"].map(kind => {
       const price = today && m.truffle[kind.toLowerCase()];
       return `<span>${kind}: ${!price ? "???" : price >= TRUFFLE_LINES[kind].sell ? `<span class="t-sell">SELL</span>` : "hold"}</span>`;
     }).join("") + `<button type="button" class="t-x" id="truffle-x" aria-label="Hide the Truffle line for 24 hours" title="Hide for 24 hours">✕</button>`;
@@ -3003,6 +3018,72 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   $("drink-neigh").addEventListener("change", e => { S.perks.neigh = e.target.checked; save(); renderDrinks(); });
   document.querySelectorAll("[data-drink-price]").forEach(el => el.addEventListener("input", () => {
     S.drinkPrices = { ...(S.drinkPrices || {}), [el.dataset.drinkPrice]: +el.value > 0 ? +el.value : undefined }; save(); renderDrinks(); }));
+  // ---------- Checklist (the Library's Reset Checklist; nothing that costs real money) ----------
+  // Ticks live in S.checks: { day, d: [ids], month, m: [ids] }, cleared when the game day / month changes. S.checksHidden: [ids].
+  const G = path => `https://farmrpg.com/${path}`;
+  const CHECKS = {
+    daily: { title: "Every day", items: [
+      ["bank", "Bank your silver", "bank.php"], ["cc", "Donate to the Community Center", "comm.php"],
+      ["farm", "Farm work: Wine Cellar, Storehouse, pet your animals", "xfarm.php"],
+      ["fruit", "Fruit: Oranges into Orange Juice, Lemons into Lemonade, Grapes into wine or Grape Juice, eat your Apples", "workshop.php"],
+      ["slaughter", "Send pigs and cows to the Slaughterhouse", "pigpen.php"], ["chores", "Daily Chores", "daily.php"],
+      ["well", "Toss into the Wishing Well", "well.php"], ["gj", "Use your Grape Juice", "xfarm.php"],
+      ["upgrade", "Upgrade the Orchard and buildings to your new inventory cap", "xfarm.php"]] },
+    extra: { title: "Every day, extras", items: [
+      ["iotd", "Check the Item of the Day (Farmer's Market)", "market.php"], ["wheel", "Spin the Wheel of Borgen", "spin.php"],
+      ["vault", "Crack the Vault", "crack.php"], ["exchange", "Exchange Center: trades, extra XP into silver", "exchange.php"],
+      ["animal", "Craft your Antlers, Feathers, Eggs and Milk", "workshop.php"], ["gifts", "Send townsfolk gifts for friendship", "npclevels.php"],
+      ["kabobs", "Sell Raptor Kabobs (Steak Market)", "steakmarket.php"], ["temple", "Reset a finished Temple chain", "temple.php"],
+      ["roomba", "Recharge ROOMBA's Nest", "roombasnest.php"], ["phr", "Finish your personal help requests", "quests.php"],
+      ["cards", "Play Buddy at the House of Cards", "cardshop.php"], ["hut", "Open a chest in Borgen's Treasure Hut", "borgenstreasurehut.php"],
+      ["lost", "Play Borgen's Lost & Found", "memory.php"]] },
+    monthly: { title: "Every month", month: true, items: [
+      ["mailbox", "Buy the new mailboxes", "mbshop.php"], ["soap", "Browse the soap shop", "soap.php"], ["gallery", "Check the Art Gallery", "gallery.php"],
+      ["newtemple", "Look for a new Temple chain (paste the Temple page here too)", "temple.php"], ["special", "Finish the special help requests", "quests.php"],
+      ["merc", "Check Borgen Mercantile for new items", "bmerc.php"], ["chorerew", "Collect your Daily Chore monthly rewards", "daily.php"],
+      ["seasonal", "Craft the month's special items (take event items out of Craftworks afterwards)", "workshop.php"],
+      ["mcc", "Donate to and collect from the monthly Community Center", "comm.php?monthly=1"], ["dolls", "Check for new Buddy dolls", "wiki.php?page=Buddy%20Dolls"],
+      ["cosmetic", "Look for seasonal livestock cosmetics", "wiki.php?page=Seasonal%20Cosmetics"]] }
+  };
+  // A line from what the planner already knows, where it helps
+  const checkHint = id => {
+    if (id === "well") return `<a href="#ww" data-go="quests">today's tosses</a>`;
+    if (id === "phr") { const n = (S.quests || []).filter(q => q.section === "personal").length; return n ? `${n} open` : ""; }
+    if (id === "gj") return S.perks.grapeJuice ? `${fmt(S.perks.grapeJuice)} a day` : "";
+    if (id === "kabobs") return `<a href="#steak-card">Steak Market below</a>`;
+    if (id === "slaughter") return pigsOn() ? `Bacon in batches of ${fmt(PIG.batch)}` : "";
+    return "";
+  };
+  let checkShowHidden = false;
+  function renderChecklist() {
+    const day = gameDay(Date.now()), month = day.slice(0, 7);
+    const c = S.checks || (S.checks = {});
+    if (c.day !== day) { c.day = day; c.d = []; }
+    if (c.month !== month) { c.month = month; c.m = []; }
+    const hidden = new Set(S.checksHidden || []);
+    $("check-lists").innerHTML = Object.entries(CHECKS).map(([key, L]) => {
+      const done = new Set(L.month ? c.m : c.d), all = L.items.filter(([id]) => checkShowHidden || !hidden.has(key + ":" + id));
+      const n = L.items.filter(([id]) => !hidden.has(key + ":" + id)), left = n.filter(([id]) => !done.has(id)).length;
+      return `<h3 style="margin:12px 0 4px">${L.title} <span class="small muted">(${left ? `${left} left` : "all done"})</span></h3><ul class="checks">${all.map(([id, text, path]) => {
+        const h = checkHint(id), isHidden = hidden.has(key + ":" + id);
+        return `<li class="${done.has(id) ? "done" : ""}"><input type="checkbox" id="ck-${key}-${id}" data-check="${key}:${id}"${done.has(id) ? " checked" : ""}>
+          <label for="ck-${key}-${id}">${esc(text)}${h ? ` <span class="small muted">· ${h}</span>` : ""}</label>
+          <a class="small" href="${G(path)}" target="_blank" rel="noopener" title="Open in the game">open</a>
+          <button type="button" class="ck-hide" data-check-hide="${key}:${id}" title="${isHidden ? "Show it again" : "Hide: I never do this"}">${isHidden ? "show" : "hide"}</button></li>`; }).join("")}</ul>`;
+    }).join("") + (hidden.size ? `<p class="small" style="margin:10px 0 0"><a href="#" id="check-show">${checkShowHidden ? "Hide the hidden ones again" : `Show ${hidden.size} hidden`}</a></p>` : "");
+  }
+  $("check-lists").addEventListener("change", e => {
+    const k = e.target.dataset.check; if (!k) return;
+    const [key, id] = k.split(":"), c = S.checks, list = CHECKS[key].month ? "m" : "d";
+    c[list] = e.target.checked ? [...new Set([...c[list], id])] : c[list].filter(x => x !== id);
+    save(); renderChecklist();
+  });
+  $("check-lists").addEventListener("click", e => {
+    const h = e.target.closest("[data-check-hide]");
+    if (h) { const k = h.dataset.checkHide, set = new Set(S.checksHidden || []); set.has(k) ? set.delete(k) : set.add(k); S.checksHidden = [...set]; save(); renderChecklist(); return; }
+    if (e.target.id === "check-show") { e.preventDefault(); checkShowHidden = !checkShowHidden; renderChecklist(); }
+  });
+
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
     $("steak-card").hidden = !m && !due;
@@ -4120,7 +4201,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
   syncApp();
 
-  // ---------- Keys: 1-7 switch tabs (not while typing) ----------
+  // ---------- Keys: 1-8 switch tabs (not while typing) ----------
   document.addEventListener("keydown", e => {
     if (e.ctrlKey || e.metaKey || e.altKey || !$("app-settings").hidden) return;
     const t = e.target; if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
