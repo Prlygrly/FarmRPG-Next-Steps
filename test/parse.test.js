@@ -180,3 +180,15 @@ console.log("parse tests passed");
   assert.strictEqual(r.kind, "special");
   assert.strictEqual(r.name, "Pie Inversion II");      // the page checks this against known quests (index.html wrongName)
 }
+
+// All Pet Items (made-up page): items several pets bring are summed; the inventory count is kept
+{
+  const { parsePets, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["All Pet Items", "This is a summary of every item that your pets have brought back since the last time you collected items.",
+    "All Items Found", "* Straw", "From Hedgehog", "900 currently in Inventory", "Found 300", "* Straw", "From Wolf", "900 currently in Inventory", "Found 50",
+    "* Twine", "From Hedgehog", "0 currently in Inventory", "Found 1,200", "[Collect All Items](https://x/#)", "Consume a meal"].join(nl);
+  assert.strictEqual(detectPage(t), "pets");
+  assert.deepStrictEqual(parsePets(t).items, { Straw: { found: 350, have: 900, from: { Hedgehog: 300, Wolf: 50 } }, Twine: { found: 1200, have: 0, from: { Hedgehog: 1200 } } });
+  assert.deepStrictEqual(parsePets(t.replace(/^\* /gm, "")).items.Straw.found, 350);      // pasted as plain text
+}

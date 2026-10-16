@@ -378,6 +378,22 @@
   // Returns { steak: {price, market, canBuy, owned}, kabob: {price, canBuy, owned}, truffle: {white, black, whiteChance,
   // blackChance, whiteOwned, blackOwned}, history: { truffle: [{date, white, black}], steak: [{date, price, market,
   // volume}], kabob: [{time, price}] } } (parts missing from the paste are null).
+  // All Pet Items page: each line is "Item / From Pet / N currently in Inventory / Found N". Items several pets bring are
+  // summed: { items: { Straw: { found: 2592, have: 11680, from: { Hedgehog: 2059, Wolf: 533 } } } }
+  function parsePets(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), items = {};
+    lines.forEach((l, k) => {
+      const h = l.match(/^([\d,]+) currently in Inventory$/i);
+      if (!h || k < 2) return;
+      const from = lines[k - 1].match(/^From (.+)$/i), found = (lines[k + 1] || "").match(/^Found ([\d,]+)$/i);
+      if (!from || !found) return;
+      const name = lines[k - 2], it = items[name] || (items[name] = { found: 0, have: toInt(h[1]), from: {} });
+      it.found += toInt(found[1]);
+      it.from[from[1].trim()] = (it.from[from[1].trim()] || 0) + toInt(found[1]);
+    });
+    return { items };
+  }
+
   function parseSteak(text) {
     const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
@@ -433,6 +449,7 @@
   }
 
   function detectPage(text) {
+    if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
     if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
     if (/About the Truffle Market/i.test(text) && /About the Steak Market/i.test(text)) return "steak";
@@ -487,7 +504,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
