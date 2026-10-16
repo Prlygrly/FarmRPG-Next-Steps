@@ -43,3 +43,4 @@
 * **Update (2026-10-16)**: planner/rules.md: Checklist tab (no real-money items); Steak Market moved there.
 * **Update (2026-10-16)**: mechanics/silver.md: bank interest (rate, cap, Banker / Savings Account perks, cap / rate). planner/rules.md: bank checklist item.
 * **Update (2026-10-16)**: planner/rules.md: Checklist reads Community Center goals, Town READY marks and farm "today" marks.
+* **Update (2026-10-16)**: mechanics/temple.md: secret chamber marked (spoiler) for the Reference tab. planner/rules.md: Reference tab, Trips on Best use.

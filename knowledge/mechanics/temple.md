@@ -44,7 +44,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-16T22:00:00Z }
 
 [^wiki-temple]
 
-# Secret chamber
+# Secret chamber (spoiler)
 
 - A Cursed Effigy opens a chamber with one chain per standard crop: 100,000 of that crop for a Certificate (e.g.
   Certificate of Beet Giving). One time only, no resets, no Double Rewards. 20 of them give the Certified Farmer badge.[^wiki-secret]

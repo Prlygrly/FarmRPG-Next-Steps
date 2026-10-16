@@ -123,7 +123,16 @@ main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
 main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
 main[data-tab="check"] > section[data-tab="check"]:not([hidden]),
+main[data-tab="ref"] > section[data-tab="ref"]:not([hidden]),
 main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
+/* Reference: the knowledge notes, folded; search marks matches */
+.ref-entry { border-bottom: 1px solid var(--line); padding: 6px 0; }
+.ref-entry > summary { cursor: pointer; }
+.ref-entry table { border-collapse: collapse; margin: 6px 0; font-size: .9em; display: block; overflow-x: auto; }
+.ref-entry th, .ref-entry td { border: 1px solid var(--line); padding: 3px 6px; text-align: left; vertical-align: top; }
+.ref-entry h4 { margin: 10px 0 4px; }
+.ref-entry details.spoiler { border: 1px dashed var(--line); border-radius: 6px; padding: 4px 8px; margin: 6px 0; }
+.ref-entry mark { background: var(--gold); color: var(--bg); border-radius: 2px; }
 /* Checklist: tick boxes with a link to the game page and a small Hide */
 .checks { list-style: none; margin: 0; padding: 0; }
 .checks li { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid var(--line); }
@@ -365,6 +374,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <button type="button" role="tab" data-go="grinds" title="The masteries that take months at your production: how long each takes, what holds it back, and the year-long ones to keep going every day.">Slow grinds</button>
     <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
     <button type="button" role="tab" data-go="check" title="Daily and monthly checklists (they untick themselves at reset and on the 1st), and the Steak Market.">Checklist</button>
+    <button type="button" role="tab" data-go="ref" title="How the game works and the data behind the planner: pigs, the Temple, bank interest, exploring drinks and more. Searchable.">Reference</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
   </nav>
   <div id="top-bar"><div id="truffle-strip" class="small" role="status" hidden></div>
@@ -436,6 +446,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div class="mono-hide" id="grind-list"></div>
     <ul class="mono-list" id="mono-grinds"></ul>
     <div class="mono-hide" id="grind-standing"></div>
+  </section>
+  <section class="card" data-tab="ref" id="reference" aria-labelledby="h-ref">
+    <h2 id="h-ref" style="margin:0 0 4px">Reference</h2>
+    <p class="small muted" style="margin:0 0 8px">How the game works, as the planner understands it, with sources. Searches every entry's text. Parts marked spoiler stay folded.</p>
+    <input type="search" id="ref-search" placeholder="Search, e.g. bacon, Temple, interest" aria-label="Search the reference" style="width:100%;max-width:420px;margin:0 0 8px">
+    <div id="ref-list"></div>
   </section>
   <section class="card" data-tab="check" id="checklist" aria-labelledby="h-checklist">
     <h2 id="h-checklist" style="margin:0 0 4px">Checklist</h2>
@@ -701,6 +717,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="tower.js?v=202610162039"></script>
 <script src="parse.js?v=202610162039"></script>
 <script src="drops.js?v=202610162039"></script>
+<script src="reference.js"></script>
 <script src="seasons.js?v=202610162039"></script>
 <script src="recipes.js?v=202610162039"></script>
 <script src="recipes-extra.js?v=202610162039"></script>
@@ -3121,6 +3138,76 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (h) { const k = h.dataset.checkHide, set = new Set(S.checksHidden || []); set.has(k) ? set.delete(k) : set.add(k); S.checksHidden = [...set]; save(); renderChecklist(); return; }
     if (e.target.id === "check-show") { e.preventDefault(); checkShowHidden = !checkShowHidden; renderChecklist(); }
   });
+
+  // ---------- Reference (reference.js, built from knowledge/ by tools/build-reference.js) ----------
+  // A small Markdown reader for the notes: headings, lists, tables, bold, code, links, [[other note]] links and
+  // footnote sources. A heading ending "(spoiler)" folds its section behind a second "Spoiler" fold.
+  function refHtml(n) {
+    const ids = new Set((window.REFERENCE || []).map(x => x.id)), foot = {};
+    const inline = t => esc(t)
+      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/\[\[([a-z0-9-]+)\]\]/g, (m, id) => ids.has(id) ? `<a href="#ref-${id}" data-ref="${id}">${id.replace(/-/g, " ")}</a>` : id)
+      .replace(/\[\^([\w-]+)\]/g, (m, id) => { const s = n.sources[id]; return s && s.url ? `<sup><a href="${esc(s.url)}" target="_blank" rel="noopener" title="${esc(s.title)}">src</a></sup>` : ""; });
+    const out = [], lines = n.body.split("\n");
+    let list = null, table = null, para = [], spoiler = 0;
+    const flush = () => {
+      if (para.length) { out.push(`<p>${inline(para.join(" "))}</p>`); para = []; }
+      if (list) { out.push(`<ul>${list.map(li => `<li>${inline(li)}</li>`).join("")}</ul>`); list = null; }
+      if (table) { const [h, ...rows] = table; out.push(`<table><thead><tr>${h.map(c => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`); table = null; }
+    };
+    for (const raw of lines) {
+      const l = raw.trimEnd();
+      if (/^\[\^[\w-]+\]:/.test(l)) continue;                                // footnote lines: the sources show as "src" links
+      const h = l.match(/^(#{1,3})\s+(.*)$/);
+      if (h) {
+        flush();
+        if (spoiler) { out.push("</details>"); spoiler = 0; }
+        const sp = /\(spoiler\)\s*$/i.test(h[2]), title = h[2].replace(/\s*\(spoiler\)\s*$/i, "");
+        if (/^Rules$/i.test(title) && !out.length) continue;               // most notes open with "Rules": no need to say so
+        out.push(`<h4>${inline(title)}</h4>`);
+        if (sp) { out.push(`<details class="spoiler"><summary>Spoiler: show it</summary>`); spoiler = 1; }
+        continue;
+      }
+      if (/^\|.*\|$/.test(l)) { if (!table) { flush(); table = []; } if (!/^\|[\s:|-]+\|$/.test(l)) table.push(l.slice(1, -1).split("|").map(c => c.trim())); continue; }
+      if (/^- /.test(l)) { if (!list) { flush(); list = []; } list.push(l.slice(2)); continue; }
+      if (/^\s{2,}\S/.test(l) && list) { list[list.length - 1] += " " + l.trim(); continue; }
+      if (!l.trim()) { flush(); continue; }
+      if (list || table) flush();
+      para.push(l.trim());
+    }
+    flush();
+    if (spoiler) out.push("</details>");
+    return out.join("");
+  }
+  // Search every entry's text; matching entries open with the words marked (a match inside a spoiler says so and stays shut)
+  function renderReference() {
+    const notes = window.REFERENCE || [], q = ($("ref-search").value || "").trim().toLowerCase();
+    if (!notes.length) { $("ref-list").innerHTML = `<p class="small muted">The reference didn't load.</p>`; return; }
+    const groups = [...new Set(notes.map(n => n.group))], hay = n => `${n.title} ${n.description} ${n.body}`.toLowerCase();
+    const shown = notes.filter(n => !q || hay(n).includes(q));
+    $("ref-list").innerHTML = (q ? `<p class="small muted" style="margin:0 0 6px">${shown.length} of ${notes.length} entries mention "${esc(q)}".</p>` : "") +
+      groups.map(g => { const ns = shown.filter(n => n.group === g); return ns.length ? `<h3 style="margin:12px 0 4px">${esc(g)}</h3>` + ns.map(n =>
+        `<details class="ref-entry" id="ref-${n.id}"${q ? " open" : ""}><summary><b>${esc(n.title)}</b><br><span class="small muted">${esc(n.description)}</span></summary><div class="small">${refHtml(n)}</div></details>`).join("") : ""; }).join("");
+    if (!q) return;
+    // Mark the words in the text (not inside tags); a spoiler holding a match notes it on its own summary
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    const walk = node => {
+      for (const c of [...node.childNodes]) {
+        if (c.nodeType === 3 && re.test(c.nodeValue)) { re.lastIndex = 0; const span = document.createElement("span"); span.innerHTML = esc(c.nodeValue).replace(re, m => `<mark>${m}</mark>`); c.replaceWith(span); }
+        else if (c.nodeType === 1 && c.tagName !== "SUMMARY") walk(c);
+        re.lastIndex = 0;
+      }
+    };
+    document.querySelectorAll("#ref-list .ref-entry > div").forEach(walk);
+    document.querySelectorAll("#ref-list details.spoiler").forEach(d => { if (d.querySelector("mark")) d.querySelector("summary").textContent = "Spoiler: a match is inside, show it"; });
+  }
+  $("ref-search").addEventListener("input", renderReference);
+  $("ref-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-ref]"); if (!a) return;
+    e.preventDefault(); const d = $("ref-" + a.dataset.ref); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); }
+  });
+  renderReference();
 
   function renderSteak() {
     const m = S.steakMarket, due = truffleCheckDue();
