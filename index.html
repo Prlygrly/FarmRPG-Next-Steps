@@ -120,7 +120,6 @@ main[data-tab] > section[data-tab] { display: none; }
 main[data-tab="next"] > section[data-tab="next"]:not([hidden]),
 main[data-tab="quests"] > section[data-tab="quests"]:not([hidden]),
 main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
-main[data-tab="trips"] > section[data-tab="trips"]:not([hidden]),
 main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
 main[data-tab="check"] > section[data-tab="check"]:not([hidden]),
@@ -365,7 +364,6 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <button type="button" role="tab" data-go="best" title="Where to spend a pile of Large Nets, Arnold Palmers or Apple Ciders; what to plant now; what your farm will soon overflow with; and what to cook.">Best use</button>
     <button type="button" role="tab" data-go="grinds" title="The masteries that take months at your production: how long each takes, what holds it back, and the year-long ones to keep going every day.">Slow grinds</button>
     <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
-    <button type="button" role="tab" data-go="trips" title="Going somewhere a lot anyway? Add it here to see what else the trip brings home, and to make things found there count cheaper elsewhere.">Trips</button>
     <button type="button" role="tab" data-go="check" title="Daily and monthly checklists (they untick themselves at reset and on the 1st), and the Steak Market.">Checklist</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
   </nav>
@@ -608,7 +606,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div id="vj-out" class="small" style="margin-top:8px"></div>
   </section>
 
-  <section class="card" data-tab="trips" id="trips" aria-labelledby="h-trips" hidden>
+  <section class="card" data-tab="best" id="trips" aria-labelledby="h-trips" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-trips" style="margin:0">I'm exploring here anyway</h2>
     </div>
@@ -761,7 +759,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   fixQuestKinds();
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
-  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "pets-card", "overflow", "silver-goal", "drinks", "kitchen"];
+  const UI_STORE = "frp-ui", BEST_IDS = ["best", "trips", "plant", "pets-card", "overflow", "silver-goal", "drinks", "kitchen"];
   const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
@@ -4196,7 +4194,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
 
   // ---------- Best use order (App settings) ----------
-  const BEST_NAME = { best: "Spend my…", plant: "What to plant", "pets-card": "Pet items", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", drinks: "Exploring drinks", kitchen: "Kitchen" };
+  const BEST_NAME = { best: "Spend my…", plant: "What to plant", "pets-card": "Pet items", trips: "Trips", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", drinks: "Exploring drinks", kitchen: "Kitchen" };
   function applyBestOrder() {
     let at = $("best-nav");
     for (const id of U.bestOrder) { at.after($(id)); at = $(id); $(id).classList.toggle("user-off", U.bestOff.includes(id)); }
@@ -4265,7 +4263,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
   let startTab = "next";
   try { startTab = localStorage.getItem("frp-tab") || "next"; } catch (e) {}
-  showTab(S.mastery ? startTab : "setup");
+  showTab(S.mastery ? (startTab === "trips" ? "best" : startTab) : "setup");     // Trips moved into Best use
 
   let LAST = null;
   window.__planner = { state: () => S, render, last: () => LAST, coster: () => C, where: () => W };

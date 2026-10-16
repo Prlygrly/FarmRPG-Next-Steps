@@ -51,12 +51,11 @@ with a source.
 ## Tabs
 - **Next steps**: what to do next, quickest first; Tower levels; AK plan; Leveling up.
 - **Quests**: what each quest still needs, its cost and reward; the wishing well's free tosses for today.
-- **Best use**: where to spend nets and drinks, what to plant, daily overflow, before you collect pet items (what would void), kitchen, silver goal, exploring drinks (items per gold: Arnold Palmers, Apple Ciders or Orange Juice).
+- **Best use**: where to spend nets and drinks, trips (what a planned exploring trip brings), what to plant, daily overflow, before you collect pet items (what would void), kitchen, silver goal, exploring drinks (items per gold: Arnold Palmers, Apple Ciders or Orange Juice).
 - **Checklist**: daily and monthly reset checklists (from the Library), and the Steak Market (sell Truffles today?).
 - **Slow grinds**: the Tower masteries that take months, what limits them, and what an upgrade would save.
 - **Veggie Juice**: a goal, the next step and the cycle as a checklist (Boost crops, Tomato and Watermelon, Horn / Twine /
   Glass Bottle, Beets); a calculator.
-- **Trips**: what a planned exploring trip brings.
 - **Setup**: pastes, perks, general settings, places, production.
 - **⚙ App settings** (header): theme; Detail (Monotask: one thing per section / Condensed / Expanded: labelled points);
   Grid or one-column layout; the Truffle line above every tab; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
