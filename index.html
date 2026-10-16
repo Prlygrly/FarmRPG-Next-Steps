@@ -401,6 +401,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div class="mono-hide" id="plant-list"></div>
     <ul class="mono-list" id="mono-plant"></ul>
   </section>
+  <section class="card" data-tab="best" id="pets-card" aria-labelledby="h-pets" hidden>
+    <h2 id="h-pets" style="margin:0 0 4px">Before you collect pet items</h2>
+    <p class="mono-hide small muted" style="margin:0 0 6px">From your All Pet Items paste: what would go over your inventory cap if you press Collect All now, and what to turn it into first to make room. <a href="#" id="pets-done">I've collected them</a></p>
+    <div class="mono-hide" id="pets-list"></div>
+    <ul class="mono-list" id="mono-pets"></ul>
+  </section>
   <section class="card" data-tab="best" id="overflow" aria-labelledby="h-overflow">
     <h2 id="h-overflow">Daily overflow</h2>
     <p class="small muted">What fills up first, and what to turn it into.</p>
@@ -702,7 +708,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202610160503"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -741,7 +747,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   fixQuestKinds();
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
-  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "overflow", "steak-card", "silver-goal", "drinks", "kitchen"];
+  const UI_STORE = "frp-ui", BEST_IDS = ["best", "plant", "pets-card", "overflow", "steak-card", "silver-goal", "drinks", "kitchen"];
   const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
@@ -752,7 +758,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const saveU = () => { try { localStorage.setItem(UI_STORE, JSON.stringify(U)); } catch (e) {} };
   const mono = () => U.detail === "mono";
   // Monotask: the cards that show one thing each
-  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "steak-card", "silver-goal", "drinks", "kitchen", "vj", "quests"];
+  const MONO_IDS = ["plan", "leveling", "best", "plant", "grinds", "steak-card", "silver-goal", "drinks", "kitchen", "vj", "quests", "pets-card"];
   // Expanded: [label, value] rows; a value can be a list. Empty rows drop out.
   const xpList = rows => `<ul class="xp">${rows.filter(([, v]) => v != null && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) =>
     `<li><b>${k}</b><div>${Array.isArray(v) ? (v.length === 1 ? v[0] : `<ul>${v.map(x => `<li>${x}</li>`).join("")}</ul>`) : v}</div></li>`).join("")}</ul>`;
@@ -907,6 +913,18 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
         msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
       else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
+    } else if (kind === "pets") {
+      const r = parsePets(text), names = Object.keys(r.items);
+      if (!names.length) msg = warn("No pet items were found. Copy the whole All Pet Items page and try again.");
+      else {
+        const inv = S.inventory || (S.inventory = { items: {}, cap: null, at: Date.now() });
+        const top = Math.max(...names.map(n => r.items[n].have));
+        if (inv.cap && top > inv.cap) inv.cap = top;                         // nothing sits above the cap: it has grown
+        for (const n of names) inv.items[n] = { ...(inv.items[n] || {}), count: r.items[n].have, atMax: !!inv.cap && r.items[n].have >= inv.cap };
+        S.pets = { items: r.items, at: Date.now() }; done = true;
+        const over = inv.cap ? names.filter(n => r.items[n].have + r.items[n].found > inv.cap).length : null;
+        msg = `<div class="note" style="border-color:var(--good)">Read your pet items: ${fmt(names.length)} items${over != null ? `, ${fmt(over)} would go over your cap` : " (paste My Inventory once so the planner knows your cap)"}. See Best use.</div>`;
+      }
     } else if (kind === "explore-info") {
       const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
       const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
@@ -980,7 +998,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
   const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply perks (Town)", friends: "Friendship",
-    steak: "Steak Market", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+    steak: "Steak Market", pets: "All Pet Items", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
@@ -1288,6 +1306,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     renderPlant(p, ap);
     renderVJ();
     renderOverflow(p);
+    renderPets(p);
     renderGrinds(p);
     renderSilverGoal(p);
     renderSteak();
@@ -2569,6 +2588,44 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     Minnows: "Trout / Bait Farm", Grapes: "Vineyard", Board: "Sawmill", Wood: "Sawmill", Iron: "Ironworks", Nails: "Ironworks", Steel: "Steelworks",
     "Steel Wire": "Steelworks", Straw: "Hay Field", Stone: "Quarry", Sandstone: "Quarry", Coal: "Quarry", Apple: "Orchard", Orange: "Orchard", Lemon: "Orchard" };
   const STANDING = { Antler: ["Fishing Net", "Large Net"], Orange: ["Orange Juice"], Lemon: ["Lemonade"], Apple: ["Apple Cider"] };
+  // ---------- Before you collect pet items ----------
+  // Everything pets brought back, summed per item (the page lists one line per pet): what would go over the cap, biggest
+  // loss first, with the outlet that makes room first (the same outlet picker as Daily overflow).
+  function renderPets(p) {
+    const P = S.pets;
+    $("pets-card").hidden = !P;
+    if (!P) return;
+    const ago = Math.round((Date.now() - P.at) / 6e4), when = ago < 60 ? `${ago} min ago` : `${Math.round(ago / 60)} h ago`;
+    if (!O || O.cap === Infinity) { $("pets-list").innerHTML = `<p class="small muted">Paste My Inventory once so the planner knows your cap.</p>`; $("mono-pets").innerHTML = ""; return; }
+    const over = Object.entries(P.items).map(([n, x]) => ({ n, x, lost: (O.onHand[n] ?? x.have) + x.found - O.cap })).filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
+    const fix = r => {
+      // You craft before collecting, so only outlets your stock covers right now (Mayonnaise needing 52k Eggs is out)
+      const plan = window.FRP.outletPlan(r.n, r.x.found, O), keep = OTHER_USES[r.n], gt = giftTo(r.n);
+      const covered = x => x && x.extra.every(e => e.qty < 1 || (O.onHand[e.item] || 0) >= e.qty);
+      const fits = [plan.outlet, ...(plan.others || [])].filter(covered), o = fits[0];
+      plan.others = fits.slice(1);
+      if (!o) {
+        // Something uses it, but not with what you have now: say what's missing
+        const want = plan.outlet, lack = want ? want.extra.filter(e => e.qty >= 1 && (O.onHand[e.item] || 0) < e.qty).map(e => esc(e.item)) : [];
+        const why = want ? `${esc(want.product)} would use it, but needs ${lack.join(", ")} you don't have enough of` : "nothing useful is made from it";
+        return { sum: keep ? `use or keep ${keep}; ${short(r.lost)} won't fit` : gt ? `gift ${short(r.lost)} to ${giftWho(gt)} first` : `sell ${short(r.lost)} first`, also: keep || gt ? (want ? why : "") : why };
+      }
+      const tag = o.tower ? towerTag(o.product, p.items[o.product] || 0, "") : o.goal ? ` <span class="tag">mastery</span>` : "";
+      const extra = o.extra.filter(e => e.qty >= 1).map(e => `${short(e.qty)} ${esc(e.item)}`).join(", ");
+      return { sum: `craft ${fmt(o.crafts)} <b>${esc(o.product)}</b>${tag} first`, also: `uses ${short(o.crafts * o.per)} ${esc(r.n)}${extra ? ` + ${extra}` : ""}${
+        plan.others && plan.others.length ? `; or ${plan.others.map(x => esc(x.product)).join(", ")}` : ""}` };
+    };
+    const rows = over.map(r => ({ ...r, ...fix(r) }));
+    const pets = r => Object.entries(r.x.from).map(([pet, q]) => `${esc(pet)} ${short(q)}`).join(", ");
+    $("pets-list").innerHTML = `<p class="small muted" style="margin:0 0 6px">Pasted ${when}. ${rows.length ? `${fmt(rows.length)} item${rows.length === 1 ? "" : "s"} would go over your ${short(O.cap)} cap.` : "Nothing would go over your cap: collect away."}</p>` +
+      (rows.length ? `<ul style="margin:0;padding-left:20px">${rows.map(r => `<li><b>${esc(r.n)}</b>: ${short(r.lost)} over → ${r.sum}${U.detail === "expanded"
+        ? xpList([["Have", `${short(O.onHand[r.n] ?? r.x.have)} of ${short(O.cap)}`], ["Found", `${short(r.x.found)} (${pets(r)})`], ["Makes room", r.also || null]])
+        : r.also ? `<br><span class="small muted">${r.also}</span>` : ""}</li>`).join("")}</ul>` : "");
+    $("mono-pets").innerHTML = rows.length ? monoLi(`Before you collect (${fmt(rows.length)} over)`, `<b>${esc(rows[0].n)}</b>: ${short(rows[0].lost)} over → ${rows[0].sum}`, rows[0].also)
+      : monoLi("Pet items", "Nothing would go over your cap");
+  }
+  $("pets-done").addEventListener("click", e => { e.preventDefault(); delete S.pets; save(); render(false); });
+
   function renderOverflow(p) {
     if (!O || O.cap === Infinity) { $("overflow-list").innerHTML = `<p class="small muted">Paste My Inventory to see what's filling up.</p>`; return; }
     const onHand = O.onHand, cap = O.cap, saver = 1 + (S.perks.resourceSaver ?? 0) / 100;
@@ -4007,7 +4064,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
 
   // ---------- Best use order (App settings) ----------
-  const BEST_NAME = { best: "Spend my…", plant: "What to plant", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", drinks: "Exploring drinks", kitchen: "Kitchen" };
+  const BEST_NAME = { best: "Spend my…", plant: "What to plant", "pets-card": "Pet items", overflow: "Daily overflow", "steak-card": "Steak Market", "silver-goal": "Silver goal", drinks: "Exploring drinks", kitchen: "Kitchen" };
   function applyBestOrder() {
     let at = $("best-nav");
     for (const id of U.bestOrder) { at.after($(id)); at = $(id); $(id).classList.toggle("user-off", U.bestOff.includes(id)); }
