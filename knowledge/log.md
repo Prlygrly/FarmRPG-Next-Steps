@@ -39,3 +39,4 @@
 * **Update (2026-10-14)**: planner/rules.md: personal requests named from the Personal Requests list.
 * **Update (2026-10-14)**: planner/rules.md: Help Needed replaces personal requests too.
 * **Update (2026-10-16)**: planner/rules.md: All Pet Items paste and the Before you collect card.
+* **Update (2026-10-16)**: mechanics/temple.md (new): Temple of Reward rules, resets, seasonal chains by month, secret crop chamber. planner/rules.md: Temple as an outlet before gift/sell.

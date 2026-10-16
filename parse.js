@@ -394,6 +394,20 @@
     return { items };
   }
 
+  // Temple of Reward: each chain is "Reward / Sacrifice: Item / a / b Rewards Claimed / x / y Items Sacrificed", plus
+  // "ONE-TIME TEMPLE CHAIN" for event chains. Finished chains are left out. [{ reward, item, done, total, oneTime }]
+  function parseTemple(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = [];
+    lines.forEach((l, k) => {
+      const m = l.match(/^Sacrifice: (.+)$/i);
+      if (!m || k < 1) return;
+      const block = lines.slice(k + 1, k + 4), n = block.map(x => x.match(/^([\d,]+) \/ ([\d,]+) Items Sacrificed/i)).find(Boolean);
+      if (!n || toInt(n[1]) >= toInt(n[2])) return;
+      out.push({ reward: lines[k - 1], item: m[1].trim(), done: toInt(n[1]), total: toInt(n[2]), oneTime: block.some(x => /ONE-TIME TEMPLE CHAIN/i.test(x)) });
+    });
+    return out;
+  }
+
   function parseSteak(text) {
     const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
@@ -449,6 +463,7 @@
   }
 
   function detectPage(text) {
+    if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
     if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
@@ -504,7 +519,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

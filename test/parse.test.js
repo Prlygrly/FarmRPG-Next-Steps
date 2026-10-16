@@ -192,3 +192,17 @@ console.log("parse tests passed");
   assert.deepStrictEqual(parsePets(t).items, { Straw: { found: 350, have: 900, from: { Hedgehog: 300, Wolf: 50 } }, Twine: { found: 1200, have: 0, from: { Hedgehog: 1200 } } });
   assert.deepStrictEqual(parsePets(t.replace(/^\* /gm, "")).items.Straw.found, 350);      // pasted as plain text
 }
+
+// Temple of Reward (made-up counts): open chains with how many more they take; finished chains left out
+{
+  const { parseTemple, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Temple of Reward", "One-Time Chains", "* [Treat Bag 05](https://x/t?id=1)", "[Sacrifice: Jack-o-lantern](https://x/t?id=1)", "[0 / 11 Rewards Claimed (0%)](https://x/t?id=1)",
+    "[10 / 2,000 Items Sacrificed (0.5%)](https://x/t?id=1)", "[ONE-TIME TEMPLE CHAIN](https://x/t?id=1)", "Regular Chains",
+    "* Piece of Heart", "Sacrifice: Watermelon", "0 / 22 Rewards Claimed (0%)", "300 / 15,000 Items Sacrificed (2%)",
+    "Completed One-Time Chains", "* Old Crest", "Sacrifice: Onyx Scorpion", "350 / 350 Items Sacrificed (100%)", "ONE-TIME TEMPLE CHAIN"].join(nl);
+  assert.strictEqual(detectPage(t), "temple");
+  assert.deepStrictEqual(parseTemple(t), [
+    { reward: "Treat Bag 05", item: "Jack-o-lantern", done: 10, total: 2000, oneTime: true },
+    { reward: "Piece of Heart", item: "Watermelon", done: 300, total: 15000, oneTime: false }]);
+}

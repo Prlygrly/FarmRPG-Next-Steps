@@ -708,7 +708,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202610160503"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -913,6 +913,11 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
         msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
       else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
+    } else if (kind === "temple") {
+      const r = parseTemple(text);
+      if (!r.length) msg = warn("No open Temple chains were found. Copy the whole Temple of Reward page and try again.");
+      else { S.temple = { chains: r, at: Date.now() }; done = true;
+        msg = `<div class="note" style="border-color:var(--good)">Read the Temple of Reward: ${fmt(r.length)} open chains. Before you collect pet items can send extras there.</div>`; }
     } else if (kind === "pets") {
       const r = parsePets(text), names = Object.keys(r.items);
       if (!names.length) msg = warn("No pet items were found. Copy the whole All Pet Items page and try again.");
@@ -998,7 +1003,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
   const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply perks (Town)", friends: "Friendship",
-    steak: "Steak Market", pets: "All Pet Items", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+    steak: "Steak Market", pets: "All Pet Items", temple: "Temple of Reward", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
@@ -2604,6 +2609,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const covered = x => x && x.extra.every(e => e.qty < 1 || (O.onHand[e.item] || 0) >= e.qty);
       const fits = [plan.outlet, ...(plan.others || [])].filter(covered), o = fits[0];
       plan.others = fits.slice(1);
+      const chain = ((S.temple || {}).chains || []).find(c => c.item === r.n);
+      if (!o && chain) {
+        const room = chain.total - chain.done, put = Math.min(r.lost, room);
+        return { sum: `sacrifice ${short(put)} to the <b>Temple</b> first${put < r.lost ? `, then ${gt ? `gift` : `sell`} ${short(r.lost - put)}` : ""}`,
+          also: `${esc(chain.reward)} chain: ${short(room)} to go${chain.oneTime ? " (one-time chain)" : ""}` };
+      }
       if (!o) {
         // Something uses it, but not with what you have now: say what's missing
         const want = plan.outlet, lack = want ? want.extra.filter(e => e.qty >= 1 && (O.onHand[e.item] || 0) < e.qty).map(e => esc(e.item)) : [];
