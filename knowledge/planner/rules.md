@@ -85,6 +85,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   and on the 1st; items can be hidden. Nothing that costs real money (no beta special, starter pack or extra chore sets).
   The Steak Market card lives on this tab. "Bank your silver" ticks itself once the bank holds cap / rate (from a Bank
   paste); otherwise it says how much more to deposit, or the default 800M for 8M a day.[^player]
+- Checklist from today's pastes: Help Needed gives the Community Center goals (daily item and reward, monthly too);
+  the Town page marks places not done with "READY!" or "N Left" (no mark = done: Wheel of Borgen, Treasure Hut, Lost &
+  Found, House of Cards, Wishing Well; the Vault never shows one, so it isn't read); the farm page shows "today" (a
+  calendar mark) on buildings not done. Done ones tick themselves; open ones say what's left. Only same-day pastes count.[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]

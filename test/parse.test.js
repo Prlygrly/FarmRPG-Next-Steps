@@ -216,3 +216,20 @@ console.log("parse tests passed");
   assert.strictEqual(detectPage(t), "bank");
   assert.deepStrictEqual(parseBank(t), { rate: 0.02, cap: 10000000, bank: 300000000, onHand: 1234567 });
 }
+
+// Community Center goals, Town page status, farm "today" marks (made-up pages)
+{
+  const { parseCommunity, parseTown, parseFarmToday, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  assert.deepStrictEqual(parseCommunity(["Community Center", "* [Daily Goal](https://x/c)", "[ Apple for Honey](https://x/c)", "[42.5%](https://x/c)",
+    "* [Monthly Goal](https://x/m)", "[ Pumpkin for Ghost Candy](https://x/m)", "[98.99%](https://x/m)"].join(nl)),
+    { daily: { item: "Apple", reward: "Honey", pct: 42.5 }, monthly: { item: "Pumpkin", reward: "Ghost Candy", pct: 98.99 } });
+  const town = ["Market District", "* Country Store", "Buy seeds & materials", "Borgen's District", "* Wheel of Borgen", "Spin daily for something nice!", "READY!",
+    "* Borgen's Treasure Hut", "Open a treasure chest daily", "* Borgen's Lost & Found", "Help recover items by finding their pairs",
+    "* Wishing Well", "Toss things in & see what happens", "12 Left", "* Exchange Center", "Exchange items, XP, etc"].join(nl);
+  assert.strictEqual(detectPage(town), "town");
+  const t = parseTown(town);
+  assert.deepStrictEqual([t["Wheel of Borgen"].ready, t["Borgen's Treasure Hut"].ready, t["Borgen's Lost & Found"].ready, t["Wishing Well"].left], [true, false, false, 12]);
+  assert.deepStrictEqual(parseFarmToday(["Around Your Farm", "* Chicken Coop", "Add chickens to produce eggs daily", "today", "* Cow Pasture", "Add cows", "100 Milk",
+    "* Raptor Pen", "Raise Raptors to hunt daily", "today"].join(nl)), ["Chicken Coop", "Raptor Pen"]);
+}

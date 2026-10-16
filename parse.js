@@ -418,6 +418,36 @@
     return { rate: rate ? parseFloat(rate[1]) / 100 : null, cap: cap ? toInt(cap[1]) : null, bank: bank ? toInt(bank[1]) : null, onHand: hand ? toInt(hand[1]) : null };
   }
 
+  // Community Center goals (on Help Needed and the Community Center): "Daily Goal / Antler for Skeleton Key / 169.29%",
+  // "Monthly Goal / Pumpkin for Ghost Candy / 98.99%". { daily: { item, reward, pct }, monthly: {...} }
+  function parseCommunity(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = {};
+    for (const [key, head] of [["daily", /^Daily Goal$/i], ["monthly", /^Monthly Goal$/i]]) {
+      const k = lines.findIndex(l => head.test(l)), m = k >= 0 && (lines[k + 1] || "").match(/^(.+?) for (.+)$/), pct = k >= 0 && (lines[k + 2] || "").match(/^([\d.,]+)%$/);
+      if (m) out[key] = { item: m[1].trim(), reward: m[2].trim(), pct: pct ? parseFloat(pct[1].replace(/,/g, "")) : null };
+    }
+    return Object.keys(out).length ? out : null;
+  }
+  // Town page: each place is "Name / description / status". "READY!" or "N Left" means not done today; no status line
+  // means done. Only the daily places that show one: { "Wheel of Borgen": { ready: true }, "Wishing Well": { left: 29 } }
+  const TOWN_DAILY = ["Wheel of Borgen", "Borgen's Treasure Hut", "Borgen's Lost & Found", "House of Cards", "Wishing Well"];   // the Vault never shows a status
+  function parseTown(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = {};
+    for (const name of TOWN_DAILY) {
+      const k = lines.findIndex(l => l === name);
+      if (k < 0) continue;
+      const st = lines[k + 2] || "", left = st.match(/^([\d,]+) Left$/i);
+      out[name] = { ready: /^READY!?$/i.test(st) || !!left, left: left ? toInt(left[1]) : 0 };
+    }
+    return out;
+  }
+  // Farm page: a building not done today shows "today" (a calendar mark) instead of its numbers: "Raptor Pen / Raise
+  // Raptors to hunt daily / today". The buildings still to do.
+  function parseFarmToday(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), at = lines.findIndex(l => /^Around Your Farm$/i.test(l));
+    return at < 0 ? null : lines.slice(at).map((l, i, a) => /^today$/i.test(l) && i >= 2 ? a[i - 2] : null).filter(Boolean);
+  }
+
   function parseSteak(text) {
     const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
@@ -473,6 +503,7 @@
   }
 
   function detectPage(text) {
+    if (/^\s*Market District\s*$/im.test(text) && /Borgen's District/i.test(text)) return "town";
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
@@ -530,7 +561,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
