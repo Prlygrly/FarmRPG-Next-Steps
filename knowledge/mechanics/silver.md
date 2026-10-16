@@ -133,3 +133,14 @@ More fruit means more juices, which means more stamina: the Orchard is the best 
 [^wiki-spend]: FarmRPG wiki: How Should I Spend My Silver
 [^wiki-mastery]: FarmRPG wiki: Item Mastery
 [^player]: Player confirmation
+
+# Bank interest
+
+- Banked silver earns interest at reset (midnight Central): 1% a day by default, at most 8,000,000 a day. Farm Supply
+  perks raise both: Banker I-III +1% / +2% / +4% (8% in all); Savings Account I-V +2M / +10M / +20M / +40M / +80M
+  (160M a day in all). Interest stops growing at cap / rate banked (8M / 1% = 800M; 160M / 8% = 2B); more earns nothing
+  extra but does no harm.[^wiki-bank]
+- The Bank page states the current rate and cap, what's banked, and silver on hand ("Deposit All").[^player-bank]
+
+[^wiki-bank]: FarmRPG Library: Bank Interest (2024-06-05)
+[^player-bank]: Player paste (2026-10-16)

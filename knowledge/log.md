@@ -41,3 +41,4 @@
 * **Update (2026-10-16)**: planner/rules.md: All Pet Items paste and the Before you collect card.
 * **Update (2026-10-16)**: mechanics/temple.md (new): Temple of Reward rules, resets, seasonal chains by month, secret crop chamber. planner/rules.md: Temple as an outlet before gift/sell.
 * **Update (2026-10-16)**: planner/rules.md: Checklist tab (no real-money items); Steak Market moved there.
+* **Update (2026-10-16)**: mechanics/silver.md: bank interest (rate, cap, Banker / Savings Account perks, cap / rate). planner/rules.md: bank checklist item.

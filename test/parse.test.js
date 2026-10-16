@@ -206,3 +206,13 @@ console.log("parse tests passed");
     { reward: "Treat Bag 05", item: "Jack-o-lantern", done: 10, total: 2000, oneTime: true },
     { reward: "Piece of Heart", item: "Watermelon", done: 300, total: 15000, oneTime: false }]);
 }
+
+// Bank page (made-up amounts): interest rate and cap, what's banked, silver on hand
+{
+  const { parseBank, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Bank", "About the bank", "The bank allows you to deposit your Silver so that it can gain interest when you are not playing. Right now, Silver will grow by 2% every day. The most you can earn each day from interest is 10,000,000 Silver. This will occur in 8h 37m 21s.",
+    "Currently in Bank: 300,000,000 Silver [[View History]](https://x/h)", "Bulk Options", "* [Deposit All](https://x/#)", "[1,234,567 Silver](https://x/#)", "* [Withdraw All](https://x/#)", "[300,000,000 Silver](https://x/#)"].join(nl);
+  assert.strictEqual(detectPage(t), "bank");
+  assert.deepStrictEqual(parseBank(t), { rate: 0.02, cap: 10000000, bank: 300000000, onHand: 1234567 });
+}

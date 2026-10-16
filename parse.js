@@ -408,6 +408,16 @@
     return out;
   }
 
+  // Bank page: "Silver will grow by 1% every day. The most you can earn each day from interest is 8,000,000 Silver",
+  // "Currently in Bank: N Silver" and "Deposit All / N Silver" (silver on hand). knowledge/mechanics/silver.md
+  function parseBank(text) {
+    const flat = flatText(text);
+    const rate = flat.match(/Silver will grow by ([\d.]+)% every day/i), cap = flat.match(/most you can earn each day from interest is ([\d,]+) Silver/i);
+    const bank = flat.match(/Currently in Bank: ([\d,]+) Silver/i), hand = flat.match(/Deposit All ([\d,]+) Silver/i);
+    if (!rate && !bank) return null;
+    return { rate: rate ? parseFloat(rate[1]) / 100 : null, cap: cap ? toInt(cap[1]) : null, bank: bank ? toInt(bank[1]) : null, onHand: hand ? toInt(hand[1]) : null };
+  }
+
   function parseSteak(text) {
     const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
@@ -463,6 +473,7 @@
   }
 
   function detectPage(text) {
+    if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
     if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
@@ -519,7 +530,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

@@ -83,7 +83,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   still takes the item (from a pasted Temple page; see mechanics/temple.md).[^player]
 - Checklist tab: the Library's Reset Checklist as daily, daily extras and monthly lists. Ticks clear at reset (game day)
   and on the 1st; items can be hidden. Nothing that costs real money (no beta special, starter pack or extra chore sets).
-  The Steak Market card lives on this tab.[^player]
+  The Steak Market card lives on this tab. "Bank your silver" ticks itself once the bank holds cap / rate (from a Bank
+  paste); otherwise it says how much more to deposit, or the default 800M for 8M a day.[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
   the best per place marked). Sprint Shoes I-III are read from a Farm Supply paste (highest tier unlocked).[^player]
