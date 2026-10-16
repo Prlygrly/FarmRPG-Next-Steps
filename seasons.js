@@ -10,6 +10,8 @@
     items: [
       { match: "^Frozen ", months: [12, 1] },          // frozen fish and crops: while the ponds are frozen
       { name: "Snowball", months: [12, 1] },
+      { name: "Apple Ant", months: [9] },              // Apple Bobbing (September); also found at Highland Hills then
+      { name: "Ant Apple", months: [9] },
       { name: "Snowman", months: [12, 1] },
       { name: "Valentines Card", months: [2] },
       { name: "Heart Necklace", months: [2] },
