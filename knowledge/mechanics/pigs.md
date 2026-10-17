@@ -26,8 +26,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - Bacon from slaughtering a level L pig: none below level 5; from level 5, 10 × L − 25 (25 at level 5, 35 at 6, 175 at 20).[^planner]
 - Slaughtering: click a pig at level 5 or higher and send it off (no building to buy; Send-o-Matic II does pigs in
   bulk). The Bacon arrives at the next reset. A pig sent by mistake can be rescued for a little Gold.[^wiki-slaughter]
-- A slaughtered pig isn't replaced on its own: you buy a new one, which starts at level 1. (The planner assumes an
-  instant replacement.)[^player] Each pig bought costs more than the last; the price depends only on how many you
+- A slaughtered pig isn't replaced on its own: you buy a new one, which starts at level 1.[^player] Each pig bought costs more than the last; the price depends only on how many you
   have (buying the #100 animal always costs the same). All 250 pigs cost 7,781,250 silver in total.[^wiki-slaughter]
   That total fits 250 silver × pigs already owned (0 + 250 + ... + 62,250), so rebuying into a full pen of 250 costs
   about 62,250. (Worked out from the total, not stated; cows fit 500 × n the same way.)
@@ -37,8 +36,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - Truffles (with a Pig Collar, pigs fed that day): a level L pig finds a White Truffle on L% of days and a Black
   Truffle on L/3% of days, and can find both. So a day's Truffles average total pig level / 100 White and / 300 Black;
   players' logged days match this.[^luna][^planner]
-- Players can make Bacon from the Pig Pen from player level 70 (the Library's Bacon page; it means the player's level,
-  not the pig's).[^wiki-bacon]
+- The Pig Pen (and Bacon from it) opens at player level 70.[^wiki-bacon]
 - Other Bacon sources: some Help Needed rewards; Mount Banon (about 1 in 10,000-20,000 explores); the Wishing Well;
   the Flea Market at 5 Gold each; some event bags. Never sell, toss or eat it.[^wiki-bacon]
 - Quests need about 70,360 Bacon across 29 quests (September 2026); quests also reward about 4,050. Bacon also drops

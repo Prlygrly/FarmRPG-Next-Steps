@@ -61,7 +61,7 @@ Which items are worth selling is a planner rule (sell end products, not their pa
   matter. Truffle sell prices vary by day; there's no public source to read them from (the game's pages need a login,
   buddy.farm has no prices, Reddit posts are the community's signal).[^player]
 - Rare catches like Seaweed and Sea Dragon are kept for quests, not sold; by the time they're common enough to sell, players
-  have Truffles. Leaving unpriced items out of the per-net silver is therefore right, not a gap.[^player]
+  have Truffles, so items without a known price are left out of the per-net silver.[^player]
 - Players don't sell the whole catch: rare fish are usually kept, and some lock cooking-ingredient fish (personal choice). So the per-net figure is an upper bound ("about, if you sell the catch"); rares can't be taken out until fish prices are known.[^player]
 
 # Sawmill Silver (from Crafting 20)
@@ -121,11 +121,6 @@ Craftworks gives no crafting XP: use it for low-XP items (Twine) or while away.[
 | 1 trillion+ | Quests that need trillions: "Flexible Spending", "A Fool And Their Money" (5T each, cosmetic), "Problems Start Arising" |
 
 More fruit means more juices, which means more stamina: the Orchard is the best early investment for its size.[^wiki-spend]
-
-# Planner implications
-
-- Proposed: a "silver goal" setting (save up N silver) that values crafted-and-sold or fished-and-sold items by silver while the goal is open, mainly for players before Truffles.[^player]
-- Data gap: buddy.farm's item pages don't carry sell prices, so the planner has no silver values yet.
 
 [^wiki-sawmill]: FarmRPG wiki: Sawmill Silver
 [^wiki-crafting]: FarmRPG wiki: Crafting Advice

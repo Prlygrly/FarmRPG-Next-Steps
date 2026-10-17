@@ -66,7 +66,7 @@ The Friendship Bracelet's item list didn't copy (icons only).[^wiki-artifacts]
 - Noon drops (Antler Snare, Tree Shaker): see [production](/mechanics/production.md).
 - Gift of Persuasion is part of the sell perks % ([silver](/mechanics/silver.md)); Grape Juice Spring doubles the Grape Juice
   allowance ([crops](/mechanics/crops.md)).
-- Bonus Crops aren't modelled yet: they're random quicker crops, not more of the crop you planted.
+- Bonus Crops are random quicker crops, not more of the crop you planted.
 
 [^wiki-artifacts]: FarmRPG wiki: Tower Artifacts
 [^wiki-scythe]: FarmRPG wiki: Scythe Of Dewstar

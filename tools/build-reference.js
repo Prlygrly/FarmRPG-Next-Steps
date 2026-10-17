@@ -8,8 +8,11 @@ function readNote(file, group) {
   const text = fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
   const m = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) return null;
-  const head = m[1], body = m[2].trim();
-  if (/Regenerate with|snapshot-/.test(body)) return null;              // a developer snapshot note
+  const head = m[1];
+  if (/Regenerate with|snapshot-/.test(m[2])) return null;              // a developer snapshot note
+  // Developer sections (which script loads a file, how to refresh it, how pages copy) aren't for players
+  const body = m[2].split(/\n(?=# )/).filter(sec => !/^# (About|Refresh|How the pages copy)\b/.test(sec.trim())).join("\n").trim();
+  if (!/^(- |\|)/m.test(body)) return null;                             // nothing left but headings and a line or two
   const field = k => { const f = head.match(new RegExp(`^${k}:\\s*"?(.*?)"?\\s*$`, "m")); return f ? f[1] : ""; };
   // sources: "- id: x" then "resource: ..." and "title: ..."; links only for real URLs
   const sources = {};

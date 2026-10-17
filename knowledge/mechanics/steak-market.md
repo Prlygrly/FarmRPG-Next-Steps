@@ -53,11 +53,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-05T23:30:00Z }
 - Steak price moves at reset, by how stable the market is: Stable usually 49-51k, Unstable 47.5-52.5k, Risky 40-60k,
   Wild 25-75k. The history page shows how long each state lasted.[^wiki]
 - With a pasted history of 10+ rows, the planner uses that history's 10th / 90th percentile instead.
-- Players with Truffles are reminded each day to paste the Steak Market (see [planner rules](/planner/rules.md)).
-- Shared prices (not built): a Cloudflare Worker + KV (free) would let one player's paste give everyone today's Truffle
-  prices; only the two prices and the date are sent; two exact matching reports confirm a day; plausible ranges and a
-  per-device limit guard against lies. r/FarmRPG gets ~1 Truffle post a week, mostly "% of best value" titles, so a
-  Reddit reader would only catch notable days.[^player]
+- Players with Truffles are reminded each day to paste the Steak Market.
 - Reset is midnight server time (US Central); the market closes shortly before and reopens shortly after. Prices pasted
   before the latest reset are shown as stale.[^wiki]
 

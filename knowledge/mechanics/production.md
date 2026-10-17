@@ -40,7 +40,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Autocrafting runs after the drop, so it can't use the excess either.[^player]
 - So between two checks of the game you can use at most one inventory's worth. Usable rate = min(made per gap, cap) / gap, where the gap is the drop interval or the time between your checks, whichever is longer. Straw every 10 minutes, emptied each time, really can be six caps an hour.[^player]
 - Noon bonuses (Tree Shaker, Tower 170: orchard; Antler Snare, Tower 160: Antlers) are 10% of the full production (not of what fit at midnight), capped on their own.[^player]
-- Voiding from production over your cap is harmless (e.g. Antlers from raptors you can't control). The costly kind, a full inventory right before a drop, isn't modelled yet.[^player]
+- Voiding from production over your cap is harmless (e.g. Antlers from raptors you can't control). The costly kind is a full inventory right before a drop.[^player]
 
 # Year-long blockers
 

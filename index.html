@@ -3226,6 +3226,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const inline = t => esc(t)
       .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/\[([^\]]+)\]\(\/?(?:mechanics|data)\/([a-z0-9-]+)\.md\)/g, (m, t, id) => ids.has(id) ? `<a href="#ref-${id}" data-ref="${id}">${t}</a>` : t)
+      .replace(/\[([^\]]+)\]\([^)\s]*\.md\)/g, "$1")
       .replace(/\[\[([a-z0-9-]+)\]\]/g, (m, id) => ids.has(id) ? `<a href="#ref-${id}" data-ref="${id}">${id.replace(/-/g, " ")}</a>` : id)
       .replace(/\[\^([\w-]+)\]/g, (m, id) => { const s = n.sources[id]; return s && s.url ? `<sup><a href="${esc(s.url)}" target="_blank" rel="noopener" title="${esc(s.title)}">src</a></sup>` : ""; });
     const out = [], lines = n.body.split("\n");
