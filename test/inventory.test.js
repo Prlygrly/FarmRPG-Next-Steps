@@ -195,3 +195,12 @@ console.log("inventory tests passed");
   assert.strictEqual(perkSettings(parsePerks(t)).sprintShoes, 2);
   assert.strictEqual(ss.sprintShoes, 0);
 }
+
+// Plain-text copy whose sections aren't the usual ones (Loot & Treasure, Runestones): still read (made-up counts)
+{
+  const nl = String.fromCharCode(10);
+  const t = ["Currently, you cannot have more than 5,000 of any single thing.", "Loot & Treasure chevron_down", "Grab Bag 05", "Random selection of late runestones",
+    "Open it at the Locksmith in Town", "1,234", "Runestones chevron_down", "Runestone 18", "Some say it can be found", "in a great blue", "77", "Inventory Stats"].join(nl);
+  const r = parseInventory(t);
+  assert.deepStrictEqual([r.items["Grab Bag 05"].count, r.items["Runestone 18"].count, r.cap], [1234, 77, 5000]);
+}

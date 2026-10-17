@@ -87,7 +87,8 @@
 
     // Plain-text copy (no links): name line, description lines, count line, inside the item sections
     if (!Object.keys(items).length) {
-      const start = lines.findIndex(l => /chevron_down$/.test(l) && /^(?:[*•-]\s+)?(Meals|Items|Fish & Bait|Crops|Seeds)\b/i.test(l));
+      // The first section heading ("Meals chevron_down", "Loot & Treasure chevron_down", "Runestones chevron_down"...)
+      const start = lines.findIndex(l => /^(?:[*•-]\s+)?[A-Z][\w &'-]* chevron_(down|up|right)$/.test(l));
       let block = [];
       for (const raw of start < 0 ? [] : lines.slice(start)) {
         const l = raw.replace(/^[*•-]\s+/, "");
