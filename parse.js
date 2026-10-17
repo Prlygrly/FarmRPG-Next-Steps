@@ -161,6 +161,8 @@
     if (plots != null) Object.defineProperty(out, "plots", { value: plots, enumerable: false });
     // Storehouse: "Work to increase max inventory 18 Inventory Increase Per Day" (the cap's daily growth, for Slow grinds)
     const grow = flat.match(/Storehouse Work to increase max inventory ([\d,]+) Inventory Increase Per Day/i);
+    const sent = flat.match(/Pig Pen Add pigs and fatten them up [\d,]+ Pigs ([\d,]+) Sent Off/i);      // pigs on their way to the Slaughterhouse today
+    if (sent) Object.defineProperty(out, "pigsSentOff", { value: toInt(sent[1]), enumerable: false });
     if (grow) Object.defineProperty(out, "capPerDay", { value: toInt(grow[1]), enumerable: false });
     return out;
   }
@@ -450,6 +452,20 @@
     return at < 0 ? null : lines.slice(at).map((l, i, a) => /^today$/i.test(l) && i >= 2 ? a[i - 2] : null).filter(Boolean);
   }
 
+  // Pig Pen page: "Pigs (500 / 500)" then each pig as "Name / Level N". { levels: [N, ...], max }
+  function parsePigPen(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean);
+    const at = lines.findIndex(l => /^Pigs \([\d,]+ \/ [\d,]+\)$/i.test(l));
+    if (at < 0) return null;
+    const max = toInt(lines[at].match(/\/ ([\d,]+)\)/)[1]), levels = [];
+    for (let k = at + 1; k < lines.length; k++) {
+      if (/^Consume a meal$/i.test(lines[k])) break;
+      const m = lines[k].match(/^Level (\d+)$/i);
+      if (m) levels.push(+m[1]);
+    }
+    return levels.length ? { levels, max } : null;
+  }
+
   function parseSteak(text) {
     const flat = String(text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\s+/g, " ");
     const num = re => { const m = flat.match(re); return m ? toInt(m[1]) : null; };
@@ -505,6 +521,7 @@
   }
 
   function detectPage(text) {
+    if (/About the Pig Pen/i.test(text) && /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(text)) return "pigpen";   // before the farm: it carries the farm list
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
@@ -564,7 +581,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

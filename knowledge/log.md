@@ -45,3 +45,4 @@
 * **Update (2026-10-16)**: planner/rules.md: Checklist reads Community Center goals, Town READY marks and farm "today" marks.
 * **Update (2026-10-16)**: mechanics/temple.md: secret chamber marked (spoiler) for the Reference tab. planner/rules.md: Reference tab, Trips on Best use.
 * **Update (2026-10-17)**: planner/rules.md: Bacon plans never exceed Bacon space; Slaughterhouse checklist item hidden when Bacon is full.
+* **Update (2026-10-17)**: mechanics/pigs.md: level 6 first per the player; Pig Pen page shape. planner/rules.md: pig days model and reminders.

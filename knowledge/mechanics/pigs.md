@@ -53,6 +53,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-09T20:00:00Z }
 - For silver from Bacon (sold, minus rebuying the pig), the Library puts the best level at 7 with 5 almost equal,
   with Animal Lover.[^wiki-slaughter] The Bacon-per-level formula above isn't on the Library page (its tables are images).
 - Bacon per slot per day at 1,850 XP: level 5 = 25 / 7 ≈ 3.6; level 6 = 35 / 10 = 3.5.[^planner]
+- The player's own math puts level 6 first (right when the pigs reach it) and level 5 second.[^player]
+- The Pig Pen page lists every pig's name and level ("Pigs (500 / 500)", then "Pig 582 / Level 4"), not its XP. The farm
+  page's Pig Pen line shows how many were sent off today ("0 Sent Off").[^player]
 
 [^planner]: Community bacon planner (player-shared, 2026-10-09)
 [^player]: Player confirmation (2026-10-09)

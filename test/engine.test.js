@@ -343,3 +343,16 @@ console.log("engine tests passed");
   assert.strictEqual(baconPlan(1000, { batch: 20, xpPerDay: 1850, levelXp: total, room: 20 }).full, true);
   assert.strictEqual(baconPlan(100, { batch: 20, xpPerDay: 1850, levelXp: total, room: 5000 }).pigs, 4);
 }
+
+// Pig pen model: 16 lowest pigs at the start of level 4 reach level 6 after ceil((17750 - 7250) / 1850) = 6 days
+{
+  const { pigPen } = require("../engine.js");
+  const { total } = require("../levels.js");
+  const model = { day: 100, xp: [...Array(16).fill(total[3]), ...Array(10).fill(total[21])] };
+  const o = { xpPerDay: 1850, levelXp: total, batch: 16, at: 6 };
+  assert.strictEqual(pigPen(model, { ...o, today: 100 }).inDays, 6);
+  assert.strictEqual(pigPen(model, { ...o, today: 105 }).slaughter, 0);
+  const d = pigPen(model, { ...o, today: 106 });
+  assert.deepStrictEqual([d.slaughter, d.bacon], [16, 560]);                       // the big pigs never count
+  assert.strictEqual(pigPen(model, { ...o, today: 106, room: 200 }).slaughter, 5);  // only what the Bacon space holds
+}

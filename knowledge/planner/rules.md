@@ -59,6 +59,11 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   everywhere (Apple Ciders only where you pick them: trips, "spend my Apple Ciders"); Arnold Palmers and Apple Ciders a day
   both count toward the AP a day for timing grinds. Drinks and nets can be bought, so they're never named as the limit:
   a grind limited by gathering names the item (Salt: "Salt Rock, ~2.4M AP at Whispering Creek"), never a bought or quick part.[^player]
+- Pig days: a Pig Pen paste gives every pig's level (each taken at the start of its level, so reminders are never early);
+  every reset adds the daily pig XP (fed every day). The pen is the lowest pigs up to the slaughter batch (default 16);
+  pig day is when they reach the slaughter level (default 6; 5 is close behind). A line above the tabs and the Checklist
+  say "slaughter N pigs (Bacon)"; the next day "Rebuy N pigs". Ticking the Slaughterhouse item, or a farm page showing
+  "N Sent Off", records it (those pigs restart at level 1); a new Pig Pen paste quietly replaces the model.[^player]
 - Never slaughter more pigs than your Bacon space holds (cap minus Bacon on hand; it lands at reset): plans stop there
   and say to use some Bacon first for the rest; with under one pig's Bacon of room, the advice is to use Bacon first and
   the Checklist's Slaughterhouse item is hidden.[^player]

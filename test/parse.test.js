@@ -243,3 +243,14 @@ console.log("parse tests passed");
   assert.strictEqual(detectPage(town.join(nl)), "town");
   assert.strictEqual(parseTown(town.join(nl)).bank, 2.5e12);
 }
+
+// Pig Pen page (made-up names and levels): every pig's level; "Sent Off" from the farm page
+{
+  const { parsePigPen, parseFarm, detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const t = ["Around Your Farm", "* Pig Pen", "Add pigs", "About the Pig Pen", "Raise pigs and fatten them up with feed.", "Pigs (5 / 10)",
+    "Hammy", "Level 12", "Pig 2", "Level 12", "Pig 3", "Level 3", "Pig 4", "Level 3", "Pig 5", "Level 1", "Consume a meal"].join(nl);
+  assert.strictEqual(detectPage(t), "pigpen");
+  assert.deepStrictEqual(parsePigPen(t), { levels: [12, 12, 3, 3, 1], max: 10 });
+  assert.strictEqual(parseFarm(["Around Your Farm", "* [Pig Pen](https://x/p)", "[Add pigs and fatten them up](https://x/p)", "[500 Pigs](https://x/p)", "[16 Sent Off](https://x/p)"].join(nl)).pigsSentOff, 16);
+}

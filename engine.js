@@ -108,7 +108,7 @@
   // ---------- Effort: how many AC / AP / Large Nets to gather `left` more of an item ----------
   // knowledge/mechanics/effort-units.md
   const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, sprintShoes: 3, reinforcedNetting: true, fishingTrawl: true, animalLover: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
-    plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20, maxSlaughter: 20 };
+    plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20, maxSlaughter: 16, pigAt: 6 };
 
   // Explores per Apple Cider at a place: 1,000 + 10 x its Exploring Effectiveness (perks.ee[loc], 1 if not pasted),
   // x1.25 with Cinnamon Sticks (knowledge/mechanics/exploring-drinks.md)
@@ -535,7 +535,22 @@
     return rows.sort((a, b) => (b.perGold ?? -1) - (a.perGold ?? -1));
   }
 
-  const api = { ciderExplores, drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  // ---------- Pig pen model (knowledge/mechanics/pigs.md) ----------
+  // xp: each pig's XP on the day `day` (a day number); every reset after it adds xpPerDay (fed every day). The pen is the
+  // lowest `batch` pigs; slaughter day is when they reach `at` (never more than the Bacon space holds, never the big pigs).
+  const pigLevel = (xp, levelXp) => { let l = 1; while (l < 99 && xp >= levelXp[l]) l++; return l; };
+  function pigPen(model, { today, xpPerDay, levelXp, batch, at, room = Infinity }) {
+    if (!model || !model.xp || !model.xp.length) return null;
+    const days = Math.max(0, today - model.day), xp = model.xp.map(x => x + days * xpPerDay).sort((a, b) => a - b);
+    const pen = xp.slice(0, Math.max(0, batch)), each = baconEach(at), fit = Math.floor(Math.max(0, room) / each);
+    const ready = pen.filter(x => pigLevel(x, levelXp) >= at).length, slaughter = Math.min(ready, fit);
+    // Next pig day: the day the pen's lowest pig reaches `at`
+    const lowest = pen[0], need = levelXp[at - 1];
+    const inDays = lowest == null ? null : lowest >= need ? 0 : Math.ceil((need - lowest) / xpPerDay);
+    return { levels: pen.map(x => pigLevel(x, levelXp)), ready, slaughter, bacon: slaughter * each, full: ready > 0 && fit < 1, inDays, each };
+  }
+
+  const api = { pigPen, pigLevel, ciderExplores, drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);
