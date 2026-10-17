@@ -103,7 +103,8 @@
     }
 
     const cm = text.match(/cannot have more than ([\d,]+) of any single thing/);
-    return { items, cap: cm ? toInt(cm[1]) : null };
+    const um = text.match(/Your inventory contains ([\d,]+) unique items/i);      // the page's own count: shows a filtered copy
+    return { items, cap: cm ? toInt(cm[1]) : null, unique: um ? toInt(um[1]) : null };
   }
 
   // Orchard page: "7,018 Apple Trees 9,123 Production (With Perks)" for each fruit. Production is the midnight drop.

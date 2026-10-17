@@ -128,7 +128,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - My Inventory on a wide screen also shows the farm sidebar; its footer (Inventory Stats) marks it as an inventory, and the
   farm's production is read from it too.[^player]
 - A My Inventory paste replaces the old one (an item missing from it is 0 now), unless it has under 30% of the last copy's
-  items (a search-filtered page): then it updates what it shows and keeps the rest.[^player]
+  items, or under 90% of the page's own "N unique items" count (a search-filtered page): then it updates what it shows,
+  keeps the rest, and says the page is filtered (clear the search bar, open folded sections, copy again).[^player]
 - **Slow grinds** shows only masteries the Tower still needs (its tier), plus Orange Juice, Lemonade, Large Net, White Parchment
   and Beet until MM'd; "Slower than" (default 180 days) filters the rest. Each row assumes it gets the whole production or
   budget.[^player]

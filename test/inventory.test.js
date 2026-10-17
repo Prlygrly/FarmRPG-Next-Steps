@@ -204,3 +204,7 @@ console.log("inventory tests passed");
   const r = parseInventory(t);
   assert.deepStrictEqual([r.items["Grab Bag 05"].count, r.items["Runestone 18"].count, r.cap], [1234, 77, 5000]);
 }
+
+// The page's own unique-item count comes through, so a filtered copy can be spotted
+assert.strictEqual(parseInventory(["Runestones chevron_down", "Runestone 18", "Some say", "77", "Inventory Stats",
+  "Your inventory contains 933 unique items and 2,512,815 items in total."].join(String.fromCharCode(10))).unique, 933);
