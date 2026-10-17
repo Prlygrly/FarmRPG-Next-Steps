@@ -333,3 +333,13 @@ console.log("engine tests passed");
   assert.strictEqual(ciderExplores("Small Cave", { cinnamonSticks: true, ee: { Forest: 104 } }), 1263);
   assert.strictEqual(ciderExplores("Forest", { cinnamonSticks: false }), 1010);
 }
+
+// Bacon never past your space: 300 room = 12 pigs at level 5; under 25 room = full
+{
+  const { baconPlan } = require("../engine.js");
+  const { total } = require("../levels.js");
+  const a = baconPlan(1000, { batch: 20, xpPerDay: 1850, levelXp: total, room: 300 });
+  assert.deepStrictEqual([a.pigs, a.short, a.rounds], [12, 700, 1]);
+  assert.strictEqual(baconPlan(1000, { batch: 20, xpPerDay: 1850, levelXp: total, room: 20 }).full, true);
+  assert.strictEqual(baconPlan(100, { batch: 20, xpPerDay: 1850, levelXp: total, room: 5000 }).pigs, 4);
+}

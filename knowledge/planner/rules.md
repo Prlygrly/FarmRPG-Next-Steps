@@ -59,6 +59,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   everywhere (Apple Ciders only where you pick them: trips, "spend my Apple Ciders"); Arnold Palmers and Apple Ciders a day
   both count toward the AP a day for timing grinds. Drinks and nets can be bought, so they're never named as the limit:
   a grind limited by gathering names the item (Salt: "Salt Rock, ~2.4M AP at Whispering Creek"), never a bought or quick part.[^player]
+- Never slaughter more pigs than your Bacon space holds (cap minus Bacon on hand; it lands at reset): plans stop there
+  and say to use some Bacon first for the rest; with under one pig's Bacon of room, the advice is to use Bacon first and
+  the Checklist's Slaughterhouse item is hidden.[^player]
 - Bacon comes from pigs, not Mount Banon (unless "Most animals I'll slaughter at one time" is 0): slaughter pigs at
   level 5 in batches of that size, rebuy them and wait for them to grow back (the same pen each round, so high-level
   pigs keep finding Truffles). Level 6 is shown too when it takes fewer rounds. Pig XP: 1,000 a feed, +350 Animal Lover

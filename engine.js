@@ -507,11 +507,15 @@
   // slaughter the same pen again once they've grown back: the fewest high-level pigs lost, so the least Truffle silver.
   // The first round comes from pigs you already have; Bacon arrives at the next reset. levelXp = LEVELS.total.
   const baconEach = at => at >= 5 ? 10 * at - 25 : 0;
-  function baconPlan(qty, { batch = 20, xpPerDay = 1850, levelXp, at = 5 } = {}) {
+  // room = Bacon space left (cap - Bacon on hand): the Bacon lands at reset on top of what you have, so never slaughter
+  // more than fits; room below one pig's Bacon gives { full: true }.
+  function baconPlan(qty, { batch = 20, xpPerDay = 1850, levelXp, at = 5, room = Infinity } = {}) {
     if (!(qty > 0) || !(batch > 0) || !levelXp) return null;
     const each = baconEach(at), regrow = Math.ceil(levelXp[at - 1] / xpPerDay);   // pigs level up at feeding: whole days
-    const pigs = Math.ceil(qty / each), rounds = Math.ceil(pigs / batch);
-    return { at, each, pigs, perRound: Math.min(pigs, batch), rounds, regrow, days: 1 + (rounds - 1) * regrow };
+    const fit = Math.floor(Math.max(0, room) / each), want = Math.ceil(qty / each);
+    if (fit < 1) return { at, each, full: true, pigs: 0, perRound: 0, rounds: 0, regrow, days: 0 };
+    const pigs = Math.min(want, fit), rounds = Math.ceil(pigs / batch);
+    return { at, each, pigs, short: want > fit ? (want - fit) * each : 0, perRound: Math.min(pigs, batch), rounds, regrow, days: 1 + (rounds - 1) * regrow };
   }
 
   // ---------- Exploring drinks: items per gold (knowledge/mechanics/exploring-drinks.md) ----------

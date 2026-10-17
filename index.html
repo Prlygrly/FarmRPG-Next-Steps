@@ -1364,6 +1364,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     renderGrinds(p);
     renderSilverGoal(p);
     renderSteak();
+    renderChecklist();                                                    // again, now with this paste's inventory (Bacon space)
     // "Go to" links only for sections showing (the separators go with them)
     document.querySelectorAll("#best-nav [data-jump]").forEach(a => { const off = $(a.dataset.jump).hidden || U.bestOff.includes(a.dataset.jump); a.hidden = off; if (a.nextSibling && a.nextSibling.nodeType === 3) a.nextSibling.textContent = off ? " " : " · "; });
     renderKitchen(p);
@@ -1699,9 +1700,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // +350 Animal Lover, +500 Animal Charmer (Tower 40)
   let PIG = { batch: 20, xpPerDay: 1850 };
   const pigsOn = () => PIG.batch > 0;
-  const baconFor = (qty, at = 5) => window.FRP.baconPlan(qty, { ...PIG, levelXp: LEVELS.total, at });
-  const baconText = b => `slaughter ${fmt(b.pigs)} pig${b.pigs === 1 ? "" : "s"} at level ${b.at} (${b.each} Bacon each)` +
-    (b.rounds > 1 ? ` in ${fmt(b.rounds)} rounds of ${fmt(b.perRound)}, rebuying them and waiting ${b.regrow} days for them to grow back` : ", then rebuy them");
+  // Bacon space: your cap minus the Bacon you hold (no limit without an inventory paste)
+  const baconRoom = () => O && O.cap !== Infinity ? O.cap - (O.onHand.Bacon || 0) : Infinity;
+  const baconFor = (qty, at = 5) => window.FRP.baconPlan(qty, { ...PIG, levelXp: LEVELS.total, at, room: baconRoom() });
+  const baconText = b => b.full ? `your Bacon is full: use some before slaughtering` : `slaughter ${fmt(b.pigs)} pig${b.pigs === 1 ? "" : "s"} at level ${b.at} (${b.each} Bacon each)` +
+    (b.rounds > 1 ? ` in ${fmt(b.rounds)} rounds of ${fmt(b.perRound)}, rebuying them and waiting ${b.regrow} days for them to grow back` : ", then rebuy them") +
+    (b.short ? `; that's all your Bacon space holds, so use some Bacon before getting the last ${short(b.short)}` : "");
   function vjCut(p) {
     const sk = p.skills || {}, qualifies = (p.level ?? 0) >= 100 && ["Farming", "Fishing", "Crafting", "Exploring"].every(k => (sk[k] ?? 0) >= 99);
     const showing = (S.quests || []).some(q => /^A Better Juice/.test(q.name));
@@ -1858,9 +1862,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const { fruit, fruitDays, slow, sawHours, otherHours, rest, bacon } = prodTime(p);
     const parts = [];
     if (bacon) {
-      const six = baconFor(bacon.pigs * bacon.each, 6);
-      parts.push(`${baconText(bacon)}: ${bacon.days <= 1 ? "Bacon at the next reset" : `about ${fmt(bacon.days)} days`}` +
-        (six.rounds < bacon.rounds ? ` (or ${fmt(six.pigs)} at level 6, about ${fmt(six.days)} days)` : ""));
+      const six = !bacon.full && baconFor(bacon.pigs * bacon.each, 6);
+      parts.push(bacon.full ? baconText(bacon) : `${baconText(bacon)}: ${bacon.days <= 1 ? "Bacon at the next reset" : `about ${fmt(bacon.days)} days`}` +
+        (six && !six.full && six.rounds < bacon.rounds ? ` (or ${fmt(six.pigs)} at level 6, about ${fmt(six.days)} days)` : ""));
     }
     const fruitNames = Object.keys(fruit);
     if (fruitNames.length) {
@@ -1993,7 +1997,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (x.kind === "gather") return `${VERB[x.unit] || "Explore"} ~${short(x.amount)} ${UNIT_SHORT[x.unit]} at <b>${esc(x.loc)}</b>${forText(x.items)}`;
     if (x.kind === "grow") return `Grow ${short(x.qty)} <b>${esc(x.item)}</b> <span class="small muted">(~${fmt(x.rounds)} harvest${x.rounds === 1 ? "" : "s"})</span>`;
     if (x.kind === "craft") return `${x.how === "cook" ? "Cook" : "Craft"} ${short(x.qty)} <b>${esc(x.item)}</b>`;
-    if (x.kind === "slaughter") { const b = x.plan; return `Slaughter ${fmt(b.perRound)} <b>pigs</b> at level ${b.at} <span class="small muted">(${b.each} Bacon each, at the next reset; then rebuy them${b.rounds > 1 ? `; ${fmt(b.rounds)} rounds, ${b.regrow} days apart` : ""})</span>`; }
+    if (x.kind === "slaughter") { const b = x.plan; if (b.full) return `Use some <b>Bacon</b> first <span class="small muted">(your Bacon is full, so slaughtering now would void it)</span>`; return `Slaughter ${fmt(b.perRound)} <b>pigs</b> at level ${b.at} <span class="small muted">(${b.each} Bacon each, at the next reset; then rebuy them${b.rounds > 1 ? `; ${fmt(b.rounds)} rounds, ${b.regrow} days apart` : ""})</span>`; }
     if (x.kind === "wait") { const w = prodWait(x.item, x.qty); return `Wait for ${short(x.qty)} <b>${esc(x.item)}</b>${w ? ` <span class="small muted">(${dropText(x.item, w)})</span>` : ""}`; }
     if (x.kind === "turnin") return `Turn in <b>${esc(t.name)}</b>`;
     if (x.kind === "climb") return `Climb to <b>Tower level ${x.level}</b>`;
@@ -3107,7 +3111,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (id === "phr") { const n = (S.quests || []).filter(q => q.section === "personal").length; return n ? `${n} open` : ""; }
     if (id === "gj") return S.perks.grapeJuice ? `${fmt(S.perks.grapeJuice)} a day` : "";
     if (id === "kabobs") return `<a href="#steak-card">Steak Market below</a>`;
-    if (id === "slaughter") return pigsOn() ? `Bacon in batches of ${fmt(PIG.batch)}` : "";
+    if (id === "slaughter") { const room = baconRoom(); return pigsOn() ? `room for ${room === Infinity ? "any" : fmt(Math.floor(room / 25))} level 5 pigs' Bacon` : ""; }
     return "";
   };
   let checkShowHidden = false;
@@ -3118,8 +3122,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (c.month !== month) { c.month = month; c.m = []; }
     const hidden = new Set(S.checksHidden || []);
     $("check-lists").innerHTML = Object.entries(CHECKS).map(([key, L]) => {
-      const done = new Set([...(L.month ? c.m : c.d), ...L.items.filter(([id]) => checkAuto(id)).map(([id]) => id)]), all = L.items.filter(([id]) => checkShowHidden || !hidden.has(key + ":" + id));
-      const n = L.items.filter(([id]) => !hidden.has(key + ":" + id)), left = n.filter(([id]) => !done.has(id)).length;
+      // Not worth showing today: slaughtering with your Bacon full would only void it
+      const items = L.items.filter(([id]) => !(id === "slaughter" && baconRoom() < 25));
+      const done = new Set([...(L.month ? c.m : c.d), ...items.filter(([id]) => checkAuto(id)).map(([id]) => id)]), all = items.filter(([id]) => checkShowHidden || !hidden.has(key + ":" + id));
+      const n = items.filter(([id]) => !hidden.has(key + ":" + id)), left = n.filter(([id]) => !done.has(id)).length;
       return `<h3 style="margin:12px 0 4px">${L.title} <span class="small muted">(${left ? `${left} left` : "all done"})</span></h3><ul class="checks">${all.map(([id, text, path]) => {
         const h = checkHint(id), isHidden = hidden.has(key + ":" + id);
         return `<li class="${done.has(id) ? "done" : ""}"><input type="checkbox" id="ck-${key}-${id}" data-check="${key}:${id}"${done.has(id) ? " checked" : ""}>
