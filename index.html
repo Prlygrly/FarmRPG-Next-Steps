@@ -2694,9 +2694,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       .filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
     // Before collecting you can only make room with what you hold now: never suggest using more than that; the rest voids
     const fix = r => {
-      const have = Math.max(0, O.onHand[r.n] ?? r.x.have), use = Math.min(r.lost, have), voids = r.lost - use;
-      const rest = voids > 0 ? `; ${short(voids)} will still void (you only have ${short(have)} to use first)` : "";
-      if (use < 1) return { sum: `${short(r.lost)} will void`, also: `you have none now to make room with` };
+      const have = Math.max(0, O.onHand[r.n] ?? r.x.have), use = Math.min(r.lost, have);
+      const amt = n => n >= have ? "all" : short(n);              // keep it short: "gift all to …"
+      if (use < 1) return { sum: `none on hand to use first`, also: "" };
       // You craft before collecting, so only outlets your stock covers right now (Mayonnaise needing 52k Eggs is out)
       const plan = window.FRP.outletPlan(r.n, r.x.found, O), keep = OTHER_USES[r.n], gt = giftTo(r.n);
       const covered = x => x && x.extra.every(e => e.qty < 1 || (O.onHand[e.item] || 0) >= e.qty);
@@ -2708,28 +2708,27 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const chain = ((S.temple || {}).chains || []).find(c => c.item === r.n);
       if (!o && chain) {
         const room = chain.total - chain.done, put = Math.min(use, room), after = use - put;
-        return { sum: `sacrifice ${short(put)} to the <b>Temple</b> first${after >= 1 ? `, then ${gt ? `gift` : `sell`} ${short(after)}` : ""}${rest}`,
+        return { sum: `sacrifice ${amt(put)} to the <b>Temple</b>${after >= 1 ? `, then ${gt ? `gift` : `sell`} ${amt(after)}` : ""}`,
           also: `${esc(chain.reward)} chain: ${short(room)} to go${chain.oneTime ? " (one-time chain)" : ""}` };
       }
       if (!o) {
         // Something uses it, but not with what you have now: say what's missing
         const want = plan.outlet, lack = want ? want.extra.filter(e => e.qty >= 1 && (O.onHand[e.item] || 0) < e.qty).map(e => esc(e.item)) : [];
         const why = want ? `${esc(want.product)} would use it, but needs ${lack.join(", ")} you don't have enough of` : "nothing useful is made from it";
-        return { sum: (keep ? `use or keep ${keep}; ${short(r.lost)} won't fit` : gt ? `gift ${short(use)} to ${giftWho(gt)} first${rest}` : `sell ${short(use)} first${rest}`), also: keep || gt ? (want ? why : "") : why };
+        return { sum: (keep ? `use or keep ${keep}` : gt ? `gift ${amt(use)} to ${giftWho(gt)}` : `sell ${amt(use)}`), also: keep || gt ? (want ? why : "") : why };
       }
       const tag = o.tower ? towerTag(o.product, p.items[o.product] || 0, "") : o.goal ? ` <span class="tag">mastery</span>` : "";
       const extra = o.extra.filter(e => e.qty >= 1).map(e => `${short(e.qty)} ${esc(e.item)}`).join(", ");
-      const short2 = r.lost - o.crafts * o.per;
-      return { sum: `craft ${fmt(o.crafts)} <b>${esc(o.product)}</b>${tag} first${short2 >= 1 ? `; ${short(short2)} will still void` : ""}`, also: `uses ${short(o.crafts * o.per)} ${esc(r.n)}${extra ? ` + ${extra}` : ""}${
+      return { sum: `craft ${fmt(o.crafts)} <b>${esc(o.product)}</b>${tag}`, also: `uses ${short(o.crafts * o.per)} ${esc(r.n)}${extra ? ` + ${extra}` : ""}${
         plan.others && plan.others.length ? `; or ${plan.others.map(x => esc(x.product)).join(", ")}` : ""}` };
     };
     const rows = over.map(r => ({ ...r, ...fix(r) }));
     const pets = r => Object.entries(r.x.from).map(([pet, q]) => `${esc(pet)} ${short(q)}`).join(", ");
     $("pets-list").innerHTML = `<p class="small muted" style="margin:0 0 6px">Pasted ${when}. ${rows.length ? `${fmt(rows.length)} item${rows.length === 1 ? "" : "s"} would go over your ${short(O.cap)} cap.` : "Nothing would go over your cap: collect away."}</p>` +
-      (rows.length ? `<ul style="margin:0;padding-left:20px">${rows.map(r => `<li><b>${esc(r.n)}</b>: ${short(r.lost)} over → ${r.sum}${U.detail === "expanded"
+      (rows.length ? `<ul style="margin:0;padding-left:20px">${rows.map(r => `<li><b>${esc(r.n)}</b>: ${r.sum}${U.detail === "expanded"
         ? xpList([["Have", `${short(O.onHand[r.n] ?? r.x.have)} of ${short(O.cap)}`], ["Found", `${short(r.x.found)} (${pets(r)})`], ["Makes room", r.also || null]])
         : r.also ? `<br><span class="small muted">${r.also}</span>` : ""}</li>`).join("")}</ul>` : "");
-    $("mono-pets").innerHTML = rows.length ? monoLi(`Before you collect (${fmt(rows.length)} over)`, `<b>${esc(rows[0].n)}</b>: ${short(rows[0].lost)} over → ${rows[0].sum}`, rows[0].also)
+    $("mono-pets").innerHTML = rows.length ? monoLi(`Before you collect (${fmt(rows.length)} over)`, `<b>${esc(rows[0].n)}</b>: ${rows[0].sum}`, rows[0].also)
       : monoLi("Pet items", "Nothing would go over your cap");
   }
   $("pets-omelette").addEventListener("change", e => { S.petsOmelette = e.target.checked; save(); render(false); });
