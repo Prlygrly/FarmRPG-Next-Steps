@@ -2692,11 +2692,21 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const boost = S.petsOmelette ? 1.5 : 1; $("pets-omelette").checked = !!S.petsOmelette;
     const over = Object.entries(P.items).map(([n, x0]) => { const x = { ...x0, found: Math.floor(x0.found * boost) }; return { n, x, lost: (O.onHand[n] ?? x.have) + x.found - O.cap }; })
       .filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
+    const FEED_CROPS = ["Broccoli"];                                      // knowledge/mechanics/production.md
     // Before collecting you can only make room with what you hold now: never suggest using more than that; the rest voids
     const fix = r => {
       const have = Math.max(0, O.onHand[r.n] ?? r.x.have), use = Math.min(r.lost, have);
       const amt = n => n >= have ? "all" : short(n);              // keep it short: "gift all to …"
       if (use < 1) return { sum: `none on hand to use first`, also: "" };
+      // Crops the Feed Mill takes: its queue has no limit, so they become Feed instead of voiding (players with pets have one)
+      if (FEED_CROPS.includes(r.n)) return { sum: `put ${amt(use)} in the <b>Feed Mill</b>`, also: "" };
+      // Orange Juice is free stamina: drink it, never gift it
+      if (r.n === "Orange Juice") return { sum: `drink ${amt(use)}`, also: "" };
+      // Bags and chests open at the Locksmith (a chest uses up a key): open them, never sell
+      const box = LOOT.loot[r.n];
+      if (box) { const keys = box.key ? (O.onHand[box.key] || 0) : Infinity, n = Math.min(use, keys);
+        return n >= 1 ? { sum: `open ${amt(n)} at the <b>Locksmith</b>`, also: box.key ? `uses a ${esc(box.key)} each` : "" }
+          : { sum: `keep them: you need ${esc(box.key)}s to open them`, also: "" }; }
       // You craft before collecting, so only outlets your stock covers right now (Mayonnaise needing 52k Eggs is out)
       const plan = window.FRP.outletPlan(r.n, r.x.found, O), keep = OTHER_USES[r.n], gt = giftTo(r.n);
       const covered = x => x && x.extra.every(e => e.qty < 1 || (O.onHand[e.item] || 0) >= e.qty);

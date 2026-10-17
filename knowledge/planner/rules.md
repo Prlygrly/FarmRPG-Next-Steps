@@ -93,6 +93,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Before collecting you can only make room with what you hold: no suggestion (craft, Temple, gift, sell) uses more than
   your stock of the item. Lines are short: just the action ("Cabbage: gift all to frank or Baba Gec"), "all" when it
   takes your whole stock; no "N over" or "N will still void".[^player]
+- Broccoli on Before you collect: "put all in the Feed Mill" first (the queue has no limit, so nothing is lost).[^player]
+- Orange Juice on Before you collect: always "drink all" (free stamina), never gift or sell it.[^player]
+- Bags and chests (anything the Locksmith opens) on Before you collect: "open at the Locksmith", never sell; a chest only
+  as many as you have keys for.[^player]
 - Checklist tab: the Library's Reset Checklist as daily, daily extras and monthly lists. Ticks clear at reset (game day)
   and on the 1st; items can be hidden. Nothing that costs real money (no beta special, starter pack or extra chore sets).
   The Steak Market card lives on this tab. "Bank your silver" ticks itself once the bank holds cap / rate (from a Bank

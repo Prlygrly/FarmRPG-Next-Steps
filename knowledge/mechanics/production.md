@@ -42,6 +42,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Noon bonuses (Tree Shaker, Tower 170: orchard; Antler Snare, Tower 160: Antlers) are 10% of the full production (not of what fit at midnight), capped on their own.[^player]
 - Voiding from production over your cap is harmless (e.g. Antlers from raptors you can't control). The costly kind is a full inventory right before a drop.[^player]
 
+- The Feed Mill turns crops into Feed (Broccoli especially), and its queue has no limit: excess crops put in the queue
+  free inventory space without losing anything, since they still become Feed in time. Players collecting from pets have one.[^player]
+
 # Year-long blockers
 
 Large Net, Orange Juice and Lemonade Mega Masteries take a year or more even at full production; keep Antlers -> Fishing Nets -> Large Nets, Oranges -> Orange Juice and Lemons -> Lemonade going every day.[^player]

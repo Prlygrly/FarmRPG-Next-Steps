@@ -48,3 +48,5 @@
 * **Update (2026-10-17)**: mechanics/pigs.md: level 6 first per the player; Pig Pen page shape. planner/rules.md: pig days model and reminders.
 * **Update (2026-10-17)**: cleaned player-facing notes of fixed-mistake and planner-history mentions (Breakfast Boost Radish line; pigs: community-planner assumption, level 70 wording; silver: built silver-goal proposal and old price gap; steak market: shared-prices idea moved to plans/shared-truffle-prices.md; production / tower artifacts: "not modelled yet"). Reference skips developer sections (About, Refresh, How the pages copy) and drops data notes with nothing left.
 * **Update (2026-10-17)**: mechanics/cooking.md: Crunchy Omelette (+50% pet items, April only). planner/rules.md: Omelette box on Before you collect.
+* **Update (2026-10-17)**: mechanics/production.md: Feed Mill queue has no limit (Broccoli). planner/rules.md: Broccoli goes to the Feed Mill before collecting pets.
+* **Update (2026-10-17)**: planner/rules.md: before collecting pets, Orange Juice is drunk and bags/chests opened at the Locksmith (never sold or gifted).
