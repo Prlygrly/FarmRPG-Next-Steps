@@ -2692,27 +2692,35 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const boost = S.petsOmelette ? 1.5 : 1; $("pets-omelette").checked = !!S.petsOmelette;
     const over = Object.entries(P.items).map(([n, x0]) => { const x = { ...x0, found: Math.floor(x0.found * boost) }; return { n, x, lost: (O.onHand[n] ?? x.have) + x.found - O.cap }; })
       .filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
+    // Before collecting you can only make room with what you hold now: never suggest using more than that; the rest voids
     const fix = r => {
+      const have = Math.max(0, O.onHand[r.n] ?? r.x.have), use = Math.min(r.lost, have), voids = r.lost - use;
+      const rest = voids > 0 ? `; ${short(voids)} will still void (you only have ${short(have)} to use first)` : "";
+      if (use < 1) return { sum: `${short(r.lost)} will void`, also: `you have none now to make room with` };
       // You craft before collecting, so only outlets your stock covers right now (Mayonnaise needing 52k Eggs is out)
       const plan = window.FRP.outletPlan(r.n, r.x.found, O), keep = OTHER_USES[r.n], gt = giftTo(r.n);
       const covered = x => x && x.extra.every(e => e.qty < 1 || (O.onHand[e.item] || 0) >= e.qty);
-      const fits = [plan.outlet, ...(plan.others || [])].filter(covered), o = fits[0];
+      // No more crafts than the stock of this item allows
+      const sized = x => { if (!x) return null; const crafts = Math.min(x.crafts, Math.floor(use / x.per)); if (crafts < 1) return null;
+        const k = crafts / x.crafts; return { ...x, crafts, extra: x.extra.map(e => ({ ...e, qty: e.qty * k })) }; };
+      const fits = [plan.outlet, ...(plan.others || [])].map(sized).filter(covered), o = fits[0];
       plan.others = fits.slice(1);
       const chain = ((S.temple || {}).chains || []).find(c => c.item === r.n);
       if (!o && chain) {
-        const room = chain.total - chain.done, put = Math.min(r.lost, room);
-        return { sum: `sacrifice ${short(put)} to the <b>Temple</b> first${put < r.lost ? `, then ${gt ? `gift` : `sell`} ${short(r.lost - put)}` : ""}`,
+        const room = chain.total - chain.done, put = Math.min(use, room), after = use - put;
+        return { sum: `sacrifice ${short(put)} to the <b>Temple</b> first${after >= 1 ? `, then ${gt ? `gift` : `sell`} ${short(after)}` : ""}${rest}`,
           also: `${esc(chain.reward)} chain: ${short(room)} to go${chain.oneTime ? " (one-time chain)" : ""}` };
       }
       if (!o) {
         // Something uses it, but not with what you have now: say what's missing
         const want = plan.outlet, lack = want ? want.extra.filter(e => e.qty >= 1 && (O.onHand[e.item] || 0) < e.qty).map(e => esc(e.item)) : [];
         const why = want ? `${esc(want.product)} would use it, but needs ${lack.join(", ")} you don't have enough of` : "nothing useful is made from it";
-        return { sum: keep ? `use or keep ${keep}; ${short(r.lost)} won't fit` : gt ? `gift ${short(r.lost)} to ${giftWho(gt)} first` : `sell ${short(r.lost)} first`, also: keep || gt ? (want ? why : "") : why };
+        return { sum: (keep ? `use or keep ${keep}; ${short(r.lost)} won't fit` : gt ? `gift ${short(use)} to ${giftWho(gt)} first${rest}` : `sell ${short(use)} first${rest}`), also: keep || gt ? (want ? why : "") : why };
       }
       const tag = o.tower ? towerTag(o.product, p.items[o.product] || 0, "") : o.goal ? ` <span class="tag">mastery</span>` : "";
       const extra = o.extra.filter(e => e.qty >= 1).map(e => `${short(e.qty)} ${esc(e.item)}`).join(", ");
-      return { sum: `craft ${fmt(o.crafts)} <b>${esc(o.product)}</b>${tag} first`, also: `uses ${short(o.crafts * o.per)} ${esc(r.n)}${extra ? ` + ${extra}` : ""}${
+      const short2 = r.lost - o.crafts * o.per;
+      return { sum: `craft ${fmt(o.crafts)} <b>${esc(o.product)}</b>${tag} first${short2 >= 1 ? `; ${short(short2)} will still void` : ""}`, also: `uses ${short(o.crafts * o.per)} ${esc(r.n)}${extra ? ` + ${extra}` : ""}${
         plan.others && plan.others.length ? `; or ${plan.others.map(x => esc(x.product)).join(", ")}` : ""}` };
     };
     const rows = over.map(r => ({ ...r, ...fix(r) }));

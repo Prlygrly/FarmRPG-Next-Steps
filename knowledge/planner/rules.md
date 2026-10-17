@@ -90,6 +90,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   what a craft would still need. "I've collected them" clears it. Between a craft and gift/sell: a Temple chain that
   still takes the item (from a pasted Temple page; see mechanics/temple.md).[^player]
 - A "Crunchy Omelette (+50% collected)" box on Before you collect counts every pet item at 1.5x (rounded down).[^player]
+- Before collecting you can only make room with what you hold: no suggestion (craft, Temple, gift, sell) uses more than
+  your stock of the item; the rest is said to void ("927 will still void"), and with none on hand it just voids.[^player]
 - Checklist tab: the Library's Reset Checklist as daily, daily extras and monthly lists. Ticks clear at reset (game day)
   and on the 1st; items can be hidden. Nothing that costs real money (no beta special, starter pack or extra chore sets).
   The Steak Market card lives on this tab. "Bank your silver" ticks itself once the bank holds cap / rate (from a Bank
