@@ -422,7 +422,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <ul class="mono-list" id="mono-plant"></ul>
   </section>
   <section class="card" data-tab="best" id="pets-card" aria-labelledby="h-pets" hidden>
-    <h2 id="h-pets" style="margin:0 0 4px">Before you collect pet items</h2>
+    <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px"><h2 id="h-pets" style="margin:0 0 4px">Before you collect pet items</h2>
+      <label class="small"><input type="checkbox" id="pets-omelette"> Crunchy Omelette (+50% collected)</label></div>
     <p class="mono-hide small muted" style="margin:0 0 6px">From your All Pet Items paste: what would go over your inventory cap if you press Collect All now, and what to turn it into first to make room. <a href="#" id="pets-done">I've collected them</a></p>
     <div class="mono-hide" id="pets-list"></div>
     <ul class="mono-list" id="mono-pets"></ul>
@@ -2685,7 +2686,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     if (!P) return;
     const ago = Math.round((Date.now() - P.at) / 6e4), when = ago < 60 ? `${ago} min ago` : `${Math.round(ago / 60)} h ago`;
     if (!O || O.cap === Infinity) { $("pets-list").innerHTML = `<p class="small muted">Paste My Inventory once so the planner knows your cap.</p>`; $("mono-pets").innerHTML = ""; return; }
-    const over = Object.entries(P.items).map(([n, x]) => ({ n, x, lost: (O.onHand[n] ?? x.have) + x.found - O.cap })).filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
+    // A Crunchy Omelette adds 50% to everything collected
+    const boost = S.petsOmelette ? 1.5 : 1; $("pets-omelette").checked = !!S.petsOmelette;
+    const over = Object.entries(P.items).map(([n, x0]) => { const x = { ...x0, found: Math.floor(x0.found * boost) }; return { n, x, lost: (O.onHand[n] ?? x.have) + x.found - O.cap }; })
+      .filter(r => r.lost > 0).sort((a, b) => b.lost - a.lost);
     const fix = r => {
       // You craft before collecting, so only outlets your stock covers right now (Mayonnaise needing 52k Eggs is out)
       const plan = window.FRP.outletPlan(r.n, r.x.found, O), keep = OTHER_USES[r.n], gt = giftTo(r.n);
@@ -2718,6 +2722,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     $("mono-pets").innerHTML = rows.length ? monoLi(`Before you collect (${fmt(rows.length)} over)`, `<b>${esc(rows[0].n)}</b>: ${short(rows[0].lost)} over → ${rows[0].sum}`, rows[0].also)
       : monoLi("Pet items", "Nothing would go over your cap");
   }
+  $("pets-omelette").addEventListener("change", e => { S.petsOmelette = e.target.checked; save(); render(false); });
   $("pets-done").addEventListener("click", e => { e.preventDefault(); delete S.pets; save(); render(false); });
 
   function renderOverflow(p) {

@@ -26,6 +26,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Full perks + perfect stirring: Onion Soup 1 h -> 37m27s, 2 h meals -> 1h7m9s, Mushroom Stew 3 h -> 1h31m52s, Acorn Pie 24 h -> 5h0m28s.[^wiki-cooking]
 - Players rarely stir perfectly (1-4 interaction rounds a meal); never assume perfect.[^player]
 
+- Crunchy Omelette: everything collected from pets comes with 50% more. It can only be made in April, so it's a
+  special item, but some usually go around in giveaways.[^player]
+
 # Examples
 
 Perks 25% faster, stirs at 1, 16 and 31 min: Onion Soup 60 -> 45 min; 44 left at 1 -> 39.6; 24.6 left at 16 -> 22.1; 7.1 left at 31 -> 6.4; done at 37.4 min (wiki: 37m27s).
