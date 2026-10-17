@@ -100,6 +100,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Reference tab: the knowledge notes for players (all mechanics notes, and the data notes meant for reading), built
   into reference.js by tools/build-reference.js (run by bump-version before each push). Entries start folded; search
   covers every entry's text and marks matches; a heading ending "(spoiler)" folds its section behind a second fold.[^player]
+- Setup's page list: frequent pages always show (Mastery, Inventory, Help Needed, requests, silver, Steak Market);
+  infrequent ones (farm, Orchard, perks, Farm Supply, friendship, Pig Pen, Temple, Bank) sit in a fold that opens only
+  when one is missing or over a month old (a never-pasted Pig Pen doesn't count: not everyone keeps pigs).[^player]
 - Trips is a card on Best use (it answers the same question as "Spend my…"), not a tab of its own.[^player]
 - Never recommend buying from the Flea Market: trade chat is always much cheaper (a Protein Bar trades at about 10 Gold).[^player]
 - Exploring drinks in Expanded: no place dropdown; a grid of every open place (EE, then items per gold for each drink,
