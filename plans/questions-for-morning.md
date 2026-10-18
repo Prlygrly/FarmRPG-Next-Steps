@@ -38,5 +38,5 @@ Still to paste:
 ### Page tests (local only, gitignored)
 test/pages/*.txt are the player's real copies with usernames, farm name and farm id swapped by test/pages/scrub.js;
 test/pages.test.js checks detection and key values for each and runs with the other tests. Extracting a paste from the
-session log and scrubbing it: node <scratch>/extract.js <log> "<marker>|<marker2>" raw.txt, then
+session log (C:/Users/prlyg/.claude/projects/D--Claude/<session>.jsonl) and scrubbing it: node test/pages/extract.js <session .jsonl> "<marker>|<marker2>" raw.txt (extract-all.js saves every pasted block of one message), then
 node test/pages/scrub.js raw.txt test/pages/<page>.<browser|steam>[.variant].txt <farm name> [pig name].
