@@ -14,7 +14,7 @@ test/pages/ (local only; usernames, farm name and farm id replaced) and are chec
 Done: Pig Pen, Bank, Temple of Reward, Town (opened from another page), My Farm with all buildings done, My Inventory, Orchard, All Pet Items, Steak Market, mastery page, My Farm with buildings still to do (browser + Steam each).
 
 Still to paste:
-- [ ] Town: a copy with some daily places not done yet ("READY!" or "N Left")
+- [ ] Town: a browser copy with daily places not done yet (Steam done)
 - [ ] My Inventory: a filtered copy from Steam, and a plain copy (no links)
 - [ ] A building page (Storehouse, Farmhouse, Sawmill…)
 - [ ] Exploring info (the "stamina every time you continue exploring" page)
