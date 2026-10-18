@@ -922,6 +922,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         // Say what was read, even when nothing changed, so a repaste visibly took
         if (!msg) msg = `<div class="note" style="border-color:var(--good)">Farm page updated: ${fmt(Object.keys(r).length)} things your buildings make${
           Object.keys(o).length ? ", the Orchard" : ""}${r.plots ? `, ${fmt(r.plots)} crop plots` : ""}${r.capPerDay ? `, Storehouse +${fmt(r.capPerDay)} a day` : ""}.</div>`;
+        // The Town page on a wide screen also carries the farm sidebar: read its daily places too
+        if (/^\s*Market District\s*$/im.test(text)) {
+          const t = parseTown(text), open = Object.entries(t).filter(([, v]) => v.ready).map(([k]) => esc(k));
+          if (Object.keys(t).length) { S.town = { places: t, day: gameDay(Date.now()) };
+            msg += `<div class="note" style="border-color:var(--good)">Read the Town list too: ${open.length ? `still to do today: ${open.join(", ")}` : "the daily places are done"}. See the Checklist tab.</div>`; }
+        }
       }
     } else if (kind === "perks" || kind === "supply") {
       // Each page knows some perks; the two pages' crop-growth and Resource Saver amounts add up
