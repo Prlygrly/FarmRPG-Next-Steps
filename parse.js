@@ -434,7 +434,7 @@
   }
   // Town page: each place is "Name / description / status". "READY!" or "N Left" means not done today; no status line
   // means done. Only the daily places that show one: { "Wheel of Borgen": { ready: true }, "Wishing Well": { left: 29 } }
-  // Daily Chores is in the sidebar of every page: "Daily Chores / Earn Ancient Coins Daily / 2 Left" (or "Done!")
+  // Daily Chores is in the sidebar of every page: "Daily Chores / Earn Ancient Coins Daily / 2 Left" (or "Not Started", "Done!")
   const TOWN_DAILY = ["Wheel of Borgen", "Borgen's Treasure Hut", "Borgen's Lost & Found", "House of Cards", "Wishing Well", "The Vault", "Daily Chores"];
   function parseTown(text) {
     const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = {};
@@ -442,7 +442,7 @@
       const k = lines.findIndex(l => l === name);
       if (k < 0) continue;
       const st = lines[k + 2] || "", left = st.match(/^([\d,]+) Left$/i);
-      out[name] = { ready: /^READY!?$/i.test(st) || !!left, left: left ? toInt(left[1]) : 0 };
+      out[name] = { ready: /^(READY!?|Not Started)$/i.test(st) || !!left, left: left ? toInt(left[1]) : 0 };
     }
     const b = lines.findIndex(l => l === "Bank"), amt = b >= 0 && (lines[b + 2] || "").match(/^([\d.]+)\s*([KMBTQ]?)$/i);
     if (amt) Object.defineProperty(out, "bank", { value: Math.round(parseFloat(amt[1]) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15 }[amt[2].toUpperCase()] || 1)), enumerable: false });

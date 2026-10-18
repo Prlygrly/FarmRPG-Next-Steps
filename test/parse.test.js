@@ -264,6 +264,8 @@ console.log("parse tests passed");
   assert.deepStrictEqual([done["The Vault"].ready, done["Daily Chores"].ready], [false, false]);
   const open = parseTown(["* The Vault", "Try to crack the code", "READY!", "Daily Chores", "Earn Ancient Coins Daily", "2 Left"].join(nl));
   assert.deepStrictEqual([open["The Vault"].ready, open["Daily Chores"].ready, open["Daily Chores"].left], [true, true, 2]);
+  // Right after reset Home shows "Not Started": not done
+  assert.strictEqual(parseTown(["Daily Chores", "Earn Ancient Coins Daily", "Not Started"].join(nl))["Daily Chores"].ready, true);
 }
 
 // Pig Pen page (made-up names and levels): every pig's level; "Sent Off" from the farm page
