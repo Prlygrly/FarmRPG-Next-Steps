@@ -103,7 +103,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   paste); otherwise it says how much more to deposit, or the default 800M for 8M a day.[^player]
 - Checklist from today's pastes: Help Needed gives the Community Center goals (daily item and reward, monthly too);
   the Town page marks places not done with "READY!" or "N Left" (no mark = done: Wheel of Borgen, Treasure Hut, Lost &
-  Found, House of Cards, Wishing Well, the Vault; Daily Chores from the sidebar, "N Left" or "Done!"); the farm page shows "today" (a
+  Found, House of Cards, Wishing Well, the Vault; Daily Chores from the sidebar or Home: "N Left" or "Not Started" = not done,
+  "Done!" = done); the farm page shows "today" (a
   calendar mark) on buildings not done. Done ones tick themselves; open ones say what's left. Only same-day pastes count.[^player]
 - Reference tab: the knowledge notes for players (all mechanics notes, and the data notes meant for reading), built
   into reference.js by tools/build-reference.js (run by bump-version before each push). Entries start folded; search
@@ -132,8 +133,13 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - **Expanded** is labelled points (Why, Cost, Needs, Where), never paragraphs.[^player]
 - App settings (theme, detail, layout, Best use order, folded cards) are kept apart from game data: not in save codes, not
   cleared by Forget my pastes. The last 3 pastes (and save-code loads) can be undone.[^player]
-- My Inventory on a wide screen also shows the farm sidebar; its footer (Inventory Stats) marks it as an inventory, and the
-  farm's production is read from it too.[^player]
+- A page copy also holds the page opened before it, first (from My Farm: the farm list; from Town: the Town list; from
+  Home: Home). Each page has a title line under a Back link, and the last one is the page on screen: Town, Bank, Temple
+  of Reward and Pig Pen are detected by it (when that page's own text is there), the rest by their own text.[^player]
+- A paste reads everything it carries, but the message names only the page pasted. Today: a Bank or farm paste also
+  ticks the Town places from a carried Town list; My Inventory also reads the farm's production from a carried farm
+  list.[^player]
+- My Inventory's footer (Inventory Stats) marks it as an inventory even with the farm list first.[^player]
 - A My Inventory paste replaces the old one (an item missing from it is 0 now), unless it has under 30% of the last copy's
   items, or under 90% of the page's own "N unique items" count (a search-filtered page): then it updates what it shows,
   keeps the rest, and says the page is filtered (clear the search bar, open folded sections, copy again).[^player]

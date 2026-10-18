@@ -42,7 +42,9 @@ Base prices are the same for every player, so they're built into the site: `pric
 from one Market paste and an Inventory paste taken at the same moment (every result a whole number, and all matching the
 hand-kept ones). Examples: Iron Cup 165, Lantern 40,000, Linked Lantern 100,000, Crossbow 125,000, Butter 60,000,
 Fancy Violin 1,500,000, Grand Piano 2,000,000, Concord Grape Pie 25,000,000. 64 fish and shells added the same way (148 in
-all), plus Crab 8,500, Fish Bones 2, Flier 250, Small Prawn 20, Blue Crab 25, Shrimp 150 from the player. A Market paste can add missing items.
+all), plus Crab 8,500, Fish Bones 2, Flier 250, Small Prawn 20, Blue Crab 25, Shrimp 150 from the player, and Blue Diary
+5,000 (151 in all, 2026-10-17). The Market shows values only for items the player has unlocked for selling, so locked
+items stay unpriced; players are not asked to paste the Market (one that is pasted can still add missing items).
 Which items are worth selling is a planner rule (sell end products, not their parts: see planner/rules.md).[^player]
 
 # Fishing for silver
