@@ -22,3 +22,8 @@ Still to paste:
 - [ ] Quests / Help Needed
 - [ ] One Personal Help Request page
 - [ ] Home (tower, Ancient Knowledge, skills)
+
+### Shelved
+- Base sell prices for locked items: the Farmer's Market shows values only for unlocked items, so the 455 locked ones
+  without a price in prices.js stay unpriced. Selling is a last resort; the important prices are stored. Players are no
+  longer asked to paste the Market (a pasted one is still read).
