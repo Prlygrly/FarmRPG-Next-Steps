@@ -434,7 +434,8 @@
   }
   // Town page: each place is "Name / description / status". "READY!" or "N Left" means not done today; no status line
   // means done. Only the daily places that show one: { "Wheel of Borgen": { ready: true }, "Wishing Well": { left: 29 } }
-  const TOWN_DAILY = ["Wheel of Borgen", "Borgen's Treasure Hut", "Borgen's Lost & Found", "House of Cards", "Wishing Well"];   // the Vault never shows a status
+  // Daily Chores is in the sidebar of every page: "Daily Chores / Earn Ancient Coins Daily / 2 Left" (or "Done!")
+  const TOWN_DAILY = ["Wheel of Borgen", "Borgen's Treasure Hut", "Borgen's Lost & Found", "House of Cards", "Wishing Well", "The Vault", "Daily Chores"];
   function parseTown(text) {
     const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = {};
     for (const name of TOWN_DAILY) {

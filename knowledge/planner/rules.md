@@ -103,7 +103,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   paste); otherwise it says how much more to deposit, or the default 800M for 8M a day.[^player]
 - Checklist from today's pastes: Help Needed gives the Community Center goals (daily item and reward, monthly too);
   the Town page marks places not done with "READY!" or "N Left" (no mark = done: Wheel of Borgen, Treasure Hut, Lost &
-  Found, House of Cards, Wishing Well; the Vault never shows one, so it isn't read); the farm page shows "today" (a
+  Found, House of Cards, Wishing Well, the Vault; Daily Chores from the sidebar, "N Left" or "Done!"); the farm page shows "today" (a
   calendar mark) on buildings not done. Done ones tick themselves; open ones say what's left. Only same-day pastes count.[^player]
 - Reference tab: the knowledge notes for players (all mechanics notes, and the data notes meant for reading), built
   into reference.js by tools/build-reference.js (run by bump-version before each push). Entries start folded; search

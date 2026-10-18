@@ -244,6 +244,16 @@ console.log("parse tests passed");
   assert.strictEqual(parseTown(town.join(nl)).bank, 2.5e12);
 }
 
+// The Vault and Daily Chores: no mark means done; "READY!" / "N Left" means not yet
+{
+  const { parseTown } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const done = parseTown(["* The Vault", "Try to crack the code", "* Exchange Center", "Exchange items", "Daily Chores", "Earn Ancient Coins Daily", "Done!"].join(nl));
+  assert.deepStrictEqual([done["The Vault"].ready, done["Daily Chores"].ready], [false, false]);
+  const open = parseTown(["* The Vault", "Try to crack the code", "READY!", "Daily Chores", "Earn Ancient Coins Daily", "2 Left"].join(nl));
+  assert.deepStrictEqual([open["The Vault"].ready, open["Daily Chores"].ready, open["Daily Chores"].left], [true, true, 2]);
+}
+
 // Pig Pen page (made-up names and levels): every pig's level; "Sent Off" from the farm page
 {
   const { parsePigPen, parseFarm, detectPage } = require("../parse.js");

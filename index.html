@@ -3169,7 +3169,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // { need, have, auto }: auto = already enough banked, so the item ticks itself. knowledge/mechanics/silver.md
   const bankNeed = () => { const b = S.bank || {}, rate = b.rate || 0.01, cap = b.cap || 8e6; return { need: cap / rate, have: b.bank, rate, cap }; };
   // Today's Town and farm pastes say what's done: those tick themselves (a place still READY stays for you to tick)
-  const TOWN_OF = { wheel: "Wheel of Borgen", hut: "Borgen's Treasure Hut", lost: "Borgen's Lost & Found", cards: "House of Cards", well: "Wishing Well" };
+  const TOWN_OF = { wheel: "Wheel of Borgen", hut: "Borgen's Treasure Hut", lost: "Borgen's Lost & Found", cards: "House of Cards", well: "Wishing Well", vault: "The Vault", chores: "Daily Chores" };
   const today = x => x && x.day === gameDay(Date.now());
   const townPlace = id => TOWN_OF[id] && today(S.town) ? S.town.places[TOWN_OF[id]] : null;
   const checkAuto = id => {
@@ -3185,6 +3185,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       return b.have >= b.need ? `full interest already: ${short(b.need)} is enough, you have ${short(b.have)}` : `deposit ${short(b.need - b.have)} more for the full ${short(b.cap)} a day`;
     }
     if (id === "well") { const t = townPlace("well"); return `${t && t.left ? `${fmt(t.left)} left · ` : ""}<a href="#ww" data-go="quests">today's tosses</a>`; }
+    if (id === "chores") { const t = townPlace("chores"); if (t && t.left) return `${fmt(t.left)} left today`; }
     if (id === "farm" && today(S.farmToday) && S.farmToday.todo.length) return `still to do: ${S.farmToday.todo.map(esc).join(", ")}`;
     if ((id === "cc" || id === "mcc") && S.comm) {
       const g = S.comm[id === "cc" ? "daily" : "monthly"];
