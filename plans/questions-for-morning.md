@@ -16,7 +16,7 @@ Done: Pig Pen, Bank, Temple of Reward, Town (opened from another page), My Farm 
 Still to paste:
 - [ ] Town: a copy with some daily places not done yet ("READY!" or "N Left")
 - [ ] My Farm on a day some buildings still show "today"
-- [ ] My Inventory: a filtered copy, and a plain copy (no links)
+- [ ] My Inventory: a filtered copy from Steam, and a plain copy (no links)
 - [ ] Orchard (the Steam copy also carries the farm list)
 - [ ] A building page (Storehouse, Farmhouse, Sawmill…)
 - [ ] Pet Shop → All Pet Items
