@@ -11,7 +11,7 @@ Answered questions are removed; their answers live in knowledge/.
 Paste each page twice, once from the browser and once from the Steam app (say which). Saved copies live in
 test/pages/ (local only; usernames, farm name and farm id replaced) and are checked by test/pages.test.js.
 
-Done: Pig Pen, Bank, Temple of Reward, Town (opened from another page), My Farm with all buildings done, My Inventory, Orchard, All Pet Items (browser + Steam each).
+Done: Pig Pen, Bank, Temple of Reward, Town (opened from another page), My Farm with all buildings done, My Inventory, Orchard, All Pet Items, Steak Market (browser + Steam each).
 
 Still to paste:
 - [ ] Town: a copy with some daily places not done yet ("READY!" or "N Left")
@@ -21,7 +21,6 @@ Still to paste:
 - [ ] Exploring info (the "stamina every time you continue exploring" page)
 - [ ] Perks page (Farm Supply in Town, the perks list)
 - [ ] Farm Supply upgrades (Cap Upgrades / Farming Upgrades)
-- [ ] Steak Market
 - [ ] Farmer's Market
 - [ ] Friendship / Townsfolk levels, and your profile page
 - [ ] A mastery page
