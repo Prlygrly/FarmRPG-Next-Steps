@@ -523,7 +523,24 @@
     return { place: place[1].trim(), ee: toInt(ee[1]), bars: bars ? toInt(bars[1]) : null, fee: fee ? { amount, unit: fee[3] } : null };
   }
 
+  // The game keeps the page you came from in the copy, ahead of the one on screen: "[Back](…) / Pig Pen / [Back](…) / Town".
+  // The last title under a Back link is the page on screen; trusted only when that page's own text is there too.
+  const PAGE_TITLES = {
+    "Town": ["town", t => /^\s*Market District\s*$/im.test(t)],
+    "Bank": ["bank", t => /Currently in Bank/i.test(t)],
+    "Temple of Reward": ["temple", t => /Sacrifice: /.test(t)],
+    "Pig Pen": ["pigpen", t => /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(t)],
+  };
+  function screenTitle(text) {
+    const lines = String(text || "").split(/\r?\n/);
+    let title = null;
+    lines.forEach((l, i) => { if (/^\s*\[Back\]\(/.test(l) && lines[i + 1]) title = lines[i + 1].trim(); });
+    return title;
+  }
+
   function detectPage(text) {
+    const onScreen = PAGE_TITLES[screenTitle(text)];
+    if (onScreen && onScreen[1](text)) return onScreen[0];
     if (/About the Pig Pen/i.test(text) && /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(text)) return "pigpen";   // before the farm: it carries the farm list
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";

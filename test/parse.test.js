@@ -244,6 +244,18 @@ console.log("parse tests passed");
   assert.strictEqual(parseTown(town.join(nl)).bank, 2.5e12);
 }
 
+// A copy holds the page you came from first; the last title under a Back link is the page on screen
+{
+  const { detectPage } = require("../parse.js");
+  const nl = String.fromCharCode(10);
+  const pen = ["About the Pig Pen", "Raise pigs.", "Pigs (2 / 10)", "Pig 1", "Level 3", "Pig 2", "Level 4"];
+  const town = ["Market District", "* Country Store", "Buy seeds", "Borgen's District", "* Wheel of Borgen", "Spin daily"];
+  assert.strictEqual(detectPage(["[Back](https://x/a)", "Pig Pen", "[Back](https://x/b)", "Town", ...pen, ...town].join(nl)), "town");
+  assert.strictEqual(detectPage(["[Back](https://x/b)", "Town", "[Back](https://x/a)", "Pig Pen", ...town, ...pen].join(nl)), "pigpen");
+  // A title without its page's text falls back to the usual checks
+  assert.strictEqual(detectPage(["[Back](https://x/b)", "Bank", ...pen].join(nl)), "pigpen");
+}
+
 // The Vault and Daily Chores: no mark means done; "READY!" / "N Left" means not yet
 {
   const { parseTown } = require("../parse.js");
