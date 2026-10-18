@@ -19,7 +19,6 @@ Still to paste:
 - [ ] Exploring info (the "stamina every time you continue exploring" page)
 - [ ] Perks page (Farm Supply in Town, the perks list)
 - [ ] Farm Supply upgrades (Cap Upgrades / Farming Upgrades)
-- [ ] Farmer's Market
 - [ ] Friendship / Townsfolk levels, and your profile page
 - [ ] Quests / Help Needed
 - [ ] One Personal Help Request page
