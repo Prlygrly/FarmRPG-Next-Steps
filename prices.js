@@ -4,7 +4,7 @@
 (function (root) {
   const PRICES = { sell: {
     "Acorn Butter": 6000, "Amethyst Necklace": 800, "Anglerfish": 350000, "Aquamarine Ring": 750, "Arrowhead": 150,
-    "Awl": 500, "Barbed Wire": 20000, "Barracuda": 5000, "Blue Catfish": 75, "Blue Crab": 25, "Blue Milk": 25000, "Blue Purse": 110000,
+    "Awl": 500, "Barbed Wire": 20000, "Barracuda": 5000, "Blue Catfish": 75, "Blue Crab": 25, "Blue Diary": 5000, "Blue Milk": 25000, "Blue Purse": 110000,
     "Blue Sea Bass": 300, "Blue Shell": 75, "Blue Tiger Fish": 1500, "Bluegill": 75, "Bone Fish": 50, "Bottle Rocket": 150,
     "Broom": 300, "Bucket": 90, "Bullfish": 10890, "Butter": 60000, "Butter Churn": 500, "Cannon": 110000, "Canoe": 200000,
     "Carp": 75, "Catfish": 75, "Clam Shell": 100, "Clownfish": 150, "Coin Purse": 250, "Conch Shell": 100,
