@@ -11,11 +11,11 @@ Answered questions are removed; their answers live in knowledge/.
 Paste each page twice, once from the browser and once from the Steam app (say which). Saved copies live in
 test/pages/ (local only; usernames, farm name and farm id replaced) and are checked by test/pages.test.js.
 
-Done: Pig Pen, Bank, Temple of Reward (browser + Steam each).
+Done: Pig Pen, Bank, Temple of Reward, Town (opened from another page), My Farm with all buildings done (browser + Steam each).
 
 Still to paste:
-- [ ] Town: a narrow copy, a wide copy (it carries the farm list), and one showing the Daily Chores sidebar
-- [ ] My Farm (ideally on a day some buildings still show "today")
+- [ ] Town: a copy with some daily places not done yet ("READY!" or "N Left")
+- [ ] My Farm on a day some buildings still show "today"
 - [ ] My Inventory: a normal copy, a filtered copy, and a plain copy (no links)
 - [ ] Orchard (the Steam copy also carries the farm list)
 - [ ] A building page (Storehouse, Farmhouse, Sawmill…)
