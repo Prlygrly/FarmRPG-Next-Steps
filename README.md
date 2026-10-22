@@ -65,6 +65,10 @@ with a source.
 ## Roadmap
 - Shared Truffle prices: one player's Steak Market paste gives everyone today's prices (needs a free Cloudflare Worker + KV;
   the Truffle prompt then says the two prices are shared). Optional Reddit hint for notable days.
+- Quests tab: a small dropdown at the top listing the quests from the last Quests paste; picking one shows that quest's
+  next steps at the top of the page. Clicking a quest title collapses/expands that entry.
+- Tower (Next steps): a small dropdown to show the next 10 / 30 / 50 / 100 / all levels with the masteries and costs still
+  needed, plus a checkbox to hide the levels that need only AK.
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.
 - Ideas: "if you maxed this building" on building-limited goals; count crafted quest items in Spend my…; a plan-by-place view;
