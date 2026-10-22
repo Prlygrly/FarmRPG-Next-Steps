@@ -653,7 +653,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   <section class="card" data-tab="quests" id="quests" aria-labelledby="h-quests" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 id="h-quests" style="margin:0">Quests</h2>
+      <label class="small muted">Show one: <select id="quest-pick-in" style="max-width:14em" aria-label="Show one quest's next steps"></select></label>
     </div>
+    <div id="quest-pick" hidden><ul class="mono-list" id="quest-pick-list" style="border-bottom:1px solid var(--line);margin-bottom:8px"></ul></div>
     <p class="mono-hide small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
     <p class="mono-hide small muted" id="quest-sort" style="margin:0 0 6px"></p>
     <div class="mono-hide" id="quest-list"></div>
@@ -4116,6 +4118,20 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       $("mono-quests").innerHTML = !x ? monoLi(label, "Nothing to do") : monoStep(label, t, x,
         mq.need.missing.length ? `<p style="margin:4px 0 0">Still needs ${mq.need.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}.</p>` : "", skipQ(t.key));
     }
+    // Show one: the quest picked from the last Help Needed paste gets its own step card above the list (the planner's
+    // pick stays); kept per device until it's no longer in the paste
+    {
+      const pickable = cards.filter(c => c.need).sort((a, b) => a.q.name.localeCompare(b.q.name));
+      const pc = pickable.find(c => qkey(c.q) === U.questPick);
+      $("quest-pick-in").innerHTML = `<option value="">Planner's pick</option>` + pickable.map(c => `<option value="${esc(qkey(c.q))}">${esc(c.q.name)}${c.q.npc ? ` (${esc(c.q.npc)})` : ""}</option>`).join("");
+      $("quest-pick-in").value = pc ? qkey(pc.q) : "";
+      $("quest-pick-in").parentElement.hidden = !pickable.length;
+      const t = pc && questTarget(pc.q, pc.need), x = t && stepsFor(t)[0];
+      const label = pc ? `Your pick · ${esc(pc.q.name)}${pc.q.npc ? ` (${esc(pc.q.npc)})` : ""}${pc.days <= 7 ? `, ${endsText(pc.days)}` : ""}` : "";
+      $("quest-pick-list").innerHTML = !pc ? "" : !x ? monoLi(label, pc.rank === 4 ? "Can't cost this quest yet" : "Nothing left to do")
+        : monoStep(label, t, x, pc.need.missing.length ? `<p style="margin:4px 0 0">Still needs ${pc.need.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}.</p>` : "");
+      $("quest-pick").hidden = !pc;
+    }
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
     const cls = `bites${U.detail === "expanded" ? " wordy" : ""}`;
     $("quest-list").innerHTML = `<ol class="${cls}">${vis.map(c => c.html).join("")}</ol>` +
@@ -4125,6 +4141,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const a = e.target.closest("[data-qsort]"); if (!a) return;
     e.preventDefault(); U.questSort = a.dataset.qsort; saveU(); render(false);
   });
+  $("quest-pick-in").addEventListener("change", e => { U.questPick = e.target.value || null; saveU(); render(false); });
   const foldQuest = e => {
     const f = e.target.closest("[data-qfold]"); if (!f) return false;
     const k = f.dataset.qfold, set = new Set(U.questFolded || []);
