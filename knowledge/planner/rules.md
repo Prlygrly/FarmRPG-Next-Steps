@@ -48,6 +48,13 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   or turn in. ✓ Done adds what the step brings to your counts until the next paste (undo under the tabs); Do this next skips
   to the next target while the top one only waits. Masteries and quests have Skip (hides them; show again from the AK table
   or the Quests tab).[^player]
+- Quests tab: "Show one" picks any quest from the last Help Needed paste and gives it its own step card above the list (the
+  planner's pick stays). Clicking a quest's title folds it to its title line; folds are remembered per quest on the
+  device.[^player]
+- Tower table: shows the next 30 levels by default (10 / 30 / 50 / 100 / all to choose); "Hide levels that need only AK"
+  folds each run of them into one line ("228–234: only AK") so the AK and silver totals still add up.[^player]
+- Spend my… counts crafted quest items by their gathered parts (cheapest route, less what's on hand): "parts for all 500
+  Mushroom Paste"; a quest counts as finished only when every part is covered and nothing waits on farm production.[^player]
 - Layout: Grid = tiles side by side on wide screens (default), List = one column; it applies to Next steps in every Detail
   setting and to Monotask items on every tab.[^player]
 - "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do

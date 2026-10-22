@@ -51,3 +51,13 @@ the questions file if anything came up.
 - Tower: 30 levels and AK-only levels shown by default.
 - Extras tonight: "if you maxed this building", and crafted quest items in Spend my…. Not tonight: shared Truffle
   prices, plan-by-place view (mining costs and the Compass loop stay ideas).
+
+## Done (local commits, not pushed)
+1. Read everything a paste carries: `carriedPages` (parse.js) + one `read(kind)` per page in index.html; carried pages
+   read first with no message; the old special cases (farm note, bank/inventory/orchard extras) removed. Page tests
+   check what each copy carries and that each carried list reads something.
+2. Quests "Show one" picker (header line): its own step card above the list; per device (U.questPick).
+3. Quest titles fold entries (click or Enter/Space; U.questFolded).
+4. Tower table: 10/30/50/100/all and "Hide levels that need only AK" (folds runs; U.towerRange, U.towerHideAk).
+5. Spend my…: crafted quest items count by their gathered parts.
+- Not done: "if you maxed this building" (question in questions-for-morning.md).

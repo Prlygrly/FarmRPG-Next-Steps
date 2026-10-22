@@ -1,10 +1,20 @@
-# Open questions for the player (updated 2026-10-17)
+# Open questions for the player (updated 2026-10-21)
 
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
 - Pet names are still in the local All Pet Items copies (not usernames, never pushed): replace them too?
 - Overnight work (2026-10-21, local, not pushed): see plans/overnight-2026-10-21.md for what was done.
+- **"If you maxed this building"**: buildings have no maximum (you buy production in any amount; only the Orchard's trees
+  cap out), and Slow grinds' "What if" box already takes a target per building and shows the time saved. What did you
+  have in mind? (a) a ready-made what-if per slow grind ("at double the output: 40 days instead of 80"), (b) the Orchard
+  at its tree limit, (c) something else, or (d) drop it.
+- **Tower "hide only-AK levels"**: hidden runs fold into one line ("228–234: only AK") instead of vanishing, so the
+  AK and silver totals on the next row still add up. OK, or remove them entirely?
+- **Quest "Show one" card**: shows the picked quest's first step with ✓ Done, and the later steps under "more" (the same
+  card as Monotask). Want all its steps listed open instead?
+- **Spend my… crafted parts**: quests 3-5 steps ahead now list many crafted items ("33% of the parts for 6,302 Essence of
+  Slime, …"), which gets long. Count crafted items only for the current quest and the next one?
 
 ## Waiting on data
 

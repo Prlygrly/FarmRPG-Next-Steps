@@ -2543,7 +2543,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
           const parts = got < 1 && partsFor(item, miss);
           if (parts && parts.f > 0) {
             fracs.push(parts.f); helps = true;
-            bits.push(parts.done ? `parts for all ${short(miss)} ${esc(item)}` : parts.f >= 0.99 ? `gathered parts for all ${short(miss)} ${esc(item)} (the rest from your farm)`
+            bits.push(parts.done ? `parts for all ${short(miss)} ${esc(item)}` : parts.f >= 0.99 ? `gathered parts for all ${short(miss)} ${esc(item)}, the rest from your farm`
               : `${pct(parts.f)} of the parts for ${short(miss)} ${esc(item)}`);
             if (!parts.done) done = false; else share = Math.max(share, parts.share);
             continue;

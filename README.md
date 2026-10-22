@@ -49,8 +49,8 @@ with a source.
   `upgrades.js` (hand-kept). Each is described in `knowledge/data/`.
 
 ## Tabs
-- **Next steps**: what to do next, quickest first; Tower levels; AK plan; Leveling up.
-- **Quests**: what each quest still needs, its cost and reward; the wishing well's free tosses for today.
+- **Next steps**: what to do next, quickest first; Tower levels (next 10 to all, AK-only levels can fold); AK plan; Leveling up.
+- **Quests**: what each quest still needs, its cost and reward (titles fold an entry; "Show one" pins one quest's next step on top); the wishing well's free tosses for today.
 - **Best use**: where to spend nets and drinks, trips (what a planned exploring trip brings), what to plant, daily overflow, before you collect pet items (what would void), kitchen, silver goal, exploring drinks (items per gold: Arnold Palmers, Apple Ciders or Orange Juice).
 - **Checklist**: daily and monthly reset checklists (from the Library), and the Steak Market (sell Truffles today?).
 - **Reference**: how the game works as the planner understands it (pigs, the Temple, bank interest, exploring drinks…), with sources; searchable.
@@ -65,11 +65,7 @@ with a source.
 ## Roadmap
 - Shared Truffle prices: one player's Steak Market paste gives everyone today's prices (needs a free Cloudflare Worker + KV;
   the Truffle prompt then says the two prices are shared). Optional Reddit hint for notable days.
-- Quests tab: a small dropdown at the top listing the quests from the last Quests paste; picking one shows that quest's
-  next steps at the top of the page. Clicking a quest title collapses/expands that entry.
-- Tower (Next steps): a small dropdown to show the next 10 / 30 / 50 / 100 / all levels with the masteries and costs still
-  needed, plus a checkbox to hide the levels that need only AK.
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.
-- Ideas: "if you maxed this building" on building-limited goals; count crafted quest items in Spend my…; a plan-by-place view;
+- Ideas: "if you maxed this building" on building-limited goals (question open); a plan-by-place view;
   mining costs; Compass via Magna Core in the well as a crafting loop.
