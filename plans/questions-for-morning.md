@@ -3,14 +3,8 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
-- **Go for "read everything a paste carries"?** Proposed (rule agreed, code not started): before the pasted page's own
-  reader, quietly read any carried Town list (Town ticks, Daily Chores from Home/sidebar), farm list (production,
-  "today" marks, Storehouse growth, pigs sent off), Pig Pen and Temple; the pasted page then has the last word. Message
-  names only the pasted page; remove the "Read the Town list too" note added 2026-10-17. Tests: each saved copy also
-  checks its carried lists. Covers the earlier asks (Steak Market paste ticking Town, farm paste ticking Chores).
 - Pet names are still in the local All Pet Items copies (not usernames, never pushed): replace them too?
-- 17 local commits not pushed (Vault/Chores ticks, title-based detection, "Not Started" fix, Market dropped from the
-  paste list, Blue Diary price, plans): push when ready (bump-version first).
+- Overnight work (2026-10-21, local, not pushed): see plans/overnight-2026-10-21.md for what was done.
 
 ## Waiting on data
 

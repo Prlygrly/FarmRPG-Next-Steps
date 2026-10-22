@@ -569,6 +569,16 @@
     return null;
   }
 
+  // Other pages a copy carries besides the one pasted (the page you came from, the farm sidebar), in the order they
+  // appear: each is read quietly before the pasted page, which has the last word
+  const CARRIED = [["town", /^\s*Market District\s*$/im], ["farm", /^\s*Around Your Farm\s*$/im],
+    ["pigpen", /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im], ["temple", /^\s*Sacrifice: /m]];
+  function carriedPages(text, kind) {
+    const t = String(text || "");
+    return CARRIED.filter(([k, re]) => k !== kind && re.test(t) && (k !== "temple" || /Items Sacrificed/i.test(t)))
+      .map(([k, re]) => [k, t.search(re)]).sort((a, b) => a[1] - b[1]).map(([k]) => k);
+  }
+
   // Silver and gold from the top bar: "[122,730,994,151](https://farmrpg.com/bank.php)   [513](https://farmrpg.com/gold.php)".
   // Only pages copied with that bar (the Steam app) have it; null when it isn't there.
   function parseSilver(text) {
@@ -601,7 +611,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

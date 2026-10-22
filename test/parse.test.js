@@ -278,3 +278,13 @@ console.log("parse tests passed");
   assert.deepStrictEqual(parsePigPen(t), { levels: [12, 12, 3, 3, 1], max: 10 });
   assert.strictEqual(parseFarm(["Around Your Farm", "* [Pig Pen](https://x/p)", "[Add pigs and fatten them up](https://x/p)", "[500 Pigs](https://x/p)", "[16 Sent Off](https://x/p)"].join(nl)).pigsSentOff, 16);
 }
+
+// A copy carries the page you came from and the farm sidebar: listed in the order they appear, never the pasted page
+{
+  const { carriedPages } = require("../parse.js"), nl = "\n";
+  const t = ["Pigs (10 / 10)", "Around Your Farm", "Market District", "Sacrifice: Potato", "Items Sacrificed"].join(nl);
+  assert.deepStrictEqual(carriedPages(t, "temple"), ["pigpen", "farm", "town"]);
+  assert.deepStrictEqual(carriedPages(t, "farm"), ["pigpen", "town", "temple"]);
+  assert.deepStrictEqual(carriedPages("Sacrifice: Potato", "town"), []);                // no Temple without its own heading
+  assert.deepStrictEqual(carriedPages("Active Requests", "quests"), []);
+}

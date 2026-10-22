@@ -742,7 +742,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202610220553"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
@@ -869,197 +869,186 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     $("paste-clear").hidden = !text.trim();
     if (!text.trim()) return;
     const kind = detectPage(text);
-    let msg = "", done = false;
     const before = JSON.stringify(S);                                    // for Undo
     // Any page copied with the top bar carries your silver: keep the newest
     const cash = parseSilver(text);
     if (cash) { S.silver = cash.silver; if (cash.gold != null) S.gold = cash.gold; S.silverAt = Date.now(); save(); $("f-silver").value = S.silver; }
-    if (kind === "mastery") {
-      const r = parseMastery(text);
-      const n = Object.keys(r.items).length;
-      if (!n) msg = warn("No mastery lines were found. Open every tier on the Mastery Progress page, then copy again.");
-      else {
-        S.mastery = { items: r.items, tower: r.tower, skills: r.skills, totals: r.totals, at: Date.now() };
-        S.changes = []; S.stepsDone = [];                                                  // real numbers replace any Done ticks
-        S.manual = {};
-        done = true;                                                     // read: clear the box even if a warning follows
-        if (r.collapsed.length) msg = warn(`Some tiers were folded shut when you copied: ${esc(r.collapsed.join(", "))}. Open them and copy again for the full list.`);
-      }
-    } else if (kind === "inventory") {
-      const r = parseInventory(text);
-      if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
-      else {
-        // Much smaller than the last copy (a search-filtered page): update what it shows and keep the rest; otherwise replace,
-        // since an item missing from a full copy is 0 now
-        const old = S.inventory && S.inventory.items, nOld = old ? Object.keys(old).length : 0, nNew = Object.keys(r.items).length;
-        // The page's own count ("933 unique items") gives a filtered copy away even with no earlier copy to compare to
-        const filtered = !!r.unique && nNew < r.unique * 0.9, part = filtered || (nOld >= 50 && nNew < nOld * 0.3);
-        S.inventory = { items: part ? { ...old, ...r.items } : r.items, cap: r.cap || (S.inventory && S.inventory.cap), at: part && S.inventory ? S.inventory.at : Date.now() }; S.changes = []; S.stepsDone = [];
-        if (filtered) { done = true; msg = warn(`Your inventory page is filtered: it lists ${fmt(r.unique)} different items, but only ${fmt(nNew)} were in the copy. Clear the search bar (and open any folded sections), then copy again. The ${fmt(nNew)} that were there are updated.`); }
-        else if (part) { done = true; msg = `<div class="note" style="border-color:var(--good)">This looks like part of your inventory (${fmt(nNew)} items; the last copy had ${fmt(nOld)}). Updated those ${fmt(nNew)} and kept the rest. Paste the whole page to refresh everything.</div>`; }
-        // On a wide screen the page also carries the farm sidebar: read its production too (what it shows, keeping the rest)
-        if (/Around Your Farm/i.test(text)) {
-          const f = parseFarm(text);
-          if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; if (f.capPerDay) S.perks.capPerDay = f.capPerDay; S.productionAt = Date.now(); }
+    const read = kind => {
+      let msg = "", done = false;
+      if (kind === "mastery") {
+        const r = parseMastery(text);
+        const n = Object.keys(r.items).length;
+        if (!n) msg = warn("No mastery lines were found. Open every tier on the Mastery Progress page, then copy again.");
+        else {
+          S.mastery = { items: r.items, tower: r.tower, skills: r.skills, totals: r.totals, at: Date.now() };
+          S.changes = []; S.stepsDone = [];                                                  // real numbers replace any Done ticks
+          S.manual = {};
+          done = true;                                                     // read: clear the box even if a warning follows
+          if (r.collapsed.length) msg = warn(`Some tiers were folded shut when you copied: ${esc(r.collapsed.join(", "))}. Open them and copy again for the full list.`);
         }
-        // A Market paste waiting for counts: work its prices out now
-        if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
-      }
-    } else if (kind === "farm") {
-      const r = parseFarm(text);
-      if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
-      else {
-        S.production = { ...(S.production || {}), ...window.FRP.storeRates(r) }; done = true;   // update what it shows, keep the rest (a copy can miss a building)
-        if (r.capPerDay) S.perks.capPerDay = r.capPerDay;                // Storehouse growth, for Slow grinds
-        const todo = parseFarmToday(text); if (todo) S.farmToday = { todo, day: gameDay(Date.now()) };   // "today" marks: not done yet
-        if (r.pigsSentOff > 0) pigsSlaughtered(r.pigsSentOff);                // the farm page says pigs went to the Slaughterhouse
-        if (r.plots && r.plots <= PLOT_SOFT_MAX && r.plots % 4 === 0) S.perks.plots = r.plots;
-        else if (r.plots) msg = warn(`Plant All showed ${fmt(r.plots)}, which can't be your crop plots, so they were left at ${fmt(S.perks.plots || 0)}. Check them in Your perks.`);
-        S.productionAt = Date.now();
-        const o = {};
-        for (const n of ["Apple", "Orange", "Lemon"]) if (r[n]) o[n] = { production: Math.round(r[n] * 24) };
-        if (Object.keys(o).length) { S.orchard = o; S.orchardAt = Date.now(); }
-        // Say what was read, even when nothing changed, so a repaste visibly took
-        if (!msg) msg = `<div class="note" style="border-color:var(--good)">Farm page updated: ${fmt(Object.keys(r).length)} things your buildings make${
-          Object.keys(o).length ? ", the Orchard" : ""}${r.plots ? `, ${fmt(r.plots)} crop plots` : ""}${r.capPerDay ? `, Storehouse +${fmt(r.capPerDay)} a day` : ""}.</div>`;
-        // The Town page on a wide screen also carries the farm sidebar: read its daily places too
-        if (/^\s*Market District\s*$/im.test(text)) {
-          const t = parseTown(text), open = Object.entries(t).filter(([, v]) => v.ready).map(([k]) => esc(k));
-          if (Object.keys(t).length) { S.town = { places: t, day: gameDay(Date.now()) };
-            msg += `<div class="note" style="border-color:var(--good)">Read the Town list too: ${open.length ? `still to do today: ${open.join(", ")}` : "the daily places are done"}. See the Checklist tab.</div>`; }
+      } else if (kind === "inventory") {
+        const r = parseInventory(text);
+        if (!Object.keys(r.items).length) msg = warn("No items were found. Copy the whole My Inventory page and try again.");
+        else {
+          // Much smaller than the last copy (a search-filtered page): update what it shows and keep the rest; otherwise replace,
+          // since an item missing from a full copy is 0 now
+          const old = S.inventory && S.inventory.items, nOld = old ? Object.keys(old).length : 0, nNew = Object.keys(r.items).length;
+          // The page's own count ("933 unique items") gives a filtered copy away even with no earlier copy to compare to
+          const filtered = !!r.unique && nNew < r.unique * 0.9, part = filtered || (nOld >= 50 && nNew < nOld * 0.3);
+          S.inventory = { items: part ? { ...old, ...r.items } : r.items, cap: r.cap || (S.inventory && S.inventory.cap), at: part && S.inventory ? S.inventory.at : Date.now() }; S.changes = []; S.stepsDone = [];
+          if (filtered) { done = true; msg = warn(`Your inventory page is filtered: it lists ${fmt(r.unique)} different items, but only ${fmt(nNew)} were in the copy. Clear the search bar (and open any folded sections), then copy again. The ${fmt(nNew)} that were there are updated.`); }
+          else if (part) { done = true; msg = `<div class="note" style="border-color:var(--good)">This looks like part of your inventory (${fmt(nNew)} items; the last copy had ${fmt(nOld)}). Updated those ${fmt(nNew)} and kept the rest. Paste the whole page to refresh everything.</div>`; }
+          // A Market paste waiting for counts: work its prices out now
+          if (S.market) { S.prices = { ...(S.prices || {}), ...marketPrices({ items: S.market }, Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, v.count])), r.cap) }; S.pricesAt = Date.now(); delete S.market; }
         }
+      } else if (kind === "farm") {
+        const r = parseFarm(text);
+        if (!Object.keys(r).length) msg = warn("No buildings were found. Copy the whole farm page and try again.");
+        else {
+          S.production = { ...(S.production || {}), ...window.FRP.storeRates(r) }; done = true;   // update what it shows, keep the rest (a copy can miss a building)
+          if (r.capPerDay) S.perks.capPerDay = r.capPerDay;                // Storehouse growth, for Slow grinds
+          const todo = parseFarmToday(text); if (todo) S.farmToday = { todo, day: gameDay(Date.now()) };   // "today" marks: not done yet
+          if (r.pigsSentOff > 0) pigsSlaughtered(r.pigsSentOff);                // the farm page says pigs went to the Slaughterhouse
+          if (r.plots && r.plots <= PLOT_SOFT_MAX && r.plots % 4 === 0) S.perks.plots = r.plots;
+          else if (r.plots) msg = warn(`Plant All showed ${fmt(r.plots)}, which can't be your crop plots, so they were left at ${fmt(S.perks.plots || 0)}. Check them in Your perks.`);
+          S.productionAt = Date.now();
+          const o = {};
+          for (const n of ["Apple", "Orange", "Lemon"]) if (r[n]) o[n] = { production: Math.round(r[n] * 24) };
+          if (Object.keys(o).length) { S.orchard = o; S.orchardAt = Date.now(); }
+          // Say what was read, even when nothing changed, so a repaste visibly took
+          if (!msg) msg = `<div class="note" style="border-color:var(--good)">Farm page updated: ${fmt(Object.keys(r).length)} things your buildings make${
+            Object.keys(o).length ? ", the Orchard" : ""}${r.plots ? `, ${fmt(r.plots)} crop plots` : ""}${r.capPerDay ? `, Storehouse +${fmt(r.capPerDay)} a day` : ""}.</div>`;
+        }
+      } else if (kind === "perks" || kind === "supply") {
+        // Each page knows some perks; the two pages' crop-growth and Resource Saver amounts add up
+        const got = perkSettings(parsePerks(text));
+        S.perkPages = { ...(S.perkPages || {}), [kind]: got };
+        const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
+        Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster"), sellBonus: add("sellBonus"), craftSilverCut: add("craftSilverCut") });
+        // Friendship gift bonus (knowledge/mechanics/friendship.md)
+        { const omg = add("omg"), mult = (1 + add("friendPrimer") / 100) * (omg >= 2 ? 1.75 : omg === 1 ? 1.37 : 1); S.perks.friendBonus = Math.round((mult - 1) * 100); }
+        S.perkPagesAt = Date.now();
+        S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
+        done = true;
+        const other = kind === "perks" ? "supply" : "perks";
+        msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply perks"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
+      } else if (kind === "friends") {
+        // Optional: friendship levels make gift suggestions say how far each townsperson is from a level a quest needs
+        const f = parseFriends(text);
+        if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
+        else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
+          done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
+      } else if (kind === "steak") {
+        const r = parseSteak(text);
+        const H = S.marketHistory || (S.marketHistory = { truffle: {}, steak: {}, kabob: {} });
+        for (const k of ["truffle", "steak", "kabob"]) for (const row of r.history[k]) H[k][row.date || row.time] = row;
+        for (const [k, max] of [["truffle", 90], ["steak", 90], ["kabob", 24]]) {        // keep the newest rows only
+          const keys = Object.keys(H[k]); if (keys.length > max) for (const x of keys.slice(0, keys.length - max)) delete H[k][x];
+        }
+        if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
+          msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
+        else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
+      } else if (kind === "pigpen") {
+        const r = parsePigPen(text);
+        if (!r) msg = warn("No pigs were found. Copy the whole Pig Pen page and try again.");
+        else {
+          // Levels only (no XP on the page): each pig at the start of its level, so reminders are never early. Replaces the model.
+          S.pigs = { day: dayNum(), xp: r.levels.map(l => LEVELS.total[Math.min(99, l) - 1]), max: r.max, at: Date.now() }; done = true;
+          const low = [...r.levels].sort((a, b) => a - b).slice(0, PIG.batch);
+          msg = `<div class="note" style="border-color:var(--good)">Read your Pig Pen: ${fmt(r.levels.length)} pigs; your ${fmt(low.length)} lowest are level ${[...new Set(low)].join("-")}. Pig days show above the tabs and on the Checklist.</div>`;
+        }
+      } else if (kind === "town") {
+        const r = parseTown(text), n = Object.keys(r).length;
+        if (!n) msg = warn("Nothing was read from the Town page. Copy the whole page and try again.");
+        else { S.town = { places: r, day: gameDay(Date.now()) }; done = true;
+          if (r.bank && !(S.bank && S.bank.bank != null && Math.abs(S.bank.bank - r.bank) < r.bank * 0.05)) S.bank = { ...(S.bank || {}), bank: r.bank, at: Date.now(), rounded: true };
+          const open = Object.entries(r).filter(([, v]) => v.ready).map(([k]) => esc(k));
+          msg = `<div class="note" style="border-color:var(--good)">Read the Town page: ${open.length ? `still to do today: ${open.join(", ")}` : "the daily places are done"}. See the Checklist tab.</div>`; }
+      } else if (kind === "bank") {
+        const r = parseBank(text);
+        if (!r) msg = warn("Nothing was read from the bank page. Copy the whole page and try again.");
+        else {
+          S.bank = { ...r, at: Date.now() }; done = true;
+          if (r.onHand != null) { S.silver = r.onHand; S.silverAt = Date.now(); }        // "Deposit All" is the silver on hand
+          msg = `<div class="note" style="border-color:var(--good)">Read the bank${r.bank != null ? `: ${short(r.bank)} banked` : ""}${r.onHand != null ? `, ${short(r.onHand)} on hand` : ""}. See the Checklist tab.</div>`;
+        }
+      } else if (kind === "temple") {
+        const r = parseTemple(text);
+        if (!r.length) msg = warn("No open Temple chains were found. Copy the whole Temple of Reward page and try again.");
+        else { S.temple = { chains: r, at: Date.now() }; done = true;
+          msg = `<div class="note" style="border-color:var(--good)">Read the Temple of Reward: ${fmt(r.length)} open chains. Before you collect pet items can send extras there.</div>`; }
+      } else if (kind === "pets") {
+        const r = parsePets(text), names = Object.keys(r.items);
+        if (!names.length) msg = warn("No pet items were found. Copy the whole All Pet Items page and try again.");
+        else {
+          const inv = S.inventory || (S.inventory = { items: {}, cap: null, at: Date.now() });
+          const top = Math.max(...names.map(n => r.items[n].have));
+          if (inv.cap && top > inv.cap) inv.cap = top;                         // nothing sits above the cap: it has grown
+          for (const n of names) inv.items[n] = { ...(inv.items[n] || {}), count: r.items[n].have, atMax: !!inv.cap && r.items[n].have >= inv.cap };
+          S.pets = { items: r.items, at: Date.now() }; done = true;
+          const over = inv.cap ? names.filter(n => r.items[n].have + r.items[n].found > inv.cap).length : null;
+          msg = `<div class="note" style="border-color:var(--good)">Read your pet items: ${fmt(names.length)} items${over != null ? `, ${fmt(over)} would go over your cap` : " (paste My Inventory once so the planner knows your cap)"}. See Best use.</div>`;
+        }
+      } else if (kind === "explore-info") {
+        const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
+        const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
+        if (!loc) msg = warn(r ? `"${esc(r.place)}" isn't a place the planner knows.` : "No Exploring Effectiveness was found. Copy the whole page and try again.");
+        else { S.perks.ee = { ...(S.perks.ee || {}), [loc]: r.ee }; S.drinkLoc = loc; done = true;
+          S.eeNext = { ...(S.eeNext || {}), [loc]: { fee: r.fee, bars: r.bars } };          // for the cheap-upgrade hints
+          msg = `<div class="note" style="border-color:var(--good)">Exploring Effectiveness at ${esc(loc)}: ${fmt(r.ee)}. See Exploring drinks on Best use.</div>`; }
+      } else if (kind === "request") {
+        // One request's own page (special and personal requests aren't in buddy.farm's quest data)
+        const r = parseRequest(text);
+        if (r && wrongName(r)) r.name = null;
+        if (!r) msg = warn("No requested items were found. Copy the whole request page and try again.");
+        else {
+          const old = Object.keys(S.requests || {}).filter(k => S.requests[k].name === r.name && S.requests[k].npc === r.npc && k !== (r.id || r.name));   // handed in
+          const keep = Object.fromEntries(Object.entries(S.requests || {}).filter(([k]) => !old.includes(k)));
+          S.questHidden = (S.questHidden || []).filter(h => !old.some(k => h === "req:" + k));
+          S.requests = { ...keep, [r.id || r.name]: { ...r, at: Date.now() } }; done = true;
+          msg = `<div class="note" style="border-color:var(--good)">Read the request ${esc(r.name || "")}${r.npc ? ` from ${esc(r.npc)}` : ""}: ${r.need.length} items wanted.</div>`;
+        }
+      } else if (kind === "market") {
+        // The Farmer's Market: base prices = stack value / count. Needs My Inventory for the counts.
+        const m = parseMarket(text), n = Object.keys(m.items).length;
+        if (!n) msg = warn("No items with prices were found. Copy the whole Farmer's Market page and try again.");
+        else if (!S.inventory) { S.market = m.items; msg = warn("Market read. Paste My Inventory too: prices are worked out from your item counts."); done = true; }
+        else {
+          const got = marketPrices(m, Object.fromEntries(Object.entries(S.inventory.items).map(([k, v]) => [k, v.count])), S.inventory.cap);
+          S.prices = { ...(S.prices || {}), ...got }; S.pricesAt = Date.now(); delete S.market; done = true;
+          if (m.perks != null) S.perks.sellBonus = m.perks;
+          msg = `<div class="note" style="border-color:var(--good)">Base sell prices read for ${fmt(Object.keys(got).length)} of ${fmt(n)} items${m.perks != null ? `; sell perks ${m.perks}%` : ""}.</div>`;
+        }
+      } else if (kind === "building") {
+        // One building's own page: merge its output into production (players without the home-page output perk)
+        const b = parseBuilding(text), n = Object.keys(b.rates);
+        if (n.length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(b.rates) }; S.productionAt = Date.now(); }
+        if (b.cap && S.inventory) S.inventory.cap = b.cap;
+        if (b.capPerDay) S.perks.capPerDay = b.capPerDay;                  // for projecting the cap (Slow grinds)
+        done = true;
+        msg = `<div class="note" style="border-color:var(--good)">${b.buildings.length ? `Read the ${esc(b.buildings.join(", "))}: ${esc(n.join(", "))}.` : ""}${b.cap ? ` Inventory cap: ${fmt(b.cap)}${b.capPerDay ? `, +${fmt(b.capPerDay)} a day` : ""}.` : ""}</div>`;
+      } else if (kind === "orchard") {
+        const r = parseOrchard(text);
+        if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
+        else S.orchard = Object.fromEntries(Object.entries(r).map(([n, v]) => [n, { production: v.production, trees: v.trees }]));
+        if (S.orchard) S.orchardAt = Date.now();
+      } else if (kind === "quests") {
+        const all = parseQuests(text);
+        if (!all.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
+        else {
+          // The page replaces every quest, personal requests included (a player has 3-4 of those at most)
+          S.quests = all; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
+          const cc = parseCommunity(text); if (cc) S.comm = { ...cc, day: gameDay(Date.now()) };   // the Checklist's Community Center lines
+          pruneRequests(all, new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1])));
+        }
+      } else {
+        msg = warn("That isn't a page this planner reads. Open the game page, press Ctrl+A, then Ctrl+C, and paste again.");
       }
-    } else if (kind === "perks" || kind === "supply") {
-      // Each page knows some perks; the two pages' crop-growth and Resource Saver amounts add up
-      const got = perkSettings(parsePerks(text));
-      S.perkPages = { ...(S.perkPages || {}), [kind]: got };
-      const pp = S.perkPages, add = k => ((pp.perks || {})[k] || 0) + ((pp.supply || {})[k] || 0);
-      Object.assign(S.perks, got, { cropGrowthCut: add("cropGrowthCut"), resourceSaver: add("resourceSaver"), cornGrowthCut: add("cornGrowthCut"), cookFaster: add("cookFaster"), sellBonus: add("sellBonus"), craftSilverCut: add("craftSilverCut") });
-      // Friendship gift bonus (knowledge/mechanics/friendship.md)
-      { const omg = add("omg"), mult = (1 + add("friendPrimer") / 100) * (omg >= 2 ? 1.75 : omg === 1 ? 1.37 : 1); S.perks.friendBonus = Math.round((mult - 1) * 100); }
-      S.perkPagesAt = Date.now();
-      S.perkAt = { ...(S.perkAt || {}), [kind]: Date.now() };
-      done = true;
-      const other = kind === "perks" ? "supply" : "perks";
-      msg = `<div class="note" style="border-color:var(--good)">Perks read from the ${kind === "perks" ? "Perks" : "Farm Supply perks"} page.${pp[other] ? " Both pages are in, so Your perks are up to date." : ` Paste the ${other === "perks" ? "Perks" : "Farm Supply"} page too for the full set.`}</div>`;
-    } else if (kind === "friends") {
-      // Optional: friendship levels make gift suggestions say how far each townsperson is from a level a quest needs
-      const f = parseFriends(text);
-      if (!Object.keys(f.levels).length) msg = warn("No friendship levels were found in that paste.");
-      else { S.friends = f.levels; S.friendsAt = Date.now(); if (f.totd) S.totd = { npc: f.totd, day: new Date().toDateString() };
-        done = true; msg = `<div class="note" style="border-color:var(--good)">Friendship levels read for ${Object.keys(f.levels).length} townsfolk.</div>`; }
-    } else if (kind === "steak") {
-      const r = parseSteak(text);
-      const H = S.marketHistory || (S.marketHistory = { truffle: {}, steak: {}, kabob: {} });
-      for (const k of ["truffle", "steak", "kabob"]) for (const row of r.history[k]) H[k][row.date || row.time] = row;
-      for (const [k, max] of [["truffle", 90], ["steak", 90], ["kabob", 24]]) {        // keep the newest rows only
-        const keys = Object.keys(H[k]); if (keys.length > max) for (const x of keys.slice(0, keys.length - max)) delete H[k][x];
-      }
-      if (r.truffle || r.steak || r.kabob) { S.steakMarket = { ...r, history: undefined, at: Date.now() }; done = true;
-        msg = `<div class="note" style="border-color:var(--good)">Read the Steak Market${["truffle", "steak", "kabob"].some(k => r.history[k].length) ? " and its price history" : ""}. See Best use.</div>`; }
-      else msg = warn("No prices were found. Copy the whole Steak Market page and try again.");
-    } else if (kind === "pigpen") {
-      const r = parsePigPen(text);
-      if (!r) msg = warn("No pigs were found. Copy the whole Pig Pen page and try again.");
-      else {
-        // Levels only (no XP on the page): each pig at the start of its level, so reminders are never early. Replaces the model.
-        S.pigs = { day: dayNum(), xp: r.levels.map(l => LEVELS.total[Math.min(99, l) - 1]), max: r.max, at: Date.now() }; done = true;
-        const low = [...r.levels].sort((a, b) => a - b).slice(0, PIG.batch);
-        msg = `<div class="note" style="border-color:var(--good)">Read your Pig Pen: ${fmt(r.levels.length)} pigs; your ${fmt(low.length)} lowest are level ${[...new Set(low)].join("-")}. Pig days show above the tabs and on the Checklist.</div>`;
-      }
-    } else if (kind === "town") {
-      const r = parseTown(text), n = Object.keys(r).length;
-      if (!n) msg = warn("Nothing was read from the Town page. Copy the whole page and try again.");
-      else { S.town = { places: r, day: gameDay(Date.now()) }; done = true;
-        if (r.bank && !(S.bank && S.bank.bank != null && Math.abs(S.bank.bank - r.bank) < r.bank * 0.05)) S.bank = { ...(S.bank || {}), bank: r.bank, at: Date.now(), rounded: true };
-        const open = Object.entries(r).filter(([, v]) => v.ready).map(([k]) => esc(k));
-        msg = `<div class="note" style="border-color:var(--good)">Read the Town page: ${open.length ? `still to do today: ${open.join(", ")}` : "the daily places are done"}. See the Checklist tab.</div>`; }
-    } else if (kind === "bank") {
-      const r = parseBank(text);
-      if (!r) msg = warn("Nothing was read from the bank page. Copy the whole page and try again.");
-      else {
-        S.bank = { ...r, at: Date.now() }; done = true;
-        if (/^\s*Market District\s*$/im.test(text)) { const t = parseTown(text); if (Object.keys(t).length) S.town = { places: t, day: gameDay(Date.now()) }; }
-        if (r.onHand != null) { S.silver = r.onHand; S.silverAt = Date.now(); }        // "Deposit All" is the silver on hand
-        msg = `<div class="note" style="border-color:var(--good)">Read the bank${r.bank != null ? `: ${short(r.bank)} banked` : ""}${r.onHand != null ? `, ${short(r.onHand)} on hand` : ""}. See the Checklist tab.</div>`;
-      }
-    } else if (kind === "temple") {
-      const r = parseTemple(text);
-      if (!r.length) msg = warn("No open Temple chains were found. Copy the whole Temple of Reward page and try again.");
-      else { S.temple = { chains: r, at: Date.now() }; done = true;
-        msg = `<div class="note" style="border-color:var(--good)">Read the Temple of Reward: ${fmt(r.length)} open chains. Before you collect pet items can send extras there.</div>`; }
-    } else if (kind === "pets") {
-      const r = parsePets(text), names = Object.keys(r.items);
-      if (!names.length) msg = warn("No pet items were found. Copy the whole All Pet Items page and try again.");
-      else {
-        const inv = S.inventory || (S.inventory = { items: {}, cap: null, at: Date.now() });
-        const top = Math.max(...names.map(n => r.items[n].have));
-        if (inv.cap && top > inv.cap) inv.cap = top;                         // nothing sits above the cap: it has grown
-        for (const n of names) inv.items[n] = { ...(inv.items[n] || {}), count: r.items[n].have, atMax: !!inv.cap && r.items[n].have >= inv.cap };
-        S.pets = { items: r.items, at: Date.now() }; done = true;
-        const over = inv.cap ? names.filter(n => r.items[n].have + r.items[n].found > inv.cap).length : null;
-        msg = `<div class="note" style="border-color:var(--good)">Read your pet items: ${fmt(names.length)} items${over != null ? `, ${fmt(over)} would go over your cap` : " (paste My Inventory once so the planner knows your cap)"}. See Best use.</div>`;
-      }
-    } else if (kind === "explore-info") {
-      const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
-      const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
-      if (!loc) msg = warn(r ? `"${esc(r.place)}" isn't a place the planner knows.` : "No Exploring Effectiveness was found. Copy the whole page and try again.");
-      else { S.perks.ee = { ...(S.perks.ee || {}), [loc]: r.ee }; S.drinkLoc = loc; done = true;
-        S.eeNext = { ...(S.eeNext || {}), [loc]: { fee: r.fee, bars: r.bars } };          // for the cheap-upgrade hints
-        msg = `<div class="note" style="border-color:var(--good)">Exploring Effectiveness at ${esc(loc)}: ${fmt(r.ee)}. See Exploring drinks on Best use.</div>`; }
-    } else if (kind === "request") {
-      // One request's own page (special and personal requests aren't in buddy.farm's quest data)
-      const r = parseRequest(text);
-      if (r && wrongName(r)) r.name = null;
-      if (!r) msg = warn("No requested items were found. Copy the whole request page and try again.");
-      else {
-        const old = Object.keys(S.requests || {}).filter(k => S.requests[k].name === r.name && S.requests[k].npc === r.npc && k !== (r.id || r.name));   // handed in
-        const keep = Object.fromEntries(Object.entries(S.requests || {}).filter(([k]) => !old.includes(k)));
-        S.questHidden = (S.questHidden || []).filter(h => !old.some(k => h === "req:" + k));
-        S.requests = { ...keep, [r.id || r.name]: { ...r, at: Date.now() } }; done = true;
-        msg = `<div class="note" style="border-color:var(--good)">Read the request ${esc(r.name || "")}${r.npc ? ` from ${esc(r.npc)}` : ""}: ${r.need.length} items wanted.</div>`;
-      }
-    } else if (kind === "market") {
-      // The Farmer's Market: base prices = stack value / count. Needs My Inventory for the counts.
-      const m = parseMarket(text), n = Object.keys(m.items).length;
-      if (!n) msg = warn("No items with prices were found. Copy the whole Farmer's Market page and try again.");
-      else if (!S.inventory) { S.market = m.items; msg = warn("Market read. Paste My Inventory too: prices are worked out from your item counts."); done = true; }
-      else {
-        const got = marketPrices(m, Object.fromEntries(Object.entries(S.inventory.items).map(([k, v]) => [k, v.count])), S.inventory.cap);
-        S.prices = { ...(S.prices || {}), ...got }; S.pricesAt = Date.now(); delete S.market; done = true;
-        if (m.perks != null) S.perks.sellBonus = m.perks;
-        msg = `<div class="note" style="border-color:var(--good)">Base sell prices read for ${fmt(Object.keys(got).length)} of ${fmt(n)} items${m.perks != null ? `; sell perks ${m.perks}%` : ""}.</div>`;
-      }
-    } else if (kind === "building") {
-      // One building's own page: merge its output into production (players without the home-page output perk)
-      const b = parseBuilding(text), n = Object.keys(b.rates);
-      if (n.length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(b.rates) }; S.productionAt = Date.now(); }
-      if (b.cap && S.inventory) S.inventory.cap = b.cap;
-      if (b.capPerDay) S.perks.capPerDay = b.capPerDay;                  // for projecting the cap (Slow grinds)
-      done = true;
-      msg = `<div class="note" style="border-color:var(--good)">${b.buildings.length ? `Read the ${esc(b.buildings.join(", "))}: ${esc(n.join(", "))}.` : ""}${b.cap ? ` Inventory cap: ${fmt(b.cap)}${b.capPerDay ? `, +${fmt(b.capPerDay)} a day` : ""}.` : ""}</div>`;
-    } else if (kind === "orchard") {
-      const r = parseOrchard(text);
-      if (!Object.keys(r).length) msg = warn("No trees were found. Copy the whole Orchard page and try again.");
-      else S.orchard = Object.fromEntries(Object.entries(r).map(([n, v]) => [n, { production: v.production, trees: v.trees }]));
-      if (S.orchard) S.orchardAt = Date.now();
-      // The Steam app's Orchard page also carries the farm's building list: read that too
-      if (/Around Your Farm/i.test(text)) {
-        const f = parseFarm(text);
-        if (Object.keys(f).length) { S.production = { ...(S.production || {}), ...window.FRP.storeRates(f) }; if (f.plots && f.plots <= PLOT_SOFT_MAX && f.plots % 4 === 0) S.perks.plots = f.plots; if (f.capPerDay) S.perks.capPerDay = f.capPerDay; S.productionAt = Date.now(); }
-      }
-    } else if (kind === "quests") {
-      const all = parseQuests(text);
-      if (!all.length) msg = warn("No quests were found. Copy the whole Help Needed page and try again.");
-      else {
-        // The page replaces every quest, personal requests included (a player has 3-4 of those at most)
-        S.quests = all; S.questsAt = Date.now(); S.changes = []; S.stepsDone = [];
-        const cc = parseCommunity(text); if (cc) S.comm = { ...cc, day: gameDay(Date.now()) };   // the Checklist's Community Center lines
-        pruneRequests(all, new Set([...text.matchAll(/quest\.php\?id=(\d+)/g)].map(m => m[1])));
-      }
-    } else {
-      msg = warn("That isn't a page this planner reads. Open the game page, press Ctrl+A, then Ctrl+C, and paste again.");
-    }
+      return { msg, done };
+    };
+    // Read the other pages the copy carries first, quietly; the pasted page then has the last word and the only message
+    for (const k of carriedPages(text, kind)) read(k);
+    let { msg, done } = read(kind);
     const ok = !msg || done;
     if (JSON.stringify(S) !== before) {
       pushUndo(PAGE_NAME[kind] || "a page", before);
