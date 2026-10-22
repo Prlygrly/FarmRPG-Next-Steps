@@ -161,6 +161,7 @@ main[data-tab="best"] > section[data-tab="best"] { scroll-margin-top: 72px; }
 @media (min-width: 1100px) { main[data-tab="next"].grid-on { max-width: 1320px; } }
 #plan.list-on .bites { grid-template-columns: 1fr; }
 #quest-list .bites { margin-top: 8px; grid-template-columns: 1fr; }   /* one column, like the game's quest list */
+#quest-list .qfold { cursor: pointer; }                                  /* the title folds the entry */
 #bites { margin-top: 12px; }   /* room under the view buttons */
 [data-detail][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
 [data-view][aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); }
@@ -4034,7 +4035,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   }
 
   function renderQuests(p) {
-    const hidden = new Set(S.questHidden || []);
+    const hidden = new Set(S.questHidden || []), foldedQ = new Set(U.questFolded || []);
     const cards = questList().map(q => {
       const data = questData(q);
       if (!data) return { q, html: q.section === "personal"
@@ -4076,7 +4077,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         : `reward ~${pct(eff)} of cost${chainV >= 5 ? " (with next quests)" : ""}`;
       const nextNames = [];
       for (let nx = data.next, i = 0; nx && nx.length && i < 3; i++) { nextNames.push(esc(nx[0])); const d = QUESTS.quests[nx[0]]; if (!d) break; nx = d.next; }
-      const condensed = `<li><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${esc(q.name)}${tag}</strong>${btn}</div>
+      // The title folds the entry to this one line (remembered per quest on this device)
+      const shut = foldedQ.has(qkey(q));
+      const head = `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong class="qfold" data-qfold="${esc(qkey(q))}" role="button" tabindex="0" aria-expanded="${!shut}" title="${shut ? "Show" : "Fold"} this quest"><span class="muted small" aria-hidden="true">${shut ? "▸" : "▾"}</span> ${esc(q.name)}${tag}</strong>${btn}</div>`;
+      const condensed = shut ? `<li>${head}</li>` : `<li>${head}
         ${shortVerdict ? `<span class="small muted" style="display:block;margin:2px 0"><span class="tag${eff >= 0.5 || ready ? " ok" : ""}">${shortVerdict}</span></span>` : ""}
         ${ready ? `<span class="small"><b class="ok">Ready to turn in</b>${S.inventory ? (st ? `: uses ${st}` : "") : " (paste My Inventory to check)"}</span>`
           : `<ul class="bite-parts small">${questTodo(n).map(x => `<li>${x}</li>`).join("")}</ul>${st ? `<span class="small muted" style="display:block">Also uses ${st}</span>` : ""}`}
@@ -4089,7 +4093,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ["Needs", ready ? `<b class="ok">ready to turn in</b>${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}`), ...(st ? [`<span class="muted">then uses ${st}</span>`] : [])]],
         ["Where", ready ? null : questTodo({ ...n, levels: [] })],
         ["Next", ahead.length ? ahead.join(" → ") : null]]);
-      const html = U.detail === "expanded" ? `<li><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${esc(q.name)}${tag}</strong>${btn}</div>${xpQ}</li>` : condensed;
+      const html = U.detail === "expanded" ? `<li>${head}${shut ? "" : xpQ}</li>` : condensed;
       // Order: ready quests (most valuable first), then best share of cost returned; main quests get a 1.5x bump.
       // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
       const bump = q.kind === "main" ? 1.5 : 1;
@@ -4121,7 +4125,17 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const a = e.target.closest("[data-qsort]"); if (!a) return;
     e.preventDefault(); U.questSort = a.dataset.qsort; saveU(); render(false);
   });
+  const foldQuest = e => {
+    const f = e.target.closest("[data-qfold]"); if (!f) return false;
+    const k = f.dataset.qfold, set = new Set(U.questFolded || []);
+    set.has(k) ? set.delete(k) : set.add(k);
+    U.questFolded = [...set]; saveU(); render(false);
+    const back = [...document.querySelectorAll("#quest-list [data-qfold]")].find(x => x.dataset.qfold === k); if (back) back.focus();
+    return true;
+  };
+  $("quest-list").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-qfold]")) { e.preventDefault(); foldQuest(e); } });
   $("quest-list").addEventListener("click", e => {
+    if (foldQuest(e)) return;
     const h = e.target.dataset.qhide, s = e.target.dataset.qshow;
     if (h) S.questHidden = [...new Set([...(S.questHidden || []), h])];
     else if (s) S.questHidden = (S.questHidden || []).filter(x => x !== s);
