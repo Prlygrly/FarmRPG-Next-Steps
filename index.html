@@ -587,6 +587,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <details class="mono-hide" id="d-tower">
       <summary>Tower: what the next levels need</summary>
       <p class="small muted">Mega Mastery (MM) = 1,000,000 gathered. Grand Mastery (GM) = 100,000.</p>
+      <div class="row small muted" style="gap:12px;align-items:center;margin:0 0 6px">
+        <label>Show <select id="tower-range"><option value="10">next 10</option><option value="30">next 30</option><option value="50">next 50</option><option value="100">next 100</option><option value="all">all</option></select> levels</label>
+        <label><input type="checkbox" id="tower-akonly"> Hide levels that need only AK</label>
+      </div>
       <div class="table-wrap"><table id="t-tower"></table></div>
     </details>
 
@@ -2234,21 +2238,36 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     return e ? `, ${effortText(e)}` : "";
   };
 
+  // How many levels the table shows (U.towerRange: 10/30/50/100/all; the short list always looks 30 ahead), and
+  // whether runs of AK-only levels fold into one line. Totals still count every level.
   function renderTower(p, tp) {
-    let akLeft = p.ak, silverLeft = S.silver;
-    const rows = tp.levels.map(lv => {
+    const range = U.towerRange || "30", n = range === "all" ? Infinity : +range;
+    if (n !== 30) tp = towerPlan({ level: p.level, ak: p.ak, items: p.items, mmCount: p.mm }, TOWER, n === Infinity ? 1000 : n);
+    $("tower-range").value = range; $("tower-akonly").checked = !!U.towerHideAk;
+    let akLeft = p.ak, silverLeft = S.silver, run = null;
+    const rows = [];
+    const cells = (lv, needs, cost) => {
+      // Silver: what's still needed counting every level up to this one (just this level's cost if your silver isn't known)
+      const sil = !cost ? "" : silverLeft == null ? short(cost) : silverLeft >= 0 ? "Have it" : short(-silverLeft);
+      return `<tr><td class="num">${lv}</td><td>${needs}</td><td class="num ${akLeft >= 0 ? "ok" : "muted"}">${akLeft >= 0 ? "Have it" : fmt(-akLeft)}</td><td class="num ${silverLeft != null && silverLeft >= 0 ? "ok" : "muted"}">${sil}</td></tr>`;
+    };
+    const endRun = () => { if (run) rows.push(cells(run.from === run.to ? run.from : `${run.from}–${run.to}`, `<span class="ok">Only AK</span>`, run.cost)); run = null; };
+    for (const lv of tp.levels) {
+      const fold = !lv.unmet.length && U.towerHideAk;
+      if (!fold) endRun();                                   // a folded run shows its totals at its last level
       akLeft -= TOWER.akPerLevel;
       const cost = tSilver(lv.level);
       if (silverLeft != null) silverLeft -= cost;
-      const needs = lv.unmet.length
+      if (fold) { run = run ? { ...run, to: lv.level, cost: run.cost + cost } : { from: lv.level, to: lv.level, cost }; continue; }
+      rows.push(cells(lv.level, lv.unmet.length
         ? lv.unmet.map(u => u.kind === "mmCount" ? `${u.need} MMs of any item (have ${u.have})` : `${esc(u.item)} ${u.tier.toUpperCase()} <span class="muted">(${fmt(u.left)} left${itemEffort(u.item, u.left)})</span>`).join("<br>")
-        : `<span class="ok">Only AK</span>`;
-      // Silver: what's still needed counting every level up to this one (just this level's cost if your silver isn't known)
-      const sil = !cost ? "" : silverLeft == null ? short(cost) : silverLeft >= 0 ? "Have it" : short(-silverLeft);
-      return `<tr><td class="num">${lv.level}</td><td>${needs}</td><td class="num ${akLeft >= 0 ? "ok" : "muted"}">${akLeft >= 0 ? "Have it" : fmt(-akLeft)}</td><td class="num ${silverLeft != null && silverLeft >= 0 ? "ok" : "muted"}">${sil}</td></tr>`;
-    });
+        : `<span class="ok">Only AK</span>`, cost));
+    }
+    endRun();
     $("t-tower").innerHTML = `<thead><tr><th class="num">Level</th><th>Masteries still needed</th><th class="num">AK still needed (total)</th><th class="num">${S.silver != null ? "Silver still needed (total)" : "Silver"}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
   }
+  $("tower-range").addEventListener("change", e => { U.towerRange = e.target.value; saveU(); render(false); });
+  $("tower-akonly").addEventListener("change", e => { U.towerHideAk = e.target.checked; saveU(); render(false); });
 
   function renderAK(ap, akTarget) {
     const row = c => `<tr>
