@@ -67,6 +67,8 @@ with a source.
   the Truffle prompt then says the two prices are shared). Optional Reddit hint for notable days.
 - Place Info page paste: its "Things found here" list (on hand / cap) also updates those items' inventory counts,
   like the All Pet Items paste.
+- Animal buildings (Chicken Coop, Pasture, Pig Pen): read their pages, animal prices included, so Slow grinds' Maxed line
+  can price them. Waits on a Pig Pen copy after the next slaughter (with prices) and Coop / Pasture copies.
 - Friendship: read the Friendship Levels page (levels, gifts to the next level).
 - Parked: Grape Juices in days of the daily limit; Beets in cap-sized chunks per Grape Juice round.
 - Ideas: a plan-by-place view;

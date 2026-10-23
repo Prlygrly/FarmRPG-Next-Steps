@@ -57,7 +57,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   simulated day: awake 16 hours (the same for everyone) with Setup's checks spread evenly over them; drops past the cap
   void; after every drop the Craftworks runs its list in order (the pasted list, plus the crafts the grind needs if they're
   missing); at each check the player uses or sells the grind's item and tops every other ingredient back up to the cap,
-  and between checks only building drops add more. Without a recipe using it, a check uses what's on hand. The line gives
+  and between checks every building drop adds more (the grind's own parts and the other ingredients alike). Without a recipe using it, a check uses what's on hand. The line gives
   the upgrades to that amount, their silver (priced buildings; others "price not known") and the time now vs maxed, and
   ends "(assumes N crafted a day)": click to type your own number, clear it to go back. A number above the planner's
   says how often you'd have to check instead ("needs a check every ~2 h 17 min, not every 4 h"). Iron, and Nails with

@@ -3,10 +3,6 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
-- "Maxed" simulation: ingredients your buildings make (Boards, Feathers) also drop on their own schedule between checks,
-  on top of the top-up at each check (Iron, and Nails with Iron Depot, are always on hand). OK?
-- Building prices aren't known for the Chicken Coop, Pasture and other animal buildings (the Raptor Pen has none to buy) (the line says "price
-  not known"). If you ever want them, one building page's "At least N Silver needed" plus your current amount gives the rate.
 
 ## Waiting on data
 
