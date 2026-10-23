@@ -22,6 +22,7 @@ Read the relevant concept before changing game rules in the code.
 * [Cookies](mechanics/cookies.md) - x3 per cookie; never recommended
 * [Veggie Juice](mechanics/veggie-juice.md) - 20% off time left, recipe, the cycle
 * [Cooking](mechanics/cooking.md) - ovens, perks, stir/taste/season
+* [Pets](mechanics/pets.md) - items a day by level, level 3 and 6 unlocks, prices, the Owl's double Honey
 * [Craftworks](mechanics/craftworks.md) - automatic crafting in list order, chains, slots (never recommend buying)
 * [Wishing well](mechanics/wishing-well.md) - free tosses, odds, Compass loop
 * [Locked places](mechanics/locked-places.md) - level and item requirements
@@ -37,6 +38,7 @@ Read the relevant concept before changing game rules in the code.
 * [Tower requirements](data/tower.md) - named GM/MM per level
 * [Drop rates](data/drops.md) - explore and fishing rates per place
 * [Recipes](data/recipes.md) - craft and cook recipes and uses
+* [Pet items](data/pets.md) - each pet's items by unlock level
 * [Seeds](data/seeds.md) - growth time, crops per seed
 * [Quests](data/quests.md) - needs, rewards, chains
 * [Perks and Farm Supply](data/perks.md) - every perk, what stacks, how the pages copy
