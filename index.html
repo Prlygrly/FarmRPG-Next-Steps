@@ -267,6 +267,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 #app-settings { position: fixed; top: 0; right: 0; bottom: 0; width: min(400px, 100%); z-index: 40; background: var(--surface);
   border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.25); padding: 16px; overflow-y: auto; }
 #app-shade { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,.35); }
+#pets-dlg { width: min(460px, calc(100% - 32px)); max-height: calc(100% - 32px); border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: inherit; padding: 16px; }
+#pets-dlg::backdrop { background: rgba(0, 0, 0, .45); }
+#pets-dlg input { width: 4.5em; }
 #app-settings h3 { margin: 18px 0 6px; font-size: 1.05rem; }
 #app-settings .seg { display: flex; flex-wrap: wrap; gap: 4px; }
 #app-settings .seg button[aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--surface); font-weight: 700; }
@@ -554,6 +557,13 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       <p class="small muted">How you play. Hover or tap ⓘ for details.</p>
       <div class="row" id="general"></div>
     </details>
+    <p class="row small" style="align-items:center;gap:8px;margin:8px 0"><button type="button" id="pets-edit">Pet levels…</button> <span class="muted" id="pets-sum"></span></p>
+    <dialog id="pets-dlg" aria-labelledby="h-pets-dlg">
+      <h3 id="h-pets-dlg" style="margin-top:0">Pet levels</h3>
+      <p class="small muted" style="margin:0 0 8px">From your Pet Shop paste (names and levels, in the game's order) and All Pet Items (which pets you have). Type a level to fix one; 0 = you don't have it; clear it to go back to your pastes.</p>
+      <div class="table-wrap"><table id="pets-tbl"></table></div>
+      <p class="row" style="justify-content:space-between;margin:10px 0 0"><button type="button" id="pets-reset">Use my pastes for all</button> <button type="button" id="pets-close">Done</button></p>
+    </dialog>
     <details id="d-places">
       <summary>Places I can use</summary>
       <p class="small muted">Places you can use; ticked automatically from your pastes. <span class="tip" data-tip="A place counts as open once you've gathered at least half of the things found only there. Change any you like.&#10;Event places (like Apple Bobbing) start unticked: tick one while its event is on." aria-label="A place counts as open once you've gathered at least half of the things found only there. Change any you like. Event places (like Apple Bobbing) start unticked: tick one while its event is on." tabindex="0">ⓘ</span></p>
@@ -1078,6 +1088,44 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     save();
     render();
   });
+  // ---------- Pet levels ----------
+  // The My Pets list is always in this order and never says which pet is which (knowledge/mechanics/pets.md): a full list
+  // maps one to one; a shorter one maps onto the types that brought items (All Pet Items). S.petLevels holds your fixes.
+  const PET_ORDER = ["Cat", "Dog", "Squirrel", "Owl", "Swine", "Snake", "Lemur", "Baboon", "Frog", "Hedgehog", "Fox", "Armadillo", "Spider",
+    "Pet Rock", "Bird", "Penguin", "Green Dragon", "Red Dragon", "Blue Dragon", "Bear", "Capybara", "Strange Onion", "Seal", "Critter", "Miner",
+    "Polar Bear", "Hummingbird", "Shark", "Wolf"];
+  function petLevels() {
+    const shop = (S.petShop && S.petShop.pets) || [], fromPaste = {}, names = {};
+    let owned = PET_ORDER;
+    if (shop.length !== PET_ORDER.length) {
+      const seen = new Set(Object.values((S.pets && S.pets.items) || {}).flatMap(v => Object.keys(v.from || {})));
+      owned = PET_ORDER.filter(p => seen.has(p));
+    }
+    if (owned.length === shop.length) owned.forEach((p, i) => { fromPaste[p] = shop[i].level; names[p] = shop[i].name; });
+    const fixed = S.petLevels || {}, level = {};
+    for (const p of PET_ORDER) { const v = p in fixed ? fixed[p] : fromPaste[p]; if (v > 0) level[p] = v; }
+    return { level, fromPaste, names, fixed, mapped: owned.length === shop.length && shop.length > 0 };
+  }
+  function renderPetLevels() {
+    const pl = petLevels(), n = Object.keys(pl.level).length;
+    $("pets-sum").textContent = n ? `${n} pets${Object.keys(pl.fixed).length ? ", some set by you" : ""}` : S.petShop && !pl.mapped ? "Paste All Pet Items too, or set them here" : "Paste the Pet Shop page, or set them here";
+    if (!$("pets-dlg").open) return;
+    $("pets-tbl").innerHTML = `<thead><tr><th>Pet</th><th>Your name for it</th><th class="num">Level</th></tr></thead><tbody>${PET_ORDER.map(p => {
+      const mine = p in pl.fixed;
+      return `<tr><td>${esc(p)}</td><td class="small muted">${esc(pl.names[p] || "")}</td><td class="num"><input type="number" min="0" max="99" data-pet="${esc(p)}" value="${mine ? pl.fixed[p] : pl.fromPaste[p] ?? ""}" placeholder="${pl.fromPaste[p] ?? "–"}" aria-label="${esc(p)} level">${mine ? ` <span class="small muted">yours</span>` : ""}</td></tr>`;
+    }).join("")}</tbody>`;
+  }
+  $("pets-edit").addEventListener("click", () => { $("pets-dlg").showModal(); renderPetLevels(); });
+  $("pets-close").addEventListener("click", () => $("pets-dlg").close());
+  $("pets-dlg").addEventListener("close", () => render(false));
+  $("pets-reset").addEventListener("click", () => { delete S.petLevels; save(); renderPetLevels(); });
+  $("pets-tbl").addEventListener("change", e => {
+    const p = e.target.dataset.pet; if (!p) return;
+    const v = e.target.value.trim(), m = { ...(S.petLevels || {}) }, paste = petLevels().fromPaste[p];
+    if (v === "" || +v === paste) delete m[p]; else m[p] = Math.max(0, Math.min(99, Math.round(+v) || 0));
+    S.petLevels = m; save(); renderPetLevels();
+  });
+
   // ---------- Undo a paste ----------
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
@@ -1347,7 +1395,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const p = player();
     VJ_CUT = vjCut(p);
     PIG = { batch: S.perks.maxSlaughter ?? 16, at: Math.max(5, S.perks.pigAt || 6), xpPerDay: 1000 + (S.perks.animalLover ? 350 : 0) + ((p.level || 0) >= 40 ? 500 : 0) };
-    renderLoaded(p);
+    renderLoaded(p); renderPetLevels();
     renderChanges();
     renderTruffleStrip();
     renderPigStrip();

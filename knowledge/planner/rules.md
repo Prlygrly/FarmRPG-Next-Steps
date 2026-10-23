@@ -63,6 +63,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   says how often you'd have to check instead ("needs a check every ~2 h 17 min, not every 4 h"). Iron, and Nails with
   Iron Depot, are always on hand. No line for a building's own item (production past the cap still counts for it). Grapes keep their own
   line; Orchard fruit and Antlers top out by their noon bonus. Never recommends buying Craftworks slots.[^player]
+- Pet levels: Setup › Your settings › "Pet levels…" lists every pet in the game's order with the level from your pastes
+  (Pet Shop for names and levels, All Pet Items for which pets you have when the list isn't complete). Type to fix one,
+  0 = you don't have it, clear to go back to the pastes (S.petLevels).[^player]
 - Spend my… quests: what to gather or craft, and for which quest. A crafted item counts by how many the trip's parts make
   ("craft 500 Mushroom Paste"; "with farm parts" when it also needs production). Only what fits under your cap counts: an
   item at the cap is never suggested, nor a later step while the earlier steps already need a full inventory of it.[^player]
