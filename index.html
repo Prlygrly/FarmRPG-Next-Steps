@@ -655,7 +655,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       <h2 id="h-quests" style="margin:0">Quests</h2>
       <label class="small muted">Show one: <select id="quest-pick-in" style="max-width:14em" aria-label="Show one quest's next steps"></select></label>
     </div>
-    <div id="quest-pick" hidden><ul class="mono-list" id="quest-pick-list" style="border-bottom:1px solid var(--line);margin-bottom:8px"></ul></div>
+    <div id="quest-pick" hidden style="border-bottom:1px solid var(--line);margin-bottom:8px;padding-bottom:4px"></div>
     <p class="mono-hide small muted">From your Help Needed and request pastes. Hidden quests move to the bottom. <span class="tip" data-tip="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." aria-label="What's still needed compares each quest with your My Inventory paste. Costs use the same rules as Do these next." tabindex="0">ⓘ</span></p>
     <p class="mono-hide small muted" id="quest-sort" style="margin:0 0 6px"></p>
     <div class="mono-hide" id="quest-list"></div>
@@ -4110,26 +4110,26 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       for (let nx = data.next, i = 0; nx && nx.length && i < 3; i++) { nextNames.push(esc(nx[0])); const d = QUESTS.quests[nx[0]]; if (!d) break; nx = d.next; }
       // The title folds the entry to this one line (remembered per quest on this device)
       const shut = foldedQ.has(qkey(q));
-      const head = `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong class="qfold" data-qfold="${esc(qkey(q))}" role="button" tabindex="0" aria-expanded="${!shut}" title="${shut ? "Show" : "Fold"} this quest"><span class="muted small" aria-hidden="true">${shut ? "▸" : "▾"}</span> ${esc(q.name)}${tag}</strong>${btn}</div>`;
-      const condensed = shut ? `<li>${head}</li>` : `<li>${head}
+      const head = (shut, fold = true) => `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong${fold ? ` class="qfold" data-qfold="${esc(qkey(q))}" role="button" tabindex="0" aria-expanded="${!shut}" title="${shut ? "Show" : "Fold"} this quest"><span class="muted small" aria-hidden="true">${shut ? "▸" : "▾"}</span> ` : ">"}${esc(q.name)}${tag}</strong>${btn}</div>`;
+      const condensed = `
         ${shortVerdict ? `<span class="small muted" style="display:block;margin:2px 0"><span class="tag${eff >= 0.5 || ready ? " ok" : ""}">${shortVerdict}</span></span>` : ""}
         ${ready ? `<span class="small"><b class="ok">Ready to turn in</b>${S.inventory ? (st ? `: uses ${st}` : "") : " (paste My Inventory to check)"}</span>`
           : `<ul class="bite-parts small">${questTodo(n).map(x => `<li>${x}</li>`).join("")}</ul>${st ? `<span class="small muted" style="display:block">Also uses ${st}</span>` : ""}`}
         <span class="small muted" style="display:block">Reward: ${rewardShort(data, p)}</span>
-        ${nextNames.length ? `<span class="small muted" style="display:block">Next: ${nextNames[0]}</span>` : ""}</li>`;
+        ${nextNames.length ? `<span class="small muted" style="display:block">Next: ${nextNames[0]}</span>` : ""}`;
       const xpQ = xpList([
         ["Why", `${verdict ? verdict + " " : ""}${rewardText(data, p)}${val.special.length ? ` <span class="muted">(can't value: ${val.special.slice(0, 3).map(esc).join(", ")}${val.special.length > 3 ? "…" : ""})</span>` : ""}`],
         ["Craft first", ready ? null : craftOrder(n.missing).filter(c => c.first).map(c => `~${short(c.qty)} ${esc(c.item)}`).join(", ") || null],
-        ["Cost", ready ? null : n.cost || Object.keys(n.passive).length ? [passiveText(n.passive), placeMix(n.byPlace, 3, n.forWhat)].filter(Boolean).join(" + ") : n.uncosted.length ? `<span class="muted">can't cost ${n.uncosted.map(esc).join(", ")}</span>` : null],
         ["Needs", ready ? `<b class="ok">ready to turn in</b>${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}`), ...(st ? [`<span class="muted">then uses ${st}</span>`] : [])]],
         ["Where", ready ? null : questTodo({ ...n, levels: [] })],
         ["Next", ahead.length ? ahead.join(" → ") : null]]);
-      const html = U.detail === "expanded" ? `<li>${head}${shut ? "" : xpQ}</li>` : condensed;
+      const body = U.detail === "expanded" ? xpQ : condensed;
+      const html = `<li>${head(shut)}${shut ? "" : body}</li>`, open = `<li>${head(false, false)}${body}</li>`;   // open: never folded (Show one)
       // Order: ready quests (most valuable first), then best share of cost returned; main quests get a 1.5x bump.
       // Little-value, can't-cost and level-locked quests follow; hidden at the bottom.
       const bump = q.kind === "main" ? 1.5 : 1;
       const rank = hidden.has(qkey(q)) ? 8 : unknown ? 4 : little ? 3 : ready ? 0 : 2;
-      return { q, html, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump, ready, cost: n.cost, need: n };
+      return { q, html, open, rank, days: days ?? 999, score: (ready && !n.stockCost ? val.value : eff) * bump, ready, cost: n.cost, need: n };
     }).sort((a, b) => a.rank - b.rank || b.score - a.score);
     // Sort: best value (default), deadline (specials ending soonest), closest to done (fewest AP); hidden stay last
     const qsorts = { value: "best value", deadline: "deadline", closest: "closest to done" }, qs = qsorts[U.questSort] ? U.questSort : "value";
@@ -4157,8 +4157,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       $("quest-pick-in").parentElement.hidden = !pickable.length;
       const t = pc && questTarget(pc.q, pc.need), x = t && stepsFor(t)[0];
       const label = pc ? `Your pick · ${esc(pc.q.name)}${pc.q.npc ? ` (${esc(pc.q.npc)})` : ""}${pc.days <= 7 ? `, ${endsText(pc.days)}` : ""}` : "";
-      $("quest-pick-list").innerHTML = !pc ? "" : !x ? monoLi(label, pc.rank === 4 ? "Can't cost this quest yet" : "Nothing left to do")
-        : monoStep(label, t, x, pc.need.missing.length ? `<p style="margin:4px 0 0">Still needs ${pc.need.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}.</p>` : "");
+      // Monotask: its next step only; Condensed and Expanded: its whole entry, as in the list (never folded)
+      $("quest-pick").innerHTML = !pc ? "" : !mono() ? `<span class="small muted">Your pick</span><ol class="bites${U.detail === "expanded" ? " wordy" : ""}" style="margin-top:2px">${pc.open}</ol>`
+        : `<ul class="mono-list">${!x ? monoLi(label, pc.rank === 4 ? "Can't cost this quest yet" : "Nothing left to do")
+        : monoStep(label, t, x, pc.need.missing.length ? `<p style="margin:4px 0 0">Still needs ${pc.need.missing.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}.</p>` : "")}</ul>`;
       $("quest-pick").hidden = !pc;
     }
     const vis = cards.filter(c => c.rank < 8), hid = cards.filter(c => c.rank === 8);
@@ -4180,14 +4182,16 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     return true;
   };
   $("quest-list").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-qfold]")) { e.preventDefault(); foldQuest(e); } });
-  $("quest-list").addEventListener("click", e => {
+  const questClick = e => {
     if (foldQuest(e)) return;
     const h = e.target.dataset.qhide, s = e.target.dataset.qshow;
     if (h) S.questHidden = [...new Set([...(S.questHidden || []), h])];
     else if (s) S.questHidden = (S.questHidden || []).filter(x => x !== s);
     else return;
     save(); render(false);
-  });
+  };
+  $("quest-list").addEventListener("click", questClick);
+  $("quest-pick").addEventListener("click", questClick);
 
   // ---------- Save codes ----------
   // A save code is S as compressed JSON in text: "FRP1." compressed, "FRP0." not.
