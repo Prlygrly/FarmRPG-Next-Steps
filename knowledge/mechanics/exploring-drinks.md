@@ -17,6 +17,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-11T22:00:00Z }
 - **Exploring Effectiveness (EE)** is per place (bought from that place's townsfolk on its Info page; each upgrade
   costs 10x the last). Each point means one more explore per tap; the item find chance per explore stays the same.
   The Info page states it as "You are currently using N stamina every time you continue exploring this location": N = EE.[^wiki-ee][^player]
+- The Info page's "Things found here" list shows each item as **on hand / inventory cap** ("Candy 4,510 / 11,788"),
+  not drops or explores. The drop rates come from buddy.farm.[^player]
 - Protein Bars add EE without raising the next upgrade's price: 3 per place free (plus the bar), then 25, 50, 75... Gold each.[^wiki-ee]
 - Sprint Shoes I-III double the EE gained from upgrades (x2, x4, x8); an EE of 1 isn't affected.[^wiki-ee]
 - **Apple Cider** explores 1,000 + 10 x EE times (1,010 with no upgrades). Cinnamon Sticks x1.25 (12.5 per EE point,
