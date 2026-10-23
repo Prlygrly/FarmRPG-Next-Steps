@@ -2504,26 +2504,24 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   $("best-amt").addEventListener("change", () => { S.best = { ...(S.best || {}), unit: $("best-unit").value, amount: +$("best-amt").value || null }; save(); render(false); });
   // What spending here does for your quests. Needs add up down a chain (quest 3 needs quest 1 and 2's items too).
   function questHelp(yields) {
-    const onHand = O ? O.onHand : {}, hidden = new Set(S.questHidden || []), seen = new Set(), out = [];
-    // A crafted (or cooked) item's gathered parts on its cheapest route, less what's on hand: f = the average share of
-    // them this trip brings; done = every part covered and no wait on production; share = how much of the trip it takes.
-    // null when the item isn't crafted.
+    const onHand = O ? O.onHand : {}, cap = O ? O.cap : Infinity, hidden = new Set(S.questHidden || []), seen = new Set(), out = [];
+    // A crafted (or cooked) item's gathered parts on its cheapest route, less what's on hand: make = how many of `miss` the
+    // trip's parts let you craft (the scarcest part decides); waits = it also needs farm production you don't have yet;
+    // share = how much of the trip it takes. null when the item isn't crafted or every part is already on hand.
     const partsFor = (item, miss) => {
       const e = C && C.effort(item, miss);
       if (!e || (e.how !== "craft" && e.how !== "cook")) return null;
       const need = {};
       for (const its of Object.values(e.forWhat || {})) for (const [n, q] of Object.entries(its)) need[n] = (need[n] || 0) + q;
       const waits = Object.entries(e.passive || {}).some(([n, q]) => q - (onHand[n] || 0) >= 0.5);
-      const covs = [];
-      let share = 0;
+      let cov = Infinity, share = 0;
       for (const [n, q] of Object.entries(need)) {
         const lack = q - (onHand[n] || 0); if (lack < 0.5) continue;
         const got = yields[n] || 0;
-        covs.push(Math.min(1, got / lack)); if (got > 0) share = Math.max(share, lack / got);
+        cov = Math.min(cov, got / lack); if (got > 0) share = Math.max(share, lack / got);
       }
-      if (!covs.length) return null;                                  // all parts on hand: it's a craft, not a trip
-      const f = covs.reduce((s, c) => s + c, 0) / covs.length;
-      return { f, done: !waits && covs.every(c => c >= 0.99), share };
+      if (cov === Infinity) return null;
+      return { make: Math.floor(miss * Math.min(1, cov) + 0.5), waits, share };
     };
     for (const q of S.quests || []) {
       if (hidden.has(q.name) || q.section === "personal") continue;
@@ -2536,16 +2534,20 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         let helps = false, done = true, share = 0;
         for (const [item, need] of d.need) {
           tally[item] = (tally[item] || 0) + need;
-          const miss = Math.max(0, tally[item] - (onHand[item] || 0));
-          if (!miss) continue;
+          const lacking = Math.max(0, tally[item] - (onHand[item] || 0));
+          if (!lacking) continue;
+          // Only what fits: an item at your cap can't get closer this way, nor a later step while the earlier ones already
+          // need a full inventory of it (hand those in first)
+          const miss = tally[item] - need >= cap ? 0 : Math.min(lacking, Math.max(0, cap - (onHand[item] || 0)));
+          if (miss < lacking) done = false;
+          if (miss < 1) { fracs.push(0); continue; }
           const got = yields[item] || 0, enough = got >= miss - 0.5, cov = enough ? miss : got;     // drops are averages: half an item short is enough
-          // Crafted (or cooked) and not dropped here: count the raw parts the trip brings
+          // Crafted (or cooked) and not dropped here: what the trip's parts let you craft
           const parts = got < 1 && partsFor(item, miss);
-          if (parts && parts.f > 0) {
-            fracs.push(parts.f); helps = true;
-            bits.push(parts.done ? `parts for all ${short(miss)} ${esc(item)}` : parts.f >= 0.99 ? `gathered parts for all ${short(miss)} ${esc(item)}, the rest from your farm`
-              : `${pct(parts.f)} of the parts for ${short(miss)} ${esc(item)}`);
-            if (!parts.done) done = false; else share = Math.max(share, parts.share);
+          if (parts) {
+            fracs.push(parts.make / miss);
+            if (parts.make >= 1) { helps = true; bits.push(`craft ${parts.make >= miss ? "" : "~"}${short(parts.make)}${parts.make >= miss ? "" : ` of ${short(miss)}`} ${esc(item)}${parts.waits ? " (with farm parts)" : ""}`); }
+            if (parts.make < miss || parts.waits) done = false; else share = Math.max(share, parts.share);
             continue;
           }
           fracs.push(cov / miss);

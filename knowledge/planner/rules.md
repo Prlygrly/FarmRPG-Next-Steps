@@ -53,8 +53,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   device.[^player]
 - Tower table: shows the next 30 levels by default (10 / 30 / 50 / 100 / all to choose); "Hide levels that need only AK"
   folds each run of them into one line ("228–234: only AK") so the AK and silver totals still add up.[^player]
-- Spend my… counts crafted quest items by their gathered parts (cheapest route, less what's on hand): "parts for all 500
-  Mushroom Paste"; a quest counts as finished only when every part is covered and nothing waits on farm production.[^player]
+- Spend my… quests: what to gather or craft, and for which quest. A crafted item counts by how many the trip's parts make
+  ("craft 500 Mushroom Paste"; "with farm parts" when it also needs production). Only what fits under your cap counts: an
+  item at the cap is never suggested, nor a later step while the earlier steps already need a full inventory of it.[^player]
 - Layout: Grid = tiles side by side on wide screens (default), List = one column; it applies to Next steps in every Detail
   setting and to Monotask items on every tab.[^player]
 - "I do personal requests every day" (General settings): personal requests count as ending today, so they go first in Do
