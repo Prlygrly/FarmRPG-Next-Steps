@@ -53,6 +53,10 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   device.[^player]
 - Tower table: shows the next 30 levels by default (10 / 30 / 50 / 100 / all to choose); "Hide levels that need only AK"
   folds each run of them into one line ("228–234: only AK") so the AK and silver totals still add up.[^player]
+- Slow grinds, "Maxed" line: when a building limits a grind, raise each building part to one full drop between your
+  collections (cap / hours between them, at today's cap; more only voids) and give the upgrades, their silver (priced
+  buildings; others say "price not known") and the time now vs maxed. Grapes keep their own line; Orchard fruit and
+  Antlers top out by their noon bonus. Shown only when it makes the grind faster.[^player]
 - Spend my… quests: what to gather or craft, and for which quest. A crafted item counts by how many the trip's parts make
   ("craft 500 Mushroom Paste"; "with farm parts" when it also needs production). Only what fits under your cap counts: an
   item at the cap is never suggested, nor a later step while the earlier steps already need a full inventory of it.[^player]

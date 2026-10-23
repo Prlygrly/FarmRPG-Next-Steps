@@ -2929,6 +2929,28 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       r.grapes = { now: r.days, cost: window.UPGRADES.upgradeCost("Grapes", Math.round(gDay), capNow), daily: capUp ? window.UPGRADES.upgradeCost("Grapes", capNow, capNow + capUp) : 0 };
       r.days = t.days;
     }
+    // Maxed buildings: past one full drop between collections (cap / hours between them) more production only voids, so
+    // raise each priced building part to that, at today's cap. One line: the upgrades, their silver, the time now vs then.
+    if (capNow !== Infinity) {
+      const env0 = grindEnv(), gap = env0.gap || 1, U2 = window.UPGRADES, P = prod();
+      for (const r of rows) {
+        if (!(r.days > 0 && r.days !== Infinity)) continue;
+        const ups = [];
+        for (const x of r.parts) {
+          // Grapes have their own line; Orchard fruit and Antlers top out by their noon bonus (noonNote)
+          if (x.kind !== "prod" || x.item === "Grapes" || x.item === "Antler" || (S.orchard || {})[x.item] || perDay[x.item] === Infinity || !(x.days > 0) || !(P[x.item] > 0)) continue;
+          const u = U2.UPGRADES[x.item], g = Math.max(F.DROP_HOURS[x.item] || 1, gap), maxHr = capNow / g, nowHr = P[x.item];
+          if (nowHr >= maxHr * 0.999) continue;
+          const unit = u ? u.per : F.DROP_HOURS[x.item] >= 24 ? "day" : "hour", per = U2.PER_HOURS[unit] || 1, from = Math.round(nowHr * per), to = Math.ceil(maxHr * per);
+          ups.push({ item: x.item, maxHr, from, to, per: unit, cost: u ? U2.upgradeCost(x.item, from, to) : null });
+        }
+        if (!ups.length) continue;
+        const prod2 = { ...P }, pd2 = { ...perDay };
+        for (const x of ups) { prod2[x.item] = x.maxHr; pd2[x.item] = capNow * 24 / Math.max(F.DROP_HOURS[x.item] || 1, gap); }
+        const t = F.grindTime(r.item, r.left, { coster: C, perDay: pd2, budget, growth: { ...growth, env: { ...env0, production: prod2 }, cache: {} }, craftToo: CRAFT_TOO });
+        if (t && t.days != null && t.days < r.days * 0.99) r.maxed = { ups, days: t.days, cost: ups.reduce((s, x) => s + (x.cost || 0), 0), unpriced: ups.filter(x => x.cost == null).map(x => BUILDING[x.item] || x.item) };
+      }
+    }
     // Where to go. Drinks and nets can be bought, so they're never the limit: when the time comes from gathering, the limit is
     // the item gathered most (Salt Rock), as AP at its place. Else a slow production part you can also gather, and its cost
     // per 1,000. Bought parts (Iron) never count.
@@ -2997,6 +3019,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
       if (r.grapes) lines.splice(1, 0, `Grapes kept at your cap: raise them from ${fmt(Math.round(gDay))} to ${fmt(capNow)} a day for ~${short(r.grapes.cost)} silver${
         r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
+      if (r.maxed) lines.push(`Maxed (each drop fills your cap): ${r.maxed.ups.map(x => `${esc(x.item)} ${fmt(x.from)} → ${fmt(x.to)} ${({ day: "a day", hour: "an hour" })[x.per] || "per " + x.per}`).join(", ")}; ${[r.maxed.cost ? `~${short(r.maxed.cost)} silver` : "", r.maxed.unpriced.length ? `${r.maxed.unpriced.map(esc).join(", ")}: price not known` : ""].filter(Boolean).join(" + ")}; ~${longText(r.maxed.days)} instead of ~${longText(r.days)}`);
       if (r.gather) lines.push(r.gather.per == null ? `${esc(r.gather.item)}: ${short(r.gather.qty)} needed, ~${short(r.gather.amount)} ${UNIT_SHORT[r.gather.unit]} at <b>${esc(r.gather.loc)}</b>`
         : `Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;
