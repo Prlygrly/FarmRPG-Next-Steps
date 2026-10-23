@@ -22,6 +22,7 @@ Read the relevant concept before changing game rules in the code.
 * [Cookies](mechanics/cookies.md) - x3 per cookie; never recommended
 * [Veggie Juice](mechanics/veggie-juice.md) - 20% off time left, recipe, the cycle
 * [Cooking](mechanics/cooking.md) - ovens, perks, stir/taste/season
+* [Craftworks](mechanics/craftworks.md) - automatic crafting in list order, chains, slots (never recommend buying)
 * [Wishing well](mechanics/wishing-well.md) - free tosses, odds, Compass loop
 * [Locked places](mechanics/locked-places.md) - level and item requirements
 * [Super rares and runestones](mechanics/rare-drops.md) - very rare drops and secondary sources

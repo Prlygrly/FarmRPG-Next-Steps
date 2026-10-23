@@ -400,6 +400,20 @@
 
   // Temple of Reward: each chain is "Reward / Sacrifice: Item / a / b Rewards Claimed / x / y Items Sacrificed", plus
   // "ONE-TIME TEMPLE CHAIN" for event chains. Finished chains are left out. [{ reward, item, done, total, oneTime }]
+  // Craftworks page: the recipes in the order they run ("1 / Twine / pauseRemove"; a paused one shows "play" instead of
+  // "pause") and the slot count ("You can add up to 13 items total"). { items: [{ name, paused }], slots }
+  function parseCraftworks(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), items = [];
+    const at = lines.findIndex(l => /Craftworks Items \(\d+\)$/i.test(l));
+    if (at < 0) return null;
+    for (let k = at + 1; k < lines.length - 2; k++) {
+      if (/^Save Item Set$/i.test(lines[k])) break;
+      if (/^\d+$/.test(lines[k]) && /Remove$/i.test(lines[k + 2])) { items.push({ name: lines[k + 1], paused: /^play/i.test(lines[k + 2]) }); k += 2; }
+    }
+    const s = String(text).match(/add up to ([\d,]+) items total/i);
+    return { items, slots: s ? toInt(s[1]) : null };
+  }
+
   function parseTemple(text) {
     const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = [];
     lines.forEach((l, k) => {
@@ -544,6 +558,7 @@
     if (/About the Pig Pen/i.test(text) && /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(text)) return "pigpen";   // before the farm: it carries the farm list
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
+    if (/Items added to the Craftworks will be crafted automatically/i.test(text) && /Craftworks Items \(\d+\)/i.test(text)) return "craftworks";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
     if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
@@ -611,7 +626,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseCraftworks: noChat(parseCraftworks), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

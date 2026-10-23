@@ -288,3 +288,12 @@ console.log("parse tests passed");
   assert.deepStrictEqual(carriedPages("Sacrifice: Potato", "town"), []);                // no Temple without its own heading
   assert.deepStrictEqual(carriedPages("Active Requests", "quests"), []);
 }
+
+// Craftworks page: recipes in order, paused ones marked, slot count
+{
+  const { parseCraftworks, detectPage } = require("../parse.js"), nl = "\n";
+  const t = ["Items added to the Craftworks will be crafted automatically anytime the resources are available in the order you set below. You can add up to 13 items total to the Craftworks.",
+    "[Adjust Order](https://x/#)Craftworks Items (3)", "[play Play Allpause Pause Alltrash Remove All](https://x/#)", "* 1", "Twine", "pauseRemove", "* 2", "Rope", "playRemove", "* 3", "Coal Thing", "pauseRemove", "Save Item Set"].join(nl);
+  assert.strictEqual(detectPage(t), "craftworks");
+  assert.deepStrictEqual(parseCraftworks(t), { items: [{ name: "Twine", paused: false }, { name: "Rope", paused: true }, { name: "Coal Thing", paused: false }], slots: 13 });
+}
