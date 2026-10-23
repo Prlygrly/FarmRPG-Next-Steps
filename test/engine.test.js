@@ -409,3 +409,12 @@ console.log("engine tests passed");
   assert.deepStrictEqual([d["Frost Snapper Shell"], d.Honey, d.Feathers, d["Blue Feathers"], d["Striped Feather"]], [16, 28, 12, undefined, undefined]);
   assert.strictEqual(PETS.ORDER.length, 29);
 }
+
+// Only dropped at an event place, but craftable (Yarn: 4 Twine): not seasonal once recipes are known
+{
+  const { seasonNote } = require("../engine.js");
+  const drops = { items: { Yarn: { drops: { "Santa's Workshop": {} } } } };
+  const where = { month: 10, seasons: { items: [], locs: { "Santa's Workshop": [12] } }, places: {} };
+  assert.deepStrictEqual(seasonNote("Yarn", drops, where), [12]);
+  assert.strictEqual(seasonNote("Yarn", drops, { ...where, recipes: { items: { Yarn: { recipe: [["Twine", 4]] } } } }), null);
+}

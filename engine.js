@@ -287,12 +287,15 @@
     const m = where.seasons && where.seasons.locs[loc];
     return !m || m.includes(where.month);
   }
-  // Months an item comes back, if it can't be gathered right now because of the season; else null
+  // Months an item comes back, if it can't be gathered right now because of the season; else null. An item that only
+  // drops at event places but has a recipe (Yarn: 4 Twine) can be crafted any month (where.recipes), so it isn't seasonal.
   function seasonNote(item, drops, where) {
     const own = itemMonths(item, where.seasons);
     if (own) return own.includes(where.month) ? null : own;
     const it = drops && drops.items[item];
     if (!it) return null;
+    const r = where.recipes && where.recipes.items[item];
+    if (r && r.recipe) return null;
     const locs = Object.keys(it.drops);
     if (locs.some(l => locOpen(l, where) || !(where.seasons.locs[l]))) return null;
     return [...new Set(locs.flatMap(l => where.seasons.locs[l] || []))].sort((a, b) => a - b);

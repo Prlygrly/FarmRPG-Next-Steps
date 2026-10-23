@@ -1502,7 +1502,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     // Trip places cost less: a 50% trip discount makes their costs count at half
     const discount = {};
     for (const t of S.trips || []) discount[t.loc] = 1 - (S.perks.tripDiscount ?? 50) / 100;
-    return { month: new Date().getMonth() + 1, seasons: SEASONS, places, auto, discount };
+    return { month: new Date().getMonth() + 1, seasons: SEASONS, places, auto, discount, recipes: RECIPES };
   }
   function renderPlaces() {
     const group = type => Object.keys(DROPS.locs).filter(l => DROPS.locs[l].type === type).sort().map(l => {
