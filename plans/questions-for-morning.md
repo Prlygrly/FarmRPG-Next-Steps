@@ -1,4 +1,4 @@
-# Open questions for the player (updated 2026-10-21)
+# Open questions for the player (updated 2026-10-22)
 
 Answered questions are removed; their answers live in knowledge/.
 
