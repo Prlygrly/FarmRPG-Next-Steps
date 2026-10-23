@@ -515,7 +515,29 @@
     }
     for (const [u, v] of Object.entries(e.byUnit || {})) {
       const b = (ctx.budget || {})[u];
-      if (b > 0) parts.push({ item: u, kind: u, need: v, days: v / b }); else untimed.push({ unit: u, need: v });
+      if (!(b > 0)) { untimed.push({ unit: u, need: v }); continue; }
+      // Pets also bring some of what's gathered (ctx.petGathered: { item: per day }, the Seal's Frost Snapper Shells):
+      // each day the budget gathers and the pets add theirs, so days = need / (budget + pets' items x their cost each),
+      // until the pets alone cover an item (then it drops out of the gathering)
+      const pets = [];
+      for (const [k, its] of Object.entries(e.forWhat || {})) {
+        if (!k.startsWith(u + "|")) continue;
+        for (const [n, q] of Object.entries(its)) {
+          const r = (ctx.petGathered || {})[n], c = r > 0 && ((ctx.coster.effort(n, 1) || {}).byUnit || {})[u];
+          if (!(c > 0)) continue;
+          const p = pets.find(x => x.item === n);
+          if (p) p.qty += q; else pets.push({ item: n, qty: q, r, c });
+        }
+      }
+      let days = v / b, need = v;
+      for (let i = 0; i <= pets.length && pets.length; i++) {
+        const open = pets.filter(x => !x.covered);
+        days = need / (b + open.reduce((s, x) => s + x.r * x.c, 0));
+        const done = open.filter(x => x.r * days >= x.qty);
+        if (!done.length) break;
+        for (const x of done) { x.covered = true; need -= x.qty * x.c; }
+      }
+      parts.push({ item: u, kind: u, need: v, days: Math.max(0, days), pets: pets.map(x => ({ item: x.item, perDay: x.r })) });
     }
     let bottleneck = parts.reduce((a, x) => (!a || x.days > a.days ? x : a), null);
     if (bottleneck && bottleneck.kind === "prod" && (ctx.craftToo || []).includes(bottleneck.item)) bottleneck = craftTopUp(bottleneck, parts, ctx) || bottleneck;

@@ -66,6 +66,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Pet levels: Setup › Your settings › "Pet levels…" lists every pet in the game's order with the level from your pastes
   (Pet Shop for names and levels, All Pet Items for which pets you have when the list isn't complete). Type to fix one,
   0 = you don't have it, clear to go back to the pastes (S.petLevels).[^player]
+- Pet items count as daily production (from the pet levels; seasonal pets left out): added to a building's own output
+  (Feathers) or as production when nothing else makes them. Items you also gather (the Seal's Frost Snapper Shell) stay
+  gathered, and Slow grinds add the pets' share on top: days = need / (daily gathering + pets' items a day).[^player]
 - Spend my… quests: what to gather or craft, and for which quest. A crafted item counts by how many the trip's parts make
   ("craft 500 Mushroom Paste"; "with farm parts" when it also needs production). Only what fits under your cap counts: an
   item at the cap is never suggested, nor a later step while the earlier steps already need a full inventory of it.[^player]

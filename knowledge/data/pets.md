@@ -2,6 +2,7 @@
 type: Dataset
 title: "Pet items"
 description: "Each pet's 12 items: four from level 1, four more from level 3, four more from level 6 (hand-kept)."
+resource: ../../pets.js
 tags: [data, pets]
 sources:
   - id: origin
@@ -48,6 +49,6 @@ Miner pet isn't in this list yet.[^origin]
 
 # Refresh
 
-Hand-kept: edit as the game or the Library changes.
+Hand-kept: edit pets.js (and this table) as the game or the Library changes.
 
 [^origin]: FarmRPG Library: Long Pet Shop

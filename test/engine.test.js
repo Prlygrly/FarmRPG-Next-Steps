@@ -388,3 +388,24 @@ console.log("engine tests passed");
   assert.ok(craftworksDay(o).made < 600, "Nails run out between visits");
   assert.ok(craftworksDay({ ...o, unlimited: ["Nails"] }).made > 1000 - 1, "Nails bought as needed");
 }
+
+// Pets bring some of a gathered item: the budget and the pets work side by side
+{
+  const { grindTime } = require("../engine.js");
+  const coster = { effort: (item, left) => item === "Shield" ? { byUnit: { LN: left * 100 }, forWhat: { "LN|Lake": { Shell: left * 10 } }, passive: {}, byPlace: { "LN|Lake": left * 100 } }
+    : item === "Shell" ? { byUnit: { LN: left * 10 }, passive: {} } : null };
+  const base = grindTime("Shield", 100, { coster, perDay: {}, budget: { LN: 100 } });
+  assert.strictEqual(base.days, 100);                                    // 10,000 LN at 100 a day
+  const pets = grindTime("Shield", 100, { coster, perDay: {}, budget: { LN: 100 }, petGathered: { Shell: 10 } });
+  assert.strictEqual(pets.days, 50);                                      // 10 Shells a day are worth 100 LN a day
+  const lots = grindTime("Shield", 100, { coster, perDay: {}, budget: { LN: 100 }, petGathered: { Shell: 1e6 } });
+  assert.ok(lots.days > 0.00099 && lots.days < 0.0011, `lots: ${lots.days}`);  // pets bring nearly every Shell: about 1,000 / 1M days
+}
+
+// Pet items a day: each unlocked item at the level's rate; the Owl's Honey doubles from 6; seasonal pets left out
+{
+  const PETS = require("../pets.js");
+  const d = PETS.perDay({ Seal: 8, Owl: 7, Cat: 2, Wolf: 7 });
+  assert.deepStrictEqual([d["Frost Snapper Shell"], d.Honey, d.Feathers, d["Blue Feathers"], d["Striped Feather"]], [16, 28, 12, undefined, undefined]);
+  assert.strictEqual(PETS.ORDER.length, 29);
+}
