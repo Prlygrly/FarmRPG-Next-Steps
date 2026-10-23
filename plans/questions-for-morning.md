@@ -3,8 +3,14 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
+None open.
 
 ## Waiting on data
+
+### Animal building prices
+Chicken Coop, Pasture and other animal buildings have no prices in the planner (the Raptor Pen has none to buy). The
+player will paste the Pig Pen after the next slaughter (pig prices, an example with pricing) plus the Coop and Pasture
+pages, so we can work out what a priced page looks like. Then Slow grinds' Maxed line can price them.
 
 ### Page copies for the local page tests
 Paste each page twice, once from the browser and once from the Steam app (say which). Saved copies live in
