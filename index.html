@@ -277,6 +277,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* Folding cards: the heading row stays */
 .card.folded > :not(.card-head) { display: none !important; }
 .card.folded { padding-bottom: 10px; }
+/* Do these next folds only its list: the Tower, AK and supplies sections below it stay */
+#plan.folded:not(.mono) > details:not([hidden]) { display: block !important; }
+#plan.folded .card-head [role="group"] { display: none; }
 .fold { background: none; border: 0; padding: 0 6px 0 0; font-size: .85em; color: var(--muted); vertical-align: middle; }
 .fold:hover { color: var(--ink); }
 #top-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -8px 0 8px; }
