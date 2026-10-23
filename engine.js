@@ -393,6 +393,72 @@
     return { ...env, cap, production, orchard };
   }
 
+  // ---------- Craftworks: how much of a building's output a day can actually be used ----------
+  // knowledge/mechanics/craftworks.md. One day, awake 16 hours with `checks` visits spread evenly over them (the night is
+  // one long gap). The building drops `perHour x dropHours` every dropHours; past the cap it voids. After every drop the
+  // Craftworks runs its list in order, each recipe as far as its ingredients and its output's cap allow. At each visit the
+  // player uses or sells the target item and tops every other ingredient back up to the cap (by exploring, crafting or
+  // collecting); between visits only building drops add more (o.produce: Nails hourly, Feathers once a day). Without a
+  // recipe using the raw item, a visit uses what's on hand by hand instead.
+  // o = { raw, perHour, dropHours, cap, checks, target, list: [{ item, recipe: [[ing, qty]], makes }], onHand,
+  //       produce: { item: { perHour, dropHours } } }
+  // Returns { used, made, voided } per day (made = target items crafted), from the second simulated day.
+  const AWAKE_HOURS = 16;
+  function craftworksDay(o) {
+    const cap = o.cap, n = Math.max(1, Math.round(o.checks || 1)), step = o.dropHours || 1;
+    const visits = Array.from({ length: n }, (_, k) => k * AWAKE_HOURS / n);
+    const made = new Set(o.list.map(s => s.item)), byHand = !o.list.some(s => s.recipe.some(([i]) => i === o.raw));
+    const inv = {};
+    let tally = { used: 0, made: 0, voided: 0 };
+    for (const s of o.list) for (const [i] of [[s.item], ...s.recipe]) inv[i] = Math.min(cap, (o.onHand || {})[i] || 0);
+    inv[o.raw] = 0;
+    const produce = o.produce || {};
+    const refill = () => { for (const i of Object.keys(inv)) if (i !== o.raw && !made.has(i)) inv[i] = cap; };
+    const run = () => {
+      for (let pass = 0; pass < 20; pass++) {
+        let moved = false;
+        for (const s of o.list) {
+          let k = (cap - inv[s.item]) / s.makes;
+          for (const [i, q] of s.recipe) k = Math.min(k, inv[i] / q);
+          if (!(k > 1e-9)) continue;
+          for (const [i, q] of s.recipe) inv[i] -= k * q;
+          inv[s.item] += k * s.makes; moved = true;
+          if (s.item === o.target) tally.made += k * s.makes;
+        }
+        if (!moved) break;
+      }
+    };
+    // Crafting the raw item away counts as using it (at a drop, or right after a visit frees room)
+    const runCount = () => { const before = inv[o.raw]; run(); if (!byHand) tally.used += before - inv[o.raw]; };
+    const visit = () => { if (o.target in inv) inv[o.target] = 0; if (byHand) { tally.used += inv[o.raw]; inv[o.raw] = 0; } refill(); runCount(); };
+    const events = [];
+    for (let t = 0; t < 24 - 1e-9; t += step) events.push([t + step, "drop"]);
+    for (const [i, p] of Object.entries(produce)) if (i in inv && i !== o.raw && p.perHour > 0)
+      for (let t = 0, s = p.dropHours || 1; t < 24 - 1e-9; t += s) events.push([t + s, "other", i, p.perHour * s]);
+    for (const v of visits) events.push([v, "visit"]);
+    events.sort((a, b) => a[0] - b[0] || (a[1] === "visit") - (b[1] === "visit"));
+    for (let day = 0; day < 2; day++) {
+      if (day === 1) tally = { used: 0, made: 0, voided: 0 };
+      for (const [, kind, item, qty] of events) {
+        if (kind === "visit") { visit(); continue; }
+        if (kind === "other") { inv[item] = Math.min(cap, inv[item] + qty); runCount(); continue; }
+        const add = o.perHour * step, room = Math.max(0, cap - inv[o.raw]);
+        tally.voided += Math.max(0, add - room); inv[o.raw] += Math.min(add, room);
+        runCount();
+      }
+    }
+    return tally;
+  }
+  // The most production worth having: past it, more only voids. Simulates a building far above the cap to find the most
+  // a day can use, then the least production that gets within 2% of it. { perHour, used, made } (per day)
+  function craftworksMax(o) {
+    const top = craftworksDay({ ...o, perHour: o.cap * 50 / (o.dropHours || 1) });
+    let lo = 0, hi = o.cap * 50 / (o.dropHours || 1);
+    for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (craftworksDay({ ...o, perHour: m }).used >= top.used * 0.98) hi = m; else lo = m; }
+    const at = craftworksDay({ ...o, perHour: hi });
+    return { perHour: hi, used: at.used, made: at.made };
+  }
+
   // ---------- Slow grinds: how long a GM or MM takes, and what holds it back ----------
   // Made a day from production alone (the scarcest passive input); null if it needs hand-gathered parts,
   // unless ignoreHand (drinks: Glass and Tea Leaves assumed on hand).
@@ -550,7 +616,7 @@
     return { levels: pen.map(x => pigLevel(x, levelXp)), ready, slaughter, bacon: slaughter * each, full: ready > 0 && fit < 1, inDays, each };
   }
 
-  const api = { pigPen, pigLevel, ciderExplores, drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
+  const api = { pigPen, pigLevel, ciderExplores, drinkValue, baconPlan, baconEach, DROP_HOURS, unitOf, perHourOf, entryOf, ratesPerHour, storeRates, migrateRates, productionMath, daysWithGrowingCap, whatIfEnv, silverWays, makesPerDay, grindTime, grindList, DEFAULT_PASSIVE, outletPlan, tripYield, tripBudgetFor, unitCostAt, craftworksDay, craftworksMax, towerPlan, towerSilver, akPlan, towerUses, effortOptions, bestEffort, makeCoster, seasonNote, placesUnlocked, itemMonths, DEFAULT_PERKS, TIER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

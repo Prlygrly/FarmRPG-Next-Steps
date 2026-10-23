@@ -3,9 +3,10 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
-- Slow grinds "Maxed" line (built 2026-10-22): the maxed amount depends on Setup's "how often you collect" (hourly
-  collection means Coal maxed at a full cap an hour, ~1.7T silver for one of your grinds). Right, or should "maxed" assume
-  one collection a day?
+- "Maxed" now simulates your day (2026-10-22). Two assumptions to check: (1) ingredients your buildings make (Nails,
+  Boards, Feathers) also drop on their own schedule between checks, on top of the top-up at each check; (2) a building
+  part that is itself the grind's item (a Coal mastery) gets no Maxed line, since I don't know whether production past
+  the cap still counts for mastery the way gathering does. Does it?
 - Building prices aren't known for the Chicken Coop, Pasture, Raptor Pen and other animal buildings (the line says "price
   not known"). If you ever want them, one building page's "At least N Silver needed" plus your current amount gives the rate.
 

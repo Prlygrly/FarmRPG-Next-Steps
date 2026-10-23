@@ -2937,26 +2937,57 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       r.grapes = { now: r.days, cost: window.UPGRADES.upgradeCost("Grapes", Math.round(gDay), capNow), daily: capUp ? window.UPGRADES.upgradeCost("Grapes", capNow, capNow + capUp) : 0 };
       r.days = t.days;
     }
-    // Maxed buildings: past one full drop between collections (cap / hours between them) more production only voids, so
-    // raise each priced building part to that, at today's cap. One line: the upgrades, their silver, the time now vs then.
+    // Maxed buildings: how much of a building part a day can really use, from a day simulated with your visits (Setup's
+    // checks, spread over 16 waking hours) and your Craftworks (engine craftworksMax; knowledge/mechanics/craftworks.md).
+    // Past that, more only voids. One line per grind held back by a building: the upgrades, their silver, the time now vs
+    // then, and the crafts a day it assumes (click to type your own; blank goes back to the planner's number).
     if (capNow !== Infinity) {
-      const env0 = grindEnv(), gap = env0.gap || 1, U2 = window.UPGRADES, P = prod();
+      const env0 = grindEnv(), U2 = window.UPGRADES, P = prod(), visits = Math.min(48, Math.max(1, Math.round((S.perks.harvestsPerHour || 1) * 16)));
+      const makes = 1 + (S.perks.resourceSaver || 0) / 100, own = S.craftworks ? S.craftworks.items.filter(x => !x.paused).map(x => x.name) : [];
+      const recipe = i => { const r = RECIPES.items[i]; return r && r.craft && r.recipe ? r.recipe : null; };
+      // Crafts between the raw item and the grind's item, nearest the raw item first
+      const pathTo = (raw, target) => {
+        const depth = {}, memo = {};
+        const walk = (i, stack = new Set()) => {
+          if (i in memo) return memo[i];
+          if (i === raw) return (memo[i] = 0);
+          const rc = recipe(i); if (!rc || stack.has(i)) return (memo[i] = null);
+          stack.add(i);
+          const ds = rc.map(([g]) => walk(g, stack)).filter(d => d != null);
+          stack.delete(i);
+          return (memo[i] = ds.length ? Math.max(...ds) + 1 : null);
+        };
+        walk(target);
+        for (const [i, d] of Object.entries(memo)) if (d > 0) depth[i] = d;
+        return Object.keys(depth).sort((a, b) => depth[a] - depth[b]);
+      };
       for (const r of rows) {
-        if (!(r.days > 0 && r.days !== Infinity)) continue;
-        const ups = [];
+        if (!(r.days > 0 && r.days !== Infinity) || !r.bottleneck || r.bottleneck.kind !== "prod") continue;
+        const ups = [], pd2 = { ...perDay }, prod2 = { ...P }, flat = {};
+        let assumes = null;
         for (const x of r.parts) {
           // Grapes have their own line; Orchard fruit and Antlers top out by their noon bonus (noonNote)
-          if (x.kind !== "prod" || x.item === "Grapes" || x.item === "Antler" || (S.orchard || {})[x.item] || perDay[x.item] === Infinity || !(x.days > 0) || !(P[x.item] > 0)) continue;
-          const u = U2.UPGRADES[x.item], g = Math.max(F.DROP_HOURS[x.item] || 1, gap), maxHr = capNow / g, nowHr = P[x.item];
-          if (nowHr >= maxHr * 0.999) continue;
-          const unit = u ? u.per : F.DROP_HOURS[x.item] >= 24 ? "day" : "hour", per = U2.PER_HOURS[unit] || 1, from = Math.round(nowHr * per), to = Math.ceil(maxHr * per);
-          ups.push({ item: x.item, maxHr, from, to, per: unit, cost: u ? U2.upgradeCost(x.item, from, to) : null });
+          if (x.kind !== "prod" || x.item === r.item || x.item === "Grapes" || x.item === "Antler" || (S.orchard || {})[x.item] || perDay[x.item] === Infinity || !(x.days > 0) || !(P[x.item] > 0)) continue;
+          const path = pathTo(x.item, r.item), names = [...own.filter(i => recipe(i)), ...path.filter(i => !own.includes(i))];
+          const list = names.map(i => ({ item: i, recipe: recipe(i), makes }));
+          const produce = {};
+          for (const s of list) for (const [g] of s.recipe) if (g !== x.item && P[g] > 0) produce[g] = { perHour: P[g], dropHours: F.DROP_HOURS[g] || 1 };
+          const sim = F.craftworksMax({ raw: x.item, dropHours: F.DROP_HOURS[x.item] || 1, cap: capNow, checks: visits, target: r.item, list, produce, onHand: O ? O.onHand : {} });
+          // Crafts a day: the raw item used, over how much of it one of the grind's item takes
+          const per = ((C.effort(r.item, 1) || {}).passive || {})[x.item] || 0;
+          const auto = per > 0 ? sim.used / per : 0, typed = (S.craftPerDay || {})[r.item];
+          const scale = typed > 0 && auto > 0 ? Math.min(1, typed / auto) : 1;
+          const maxHr = sim.perHour * scale, used = sim.used * scale, nowHr = P[x.item];
+          if (!assumes && per > 0) assumes = { auto, typed: typed > 0 ? Math.min(typed, auto) : null };
+          if (nowHr >= maxHr * 0.999 || !(used > perDay[x.item])) continue;
+          const u = U2.UPGRADES[x.item], unit = u ? u.per : F.DROP_HOURS[x.item] >= 24 ? "day" : "hour", k = U2.PER_HOURS[unit] || 1;
+          const from = Math.round(nowHr * k), to = Math.ceil(maxHr * k);
+          ups.push({ item: x.item, from, to, per: unit, cost: u ? U2.upgradeCost(x.item, from, to) : null });
+          pd2[x.item] = used; prod2[x.item] = maxHr; flat[x.item] = 1;
         }
         if (!ups.length) continue;
-        const prod2 = { ...P }, pd2 = { ...perDay };
-        for (const x of ups) { prod2[x.item] = x.maxHr; pd2[x.item] = capNow * 24 / Math.max(F.DROP_HOURS[x.item] || 1, gap); }
-        const t = F.grindTime(r.item, r.left, { coster: C, perDay: pd2, budget, growth: { ...growth, env: { ...env0, production: prod2 }, cache: {} }, craftToo: CRAFT_TOO });
-        if (t && t.days != null && t.days < r.days * 0.99) r.maxed = { ups, days: t.days, cost: ups.reduce((s, x) => s + (x.cost || 0), 0), unpriced: ups.filter(x => x.cost == null).map(x => BUILDING[x.item] || x.item) };
+        const t = F.grindTime(r.item, r.left, { coster: C, perDay: pd2, budget, growth: { ...growth, env: { ...env0, production: prod2 }, extra: { ...growth.extra, ...flat }, cache: {} }, craftToo: CRAFT_TOO });
+        if (t && t.days != null && t.days < r.days * 0.99) r.maxed = { ups, days: t.days, cost: ups.reduce((s, x) => s + (x.cost || 0), 0), unpriced: ups.filter(x => x.cost == null).map(x => BUILDING[x.item] || x.item), assumes };
       }
     }
     // Where to go. Drinks and nets can be bought, so they're never the limit: when the time comes from gathering, the limit is
@@ -3027,7 +3058,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         ...parts.filter(x => x === r.bottleneck).map(noonNote).filter(Boolean)];
       if (r.grapes) lines.splice(1, 0, `Grapes kept at your cap: raise them from ${fmt(Math.round(gDay))} to ${fmt(capNow)} a day for ~${short(r.grapes.cost)} silver${
         r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
-      if (r.maxed) lines.push(`Maxed (each drop fills your cap): ${r.maxed.ups.map(x => `${esc(x.item)} ${fmt(x.from)} → ${fmt(x.to)} ${({ day: "a day", hour: "an hour" })[x.per] || "per " + x.per}`).join(", ")}; ${[r.maxed.cost ? `~${short(r.maxed.cost)} silver` : "", r.maxed.unpriced.length ? `${r.maxed.unpriced.map(esc).join(", ")}: price not known` : ""].filter(Boolean).join(" + ")}; ~${longText(r.maxed.days)} instead of ~${longText(r.days)}`);
+      if (r.maxed) { const a = r.maxed.assumes, n = a && (a.typed || a.auto);
+        lines.push(`Maxed: ${r.maxed.ups.map(x => `${esc(x.item)} ${fmt(x.from)} → ${fmt(x.to)} ${({ day: "a day", hour: "an hour" })[x.per] || "per " + x.per}`).join(", ")}; ${[r.maxed.cost ? `~${short(r.maxed.cost)} silver` : "", r.maxed.unpriced.length ? `${r.maxed.unpriced.map(esc).join(", ")}: price not known` : ""].filter(Boolean).join(" + ")}; ~${longText(r.maxed.days)} instead of ~${longText(r.days)}${
+          n ? ` <span class="muted">(assumes <a href="#" data-cpd="${esc(r.item)}" data-cpd-n="${Math.round(n)}" title="How many you'd craft a day: type your own, or clear it for the planner's number">${fmt(Math.round(n))} ${esc(r.item)} crafted a day${a.typed ? ", yours" : ""}</a>)</span>` : ""}`); }
       if (r.gather) lines.push(r.gather.per == null ? `${esc(r.gather.item)}: ${short(r.gather.qty)} needed, ~${short(r.gather.amount)} ${UNIT_SHORT[r.gather.unit]} at <b>${esc(r.gather.loc)}</b>`
         : `Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;
@@ -3610,6 +3643,22 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const a = e.target.closest("[data-open]"); if (!a) return;
     e.preventDefault(); const d = $(a.dataset.open); d.open = true; d.scrollIntoView({ block: "nearest" });
     const i = d.querySelector('[data-grind="capPerDay"]'); if (i) i.focus();
+  });
+  // "(assumes N crafted a day)": click to type your own number; blank goes back to the planner's (S.craftPerDay, per item)
+  $("grind-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-cpd]"); if (!a) return;
+    e.preventDefault();
+    const inp = document.createElement("input");
+    Object.assign(inp, { type: "number", min: "0", value: (S.craftPerDay || {})[a.dataset.cpd] || "", placeholder: a.dataset.cpdN });
+    inp.style.width = "7em"; inp.setAttribute("aria-label", `${a.dataset.cpd} crafted a day`);
+    a.replaceWith(inp); inp.focus();
+    const done = () => {
+      const v = inp.value.trim(), m = { ...(S.craftPerDay || {}) };
+      if (v === "" || !(+v > 0)) delete m[a.dataset.cpd]; else m[a.dataset.cpd] = +v;
+      S.craftPerDay = m; save(); render(false);
+    };
+    inp.addEventListener("change", done); inp.addEventListener("blur", done, { once: true });
+    inp.addEventListener("keydown", k => { if (k.key === "Enter") inp.blur(); });
   });
   $("grind-settings").addEventListener("change", e => {
     const k = e.target.dataset.grind; if (!k) return;

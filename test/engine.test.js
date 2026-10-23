@@ -356,3 +356,26 @@ console.log("engine tests passed");
   assert.deepStrictEqual([d.slaughter, d.bacon], [16, 560]);                       // the big pigs never count
   assert.strictEqual(pigPen(model, { ...o, today: 106, room: 200 }).slaughter, 5);  // only what the Bacon space holds
 }
+
+// Craftworks day: Coal -> Black Powder (3:1) -> Explosive (2 Black Powder + others), cap 1,000, visits spread over 16 hours
+{
+  const { craftworksDay, craftworksMax } = require("../engine.js");
+  const list = [{ item: "Black Powder", recipe: [["Coal", 3]], makes: 1 }, { item: "Explosive", recipe: [["Black Powder", 2], ["Feathers", 1]], makes: 1 }];
+  const o = { raw: "Coal", dropHours: 1, cap: 1000, target: "Explosive", list };
+  // Little Coal: everything is crafted, nothing voids; 6 Coal per Explosive
+  const low = craftworksDay({ ...o, perHour: 60, checks: 4 });
+  assert.strictEqual(Math.round(low.voided), 0);
+  assert.strictEqual(Math.round(low.used), 1440);
+  assert.strictEqual(Math.round(low.made), 240);
+  // One visit a day: at most one inventory of Explosives (and of Feathers) a day, so ~6,000 Coal is all a day can use
+  const one = craftworksMax({ ...o, checks: 1 });
+  assert.ok(one.made <= 1000.5 && one.made > 950, `one visit: ${one.made}`);
+  assert.ok(one.used <= 6003 && one.used > 5700, `one visit coal: ${one.used}`);
+  // More visits use more, up to one full drop of Coal an hour
+  const four = craftworksMax({ ...o, checks: 4 });
+  assert.ok(four.used > one.used * 3, `four visits: ${four.used}`);
+  assert.ok(four.perHour <= 1000.5, "never more than a cap per drop");
+  // No recipe uses it: each visit uses what's on hand, so a day uses at most one cap per visit
+  const hand = craftworksMax({ ...o, list: [], checks: 4 });
+  assert.ok(hand.used <= 4000.5 && hand.used > 3800, `by hand: ${hand.used}`);
+}
