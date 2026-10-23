@@ -43,6 +43,20 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-23T09:00:00Z }
   so check first.[^wiki-shop][^player]
 - Pets stop gathering after 48 hours offline.[^wiki-shop]
 
+# The My Pets list
+
+- The Pet Shop's My Pets list shows each pet's name (players name them; "Unnamed" if not) and level, never its type, always
+  in this order: Cat, Dog, Squirrel, Owl, Swine, Snake, Lemur, Baboon, Frog, Hedgehog, Fox, Armadillo, Spider, Pet Rock,
+  Bird, Penguin, Green Dragon, Red Dragon, Blue Dragon, Bear, Capybara, Strange Onion, Seal, Critter, Miner, Polar Bear,
+  Hummingbird, Shark, Wolf. A pet you don't own is simply missing, so the list alone can't say which is which; the types
+  that brought items (All Pet Items, "From …") fill that in. Pets not yet bought show under "Available Pets".[^player]
+- Seasonal pets (Polar Bear, Hummingbird, Shark, Wolf) show their names in white, the others in red.[^player]
+
+# Pet Points (beta)
+
+- In beta: pets at level 7+ earn Item Points. Assign them to items the pet can find; when it finds one, you get bonus items
+  based on the points. They work with Pet Treats too.[^player]
+
 # Prices
 
 - Levels cost 10x the one before: level 2 100,000 silver, level 3 1M, level 4 10M, level 5 100M, level 6 1B, level 7 10B,

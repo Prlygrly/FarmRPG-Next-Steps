@@ -398,8 +398,22 @@
     return { items };
   }
 
-  // Temple of Reward: each chain is "Reward / Sacrifice: Item / a / b Rewards Claimed / x / y Items Sacrificed", plus
-  // "ONE-TIME TEMPLE CHAIN" for event chains. Finished chains are left out. [{ reward, item, done, total, oneTime }]
+  // Pet Shop (Town › Pet Shop): "My Pets" lists each pet's name and level, in the game's fixed pet order but without the
+  // type (knowledge/mechanics/pets.md); "Available Pets" lists what isn't bought yet. { pets: [{ name, level }], available }
+  function parsePetShop(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean);
+    const at = lines.findIndex(l => /^My Pets$/i.test(l));
+    if (at < 0) return null;
+    const pets = [], available = [];
+    let k = at + 1;
+    for (; k < lines.length && !/^Available Pets$/i.test(lines[k]); k++) {
+      const m = (lines[k + 1] || "").match(/^Level ([\d,]+)$/i);
+      if (m && !/^Level /i.test(lines[k])) { pets.push({ name: lines[k], level: toInt(m[1]) }); k++; }
+    }
+    for (k++; k < lines.length && !/^Consume a meal$/i.test(lines[k]); k++) if (!/^No pets available$/i.test(lines[k])) available.push(lines[k]);
+    return { pets, available };
+  }
+
   // Craftworks page: the recipes in the order they run ("1 / Twine / pauseRemove"; a paused one shows "play" instead of
   // "pause") and the slot count ("You can add up to 13 items total"). { items: [{ name, paused }], slots }
   function parseCraftworks(text) {
@@ -414,6 +428,8 @@
     return { items, slots: s ? toInt(s[1]) : null };
   }
 
+  // Temple of Reward: each chain is "Reward / Sacrifice: Item / a / b Rewards Claimed / x / y Items Sacrificed", plus
+  // "ONE-TIME TEMPLE CHAIN" for event chains. Finished chains are left out. [{ reward, item, done, total, oneTime }]
   function parseTemple(text) {
     const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), out = [];
     lines.forEach((l, k) => {
@@ -543,7 +559,8 @@
     "Town": ["town", t => /^\s*Market District\s*$/im.test(t)],
     "Bank": ["bank", t => /Currently in Bank/i.test(t)],
     "Temple of Reward": ["temple", t => /Sacrifice: /.test(t)],
-    "Pig Pen": ["pigpen", t => /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(t)],
+    "Pets": ["petshop", t => /^\s*My Pets\s*$/im.test(t) && /About Pets/i.test(t)],
+  "Pig Pen": ["pigpen", t => /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(t)],
   };
   function screenTitle(text) {
     const lines = String(text || "").split(/\r?\n/);
@@ -560,6 +577,8 @@
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
     if (/Items added to the Craftworks will be crafted automatically/i.test(text) && /Craftworks Items \(\d+\)/i.test(text)) return "craftworks";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
+    // The Pet Shop after All Pet Items: that page carries the Pet Shop list first
+    if (/About Pets/i.test(text) && /^\s*My Pets\s*$/im.test(text) && /^\s*Available Pets\s*$/im.test(text)) return "petshop";
     if (/currently using [\d,]+ stamina every time you continue exploring/i.test(text)) return "explore-info";
     if (/Points Left/i.test(text) && /Perks Avail/i.test(text)) return "perks";
     if (/About the Truffle Market/i.test(text) && /About the Steak Market/i.test(text)) return "steak";
@@ -626,7 +645,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseCraftworks: noChat(parseCraftworks), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseCraftworks: noChat(parseCraftworks), parsePetShop: noChat(parsePetShop), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

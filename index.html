@@ -749,7 +749,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202610230641"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseCraftworks, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseCraftworks, parsePetShop, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, grapeJuice: 2 };
@@ -996,6 +996,12 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
           const over = inv.cap ? names.filter(n => r.items[n].have + r.items[n].found > inv.cap).length : null;
           msg = `<div class="note" style="border-color:var(--good)">Read your pet items: ${fmt(names.length)} items${over != null ? `, ${fmt(over)} would go over your cap` : " (paste My Inventory once so the planner knows your cap)"}. See Best use.</div>`;
         }
+      } else if (kind === "petshop") {
+        // Your pets' names and levels, in the game's pet order (knowledge/mechanics/pets.md)
+        const r = parsePetShop(text);
+        if (!r || !r.pets.length) msg = warn("No pets were found. Copy the whole Pet Shop page and try again.");
+        else { S.petShop = { pets: r.pets, available: r.available, at: Date.now() }; done = true;
+          msg = `<div class="note" style="border-color:var(--good)">Read your pets: ${fmt(r.pets.length)}, levels ${Math.min(...r.pets.map(x => x.level))}-${Math.max(...r.pets.map(x => x.level))}.</div>`; }
       } else if (kind === "craftworks") {
         // What runs in the Craftworks, in order (knowledge/mechanics/craftworks.md): for how much a day crafting can use
         const r = parseCraftworks(text);
@@ -1076,7 +1082,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
   const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply perks (Town)", friends: "Friendship",
-    steak: "Steak Market", pets: "All Pet Items", temple: "Temple of Reward", craftworks: "Craftworks", bank: "Bank", town: "Town", pigpen: "Pig Pen", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+    steak: "Steak Market", pets: "All Pet Items", temple: "Temple of Reward", craftworks: "Craftworks", petshop: "Pet Shop", bank: "Bank", town: "Town", pigpen: "Pig Pen", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
@@ -1528,6 +1534,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
                       : `<li class="missing">Farm Supply perks page (in Town, not your farm): not pasted yet (optional, fills in Your perks)</li>`);
     R(S.pigs && S.pigs.at, S.pigs ? `<li>Pig Pen: ${fmt(S.pigs.xp.length)} pigs, followed day by day <span class="muted small">(${ago(S.pigs.at)})</span></li>`
       : `<li class="missing optional">Pig Pen: not pasted yet (optional, for pig day reminders)</li>`);     // optional: never keeps the fold open
+    R(S.petShop && S.petShop.at, S.petShop ? `<li>Pet Shop: ${fmt(S.petShop.pets.length)} pets <span class="muted small">(${ago(S.petShop.at)})</span></li>`
+      : `<li class="missing optional">Pet Shop: not pasted yet (optional, your pets' levels)</li>`);
     R(S.craftworks && S.craftworks.at, S.craftworks ? `<li>Craftworks: ${fmt(S.craftworks.items.length)} recipes <span class="muted small">(${ago(S.craftworks.at)})</span></li>`
       : `<li class="missing optional">Craftworks: not pasted yet (optional, for how much your buildings can usefully make)</li>`);
     if (S.temple) R(S.temple.at, `<li>Temple of Reward: ${fmt(S.temple.chains.length)} open chains <span class="muted small">(${ago(S.temple.at)})</span></li>`);
