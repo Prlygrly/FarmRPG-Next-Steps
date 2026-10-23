@@ -32,6 +32,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
 - Orchard noon bonus (Farm Supply): +10% of orchard production.[^player]
 - Hickory Omelette: Sawmill also produces 20% every 10 minutes for 1 hour (about x2.2 for that hour).[^player]
 - Iron Depot (Farm Supply): Iron and Nails bought automatically, effectively unlimited.[^player]
+  It's one perk: the same Iron Depot also changes exploring drops (buddy.farm's "Iron Depot" drop tables).[^player]
+- Production past the cap voids, but for an item with its own mastery (Boards) it should still count toward that mastery,
+  as gathering past the cap does. Most produced items (Coal, Nails, Feathers) have no mastery; the crafts they go into do.[^player]
 - Resource Saver: chance a **craft** gives double (cooking doesn't).[^player]
 
 # Drops and the cap

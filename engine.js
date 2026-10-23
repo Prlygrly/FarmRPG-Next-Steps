@@ -107,7 +107,7 @@
 
   // ---------- Effort: how many AC / AP / Large Nets to gather `left` more of an item ----------
   // knowledge/mechanics/effort-units.md
-  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, sprintShoes: 3, reinforcedNetting: true, fishingTrawl: true, animalLover: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, autoBuyIronNails: true, slowDays: 7, tripDiscount: 50,
+  const DEFAULT_PERKS = { ironDepot: true, runecube: true, lemonSqueezer: true, cinnamonSticks: true, sprintShoes: 3, reinforcedNetting: true, fishingTrawl: true, animalLover: true, wanderer: 33, resourceSaver: 45, orchardNoon: 10, antlerNoon: 10, sellBonus: 70, craftSilverCut: 80, friendBonus: 0, slowDays: 7, tripDiscount: 50,
     plots: 20, grapeJuice: 14, harvestsPerHour: 4, cropGrowthCut: 0, cornGrowthCut: 0, doublePrizes: 0, boostRounds: 250, ovens: 1, cookFaster: 0, stirs: 0, wwTosses: 0, vjMode: "none", vjCount: 3, vjTarget: 60, abjNotDone: false, apPerMin: 100, waitWorth: 20, maxSlaughter: 16, pigAt: 6 };
 
   // Explores per Apple Cider at a place: 1,000 + 10 x its Exploring Effectiveness (perks.ee[loc], 1 if not pasted),
@@ -401,7 +401,7 @@
   // collecting); between visits only building drops add more (o.produce: Nails hourly, Feathers once a day). Without a
   // recipe using the raw item, a visit uses what's on hand by hand instead.
   // o = { raw, perHour, dropHours, cap, checks, target, list: [{ item, recipe: [[ing, qty]], makes }], onHand,
-  //       produce: { item: { perHour, dropHours } } }
+  //       produce: { item: { perHour, dropHours } }, unlimited: [items bought automatically: Iron, Nails with Iron Depot] }
   // Returns { used, made, voided } per day (made = target items crafted), from the second simulated day.
   const AWAKE_HOURS = 16;
   function craftworksDay(o) {
@@ -414,8 +414,10 @@
     inv[o.raw] = 0;
     const produce = o.produce || {};
     const refill = () => { for (const i of Object.keys(inv)) if (i !== o.raw && !made.has(i)) inv[i] = cap; };
+    const unlimited = (o.unlimited || []).filter(i => i in inv && i !== o.raw);
     const run = () => {
       for (let pass = 0; pass < 20; pass++) {
+        for (const i of unlimited) inv[i] = cap;
         let moved = false;
         for (const s of o.list) {
           let k = (cap - inv[s.item]) / s.makes;

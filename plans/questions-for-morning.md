@@ -3,11 +3,9 @@
 Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
-- "Maxed" now simulates your day (2026-10-22). Two assumptions to check: (1) ingredients your buildings make (Nails,
-  Boards, Feathers) also drop on their own schedule between checks, on top of the top-up at each check; (2) a building
-  part that is itself the grind's item (a Coal mastery) gets no Maxed line, since I don't know whether production past
-  the cap still counts for mastery the way gathering does. Does it?
-- Building prices aren't known for the Chicken Coop, Pasture, Raptor Pen and other animal buildings (the line says "price
+- "Maxed" simulation: ingredients your buildings make (Boards, Feathers) also drop on their own schedule between checks,
+  on top of the top-up at each check (Iron, and Nails with Iron Depot, are always on hand). OK?
+- Building prices aren't known for the Chicken Coop, Pasture and other animal buildings (the Raptor Pen has none to buy) (the line says "price
   not known"). If you ever want them, one building page's "At least N Silver needed" plus your current amount gives the rate.
 
 ## Waiting on data

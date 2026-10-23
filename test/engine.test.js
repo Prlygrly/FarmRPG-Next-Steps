@@ -379,3 +379,12 @@ console.log("engine tests passed");
   const hand = craftworksMax({ ...o, list: [], checks: 4 });
   assert.ok(hand.used <= 4000.5 && hand.used > 3800, `by hand: ${hand.used}`);
 }
+
+// Bought automatically (Iron, Nails with Iron Depot): never runs out between visits
+{
+  const { craftworksDay } = require("../engine.js");
+  const list = [{ item: "Bolt", recipe: [["Coal", 1], ["Nails", 5]], makes: 1 }];
+  const o = { raw: "Coal", perHour: 100, dropHours: 1, cap: 1000, checks: 1, target: "Bolt", list };
+  assert.ok(craftworksDay(o).made < 600, "Nails run out between visits");
+  assert.ok(craftworksDay({ ...o, unlimited: ["Nails"] }).made > 1000 - 1, "Nails bought as needed");
+}

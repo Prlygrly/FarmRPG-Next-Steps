@@ -752,7 +752,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseCraftworks, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
-    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, autoBuyIronNails: false, grapeJuice: 2 };
+    fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, grapeJuice: 2 };
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n).toLocaleString("en-US");
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -1157,10 +1157,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     slaughter: "The most pigs you'd send to the Slaughterhouse in one go. Bacon comes from slaughtering this many at your slaughter level (the setting below), rebuying them and waiting for them to grow back. 0 = no pigs: Bacon is gathered at Mount Banon.",
     boost: "How many Plant All + Harvest All rounds you usually manage during one 2-minute Breakfast Boost."
   };
-  const PERKS = [["ironDepot", "Iron Depot (more explore drops)"], ["runecube", "Runecube (more explore drops)"],
+  const PERKS = [["ironDepot", "Iron Depot (Iron and Nails bought automatically, so unlimited; more explore drops)"], ["runecube", "Runecube (more explore drops)"],
     ["lemonSqueezer", "Lemon Squeezer (Arnold Palmer finds 500 items)"], ["cinnamonSticks", "Cinnamon Sticks (Apple Cider explores 1,250 times)"],
     ["reinforcedNetting", "Reinforced Netting (+150 fish per Large Net)"], ["fishingTrawl", "Fishing Trawl (+100 fish per Large Net)"],
-    ["autoBuyIronNails", "Buys Nails automatically too (counts them as unlimited; Iron always is)"], ["animalLover", "Animal Lover (+350 XP per pig feed)"]];
+    ["animalLover", "Animal Lover (+350 XP per pig feed)"]];
   // Where each number comes from, named as on the Perks and Farm Supply pages (knowledge/data/perks.md).
   const tip = t => ` <span class="tip" data-tip="${esc(t)}" aria-label="${esc(t)}" tabindex="0">ⓘ</span>`;
   const tipLines = (...lines) => lines.join("\n");
@@ -1170,7 +1170,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     lemonSqueezer: tipLines("Farm Supply › Exploring Upgrades", "• Lemon Squeezer"),
     sprintShoes: tipLines("Farm Supply › Exploring Upgrades", "• Sprint Shoes I-III: each doubles the Exploring Effectiveness an upgrade adds"),
     cinnamonSticks: tipLines("Farm Supply › Exploring Upgrades", "• Cinnamon Sticks"),
-    autoBuyIronNails: tipLines("Farm Supply › Quality of Life Upgrades", "• Iron Depot"),
+    ironDepot: tipLines("Farm Supply › Quality of Life Upgrades", "• Iron Depot"),
     wanderer: tipLines("Perks › Exploring Perks", "• Wanderer I-IV: 4 + 7 + 9 + 13", "The Explore page shows your total."),
     resourceSaver: tipLines("Perks › Crafting Perks", "• Resource Saver I: 10", "Farm Supply › Crafting Upgrades", "• Resource Saver II: 15",
       "Farm Supply › Artifact Upgrades", "• Resource Saver III: 20 (Tower 90)", "Add up the ones you have."),
@@ -1325,6 +1325,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // "I check the game N times per hour/day/week" -> how many harvests an hour are possible
   const CHECK_HOURS = { hour: 1, day: 24, week: 168 };
   function syncChecks() {
+    if (S.perks.autoBuyIronNails) S.perks.ironDepot = true;               // Iron Depot used to be two settings
+    delete S.perks.autoBuyIronNails;
     if (S.perks.checks == null) { S.perks.checks = S.perks.harvestsPerHour ?? 4; S.perks.checkUnit = "hour"; }
     S.perks.harvestsPerHour = Math.max(1e-3, S.perks.checks / (CHECK_HOURS[S.perks.checkUnit] || 1));
   }
@@ -1737,7 +1739,9 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // Best seed per crop: { crop: { seed, minutes (growth after perks), perHour } }
   // Veggie Juice cut: 10%, or 20% once "A Better Juice" counts as done (knowledge/mechanics/veggie-juice.md)
   // Bought with silver whenever needed, so never a limit: Iron always (50 silver each), Nails too with Iron Depot
-  const bought = () => S.perks.autoBuyIronNails ? ["Iron", "Nails"] : ["Iron"];
+  // Iron Depot (one perk: older saves kept it as two settings) buys Iron and Nails whenever they're needed
+  const ironDepot = () => !!S.perks.ironDepot;
+  const bought = () => ironDepot() ? ["Iron", "Nails"] : ["Iron"];
   let VJ_CUT = 0.1;
   // Bacon from pigs (knowledge/mechanics/pigs.md): batch = most slaughtered at once (0 = no pigs); 1,000 XP a feed,
   // +350 Animal Lover, +500 Animal Charmer (Tower 40)
@@ -2809,7 +2813,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     const perDay = {}, rawDay = {};
     for (const [n, v] of Object.entries(prod())) if (v > 0) { perDay[n] = usableRate(n, v) * 24; rawDay[n] = v * 24 * (n === "Antler" ? 1 + (S.perks.antlerNoon ?? 10) / 100 : 1); }
     for (const [n, o] of Object.entries(S.orchard || {})) if (o && o.production) { perDay[n] = fruitPerDay(n); rawDay[n] = o.production * noon; }
-    if (S.perks.autoBuyIronNails) { delete perDay.Iron; delete perDay.Nails; }
+    if (ironDepot()) { delete perDay.Iron; delete perDay.Nails; }
     if (!Object.keys(perDay).length) { $("overflow-list").innerHTML = `<p class="small muted">Paste your farm page (and the Orchard) in Setup to see what's filling up.</p>`; return; }
     const fullIn = n => { const room = cap - (onHand[n] || 0); return room <= 0 ? 0 : room / (rawDay[n] / 24); };
     // Once-a-day drops fill in whole drops: "full at the next drop", "full in 3 days" (not "full in 2.4 days")
@@ -2897,6 +2901,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const grindEnv = () => ({ ...prodEnv(), capPerDay: S.perks.capPerDay || 0 });
   const wiRates = () => ({ ...(S.whatIf || {}), prod: window.FRP.ratesPerHour((S.whatIf || {}).prod) });   // what-if production per hour for the math
   const whatIfOn = () => { const w = S.whatIf || {}; return w.cap > 0 || w.days > 0 || w.capPerDay > 0 || Object.values(window.FRP.ratesPerHour(w.prod)).some(v => v > 0) || Object.values(w.fruit || {}).some(v => v > 0); };
+  // Checks a day for the Craftworks day: Setup's checks a day, all in the 16 waking hours (at most every 20 minutes)
+  const visitsNow = () => Math.min(48, Math.max(1, Math.round((S.perks.harvestsPerHour || 1) * 24)));
   function renderGrinds(p) {
     const F = window.FRP, perDay = grindPerDay(grindEnv());
     const auto = { lnPerDay: "Large Net", apPerDay: "Arnold Palmer", acPerDay: "Apple Cider" }, made = {};
@@ -2942,7 +2948,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     // Past that, more only voids. One line per grind held back by a building: the upgrades, their silver, the time now vs
     // then, and the crafts a day it assumes (click to type your own; blank goes back to the planner's number).
     if (capNow !== Infinity) {
-      const env0 = grindEnv(), U2 = window.UPGRADES, P = prod(), visits = Math.min(48, Math.max(1, Math.round((S.perks.harvestsPerHour || 1) * 16)));
+      const env0 = grindEnv(), U2 = window.UPGRADES, P = prod(), visits = visitsNow();
       const makes = 1 + (S.perks.resourceSaver || 0) / 100, own = S.craftworks ? S.craftworks.items.filter(x => !x.paused).map(x => x.name) : [];
       const recipe = i => { const r = RECIPES.items[i]; return r && r.craft && r.recipe ? r.recipe : null; };
       // Crafts between the raw item and the grind's item, nearest the raw item first
@@ -2971,14 +2977,22 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
           const path = pathTo(x.item, r.item), names = [...own.filter(i => recipe(i)), ...path.filter(i => !own.includes(i))];
           const list = names.map(i => ({ item: i, recipe: recipe(i), makes }));
           const produce = {};
-          for (const s of list) for (const [g] of s.recipe) if (g !== x.item && P[g] > 0) produce[g] = { perHour: P[g], dropHours: F.DROP_HOURS[g] || 1 };
-          const sim = F.craftworksMax({ raw: x.item, dropHours: F.DROP_HOURS[x.item] || 1, cap: capNow, checks: visits, target: r.item, list, produce, onHand: O ? O.onHand : {} });
+          for (const s of list) for (const [g] of s.recipe) if (g !== x.item && P[g] > 0 && !bought().includes(g)) produce[g] = { perHour: P[g], dropHours: F.DROP_HOURS[g] || 1 };
+          const base = { raw: x.item, dropHours: F.DROP_HOURS[x.item] || 1, cap: capNow, target: r.item, list, produce, unlimited: bought(), onHand: O ? O.onHand : {} };
+          let sim = F.craftworksMax({ ...base, checks: visits });
           // Crafts a day: the raw item used, over how much of it one of the grind's item takes
           const per = ((C.effort(r.item, 1) || {}).passive || {})[x.item] || 0;
           const auto = per > 0 ? sim.used / per : 0, typed = (S.craftPerDay || {})[r.item];
-          const scale = typed > 0 && auto > 0 ? Math.min(1, typed / auto) : 1;
+          // Typed above the planner's number: the fewest checks a day (up to 48) that would use that much
+          let need = null;
+          if (typed > auto && auto > 0) {
+            let lo = visits, hi = 48, top = F.craftworksMax({ ...base, checks: hi });
+            if (top.used / per < typed) { sim = top; need = hi; }
+            else { while (hi - lo > 1) { const m = Math.floor((lo + hi) / 2); if (F.craftworksMax({ ...base, checks: m }).used / per >= typed) hi = m; else lo = m; } sim = F.craftworksMax({ ...base, checks: hi }); need = hi; }
+          }
+          const scale = typed > 0 && sim.used > 0 ? Math.min(1, typed * per / sim.used) : 1;
           const maxHr = sim.perHour * scale, used = sim.used * scale, nowHr = P[x.item];
-          if (!assumes && per > 0) assumes = { auto, typed: typed > 0 ? Math.min(typed, auto) : null };
+          if (!assumes && per > 0) assumes = { auto, typed: typed > 0 ? Math.min(typed, sim.used / per) : null, need };
           if (nowHr >= maxHr * 0.999 || !(used > perDay[x.item])) continue;
           const u = U2.UPGRADES[x.item], unit = u ? u.per : F.DROP_HOURS[x.item] >= 24 ? "day" : "hour", k = U2.PER_HOURS[unit] || 1;
           const from = Math.round(nowHr * k), to = Math.ceil(maxHr * k);
@@ -3060,7 +3074,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         r.grapes.daily ? `, then ~${short(r.grapes.daily)} a day as your cap grows` : ""} <span class="muted">(at today's Grapes: ~${longText(r.grapes.now)})</span>`);
       if (r.maxed) { const a = r.maxed.assumes, n = a && (a.typed || a.auto);
         lines.push(`Maxed: ${r.maxed.ups.map(x => `${esc(x.item)} ${fmt(x.from)} → ${fmt(x.to)} ${({ day: "a day", hour: "an hour" })[x.per] || "per " + x.per}`).join(", ")}; ${[r.maxed.cost ? `~${short(r.maxed.cost)} silver` : "", r.maxed.unpriced.length ? `${r.maxed.unpriced.map(esc).join(", ")}: price not known` : ""].filter(Boolean).join(" + ")}; ~${longText(r.maxed.days)} instead of ~${longText(r.days)}${
-          n ? ` <span class="muted">(assumes <a href="#" data-cpd="${esc(r.item)}" data-cpd-n="${Math.round(n)}" title="How many you'd craft a day: type your own, or clear it for the planner's number">${fmt(Math.round(n))} ${esc(r.item)} crafted a day${a.typed ? ", yours" : ""}</a>)</span>` : ""}`); }
+          n ? ` <span class="muted">(assumes <a href="#" data-cpd="${esc(r.item)}" data-cpd-n="${Math.round(n)}" title="How many you'd craft a day: type your own, or clear it for the planner's number">${fmt(Math.round(n))} ${esc(r.item)} crafted a day${a.typed ? ", yours" : ""}</a>${a.need ? `; needs a check every ~${minText(960 / a.need)}, not every ${minText(960 / visitsNow())}` : ""})</span>` : ""}`); }
       if (r.gather) lines.push(r.gather.per == null ? `${esc(r.gather.item)}: ${short(r.gather.qty)} needed, ~${short(r.gather.amount)} ${UNIT_SHORT[r.gather.unit]} at <b>${esc(r.gather.loc)}</b>`
         : `Gather more ${esc(r.gather.item)}: ${VERB[r.gather.unit] || "Explore"} at <b>${esc(r.gather.loc)}</b> <span class="muted">(~${short(r.gather.per)} ${UNIT_SHORT[r.gather.unit]} per 1,000)</span>`);
       r.lines = lines;

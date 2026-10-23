@@ -59,7 +59,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-09-30T12:00:00Z }
   missing); at each check the player uses or sells the grind's item and tops every other ingredient back up to the cap,
   and between checks only building drops add more. Without a recipe using it, a check uses what's on hand. The line gives
   the upgrades to that amount, their silver (priced buildings; others "price not known") and the time now vs maxed, and
-  ends "(assumes N crafted a day)": click to type your own (lower) number, clear it to go back. Grapes keep their own
+  ends "(assumes N crafted a day)": click to type your own number, clear it to go back. A number above the planner's
+  says how often you'd have to check instead ("needs a check every ~2 h 17 min, not every 4 h"). Iron, and Nails with
+  Iron Depot, are always on hand. No line for a building's own item (production past the cap still counts for it). Grapes keep their own
   line; Orchard fruit and Antlers top out by their noon bonus. Never recommends buying Craftworks slots.[^player]
 - Spend my… quests: what to gather or craft, and for which quest. A crafted item counts by how many the trip's parts make
   ("craft 500 Mushroom Paste"; "with farm parts" when it also needs production). Only what fits under your cap counts: an

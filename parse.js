@@ -242,7 +242,7 @@
       out.cinnamonSticks = has("Cinnamon Sticks");
       // Sprint Shoes I-III (each doubles the EE an upgrade adds): the highest one unlocked
       out.sprintShoes = Math.max(0, ...unlocked.map(u => (u.name.match(/^Sprint Shoes (I{1,3})$/i) || [, ""])[1].length));
-      out.autoBuyIronNails = has("Iron Depot");
+      out.ironDepot = has("Iron Depot");              // one perk: auto-buys Iron and Nails, changes explore drops
       out.orchardNoon = unlocked.some(u => /10% of Orchard Production/i.test(u.desc)) ? 10 : 0;   // Tree Shaker (Tower 170)
       out.antlerNoon = unlocked.some(u => /10% of Antler Production/i.test(u.desc)) ? 10 : 0;     // Antler Snare (Tower 160)
       // Wishing well: 3 free tosses a day, plus Extra Wish (+1) and Extra Wishes I-III (+5, +10, +10) = 29 at most (beta testers +1)
