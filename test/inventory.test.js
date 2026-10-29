@@ -82,9 +82,9 @@ assert.strictEqual(qs.find(q => q.name === "Items Wanted").section, "personal");
 // Other dash characters still mark main/side quests
 const dash = parseQuests(["Active Requests (2)", "Look, A Secret Temple", "Request from Lorn – Main Quest", "Chickens Come Home To Roost III", "Request from ROOMBA — Side Request"].join(String.fromCharCode(10)));
 assert.deepStrictEqual(dash.map(q => [q.npc, q.kind]), [["Lorn", "main"], ["ROOMBA", "side"]]);
-// Every non-personal quest name matches the quest data
+// Every non-personal quest name matches the quest data (dated specials drop out of the snapshot once they end)
 const QD = require("../quests.js").quests;
-assert.deepStrictEqual(qs.filter(q => q.section !== "personal" && !QD[q.name]).map(q => q.name), []);
+assert.deepStrictEqual(qs.filter(q => q.section !== "personal" && !q.dates && !QD[q.name]).map(q => q.name), []);
 // Plain-text copy too
 assert.deepStrictEqual(parseQuests(qText.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")), qs);
 // The Steam app copies headings in capitals and includes the whole Home page around them
