@@ -84,3 +84,6 @@ Consumption Belt
 Quicksilver's Ring
 Cursed Shield
 Coal Storage
+Rune Shard
+Broken Bangle
+Oddvocado
