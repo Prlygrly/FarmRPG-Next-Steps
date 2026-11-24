@@ -445,6 +445,31 @@
     });
     return out;
   }
+  // Mine page ("Go Mining"): "Your Mining Level is 47", then each zone as "Name / blurb / [Auto-Excavation On | Requires: Steel Pickaxe] /
+  // Floor 100", and a locked one as "??? / Unlocks at Mining Level 50". A zone's own page adds "100 / Current Floor", "9 / Charms
+  // Active", "3 / Items Left", "18 / Attempts Left", with the zone name above "info" (knowledge/mechanics/mining.md).
+  // { level, zones: { name: { floor, aex, needs } }, lockedAt: [level], here: { zone, floor, charms, itemsLeft, attempts } | null }
+  function parseMine(text) {
+    const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean);
+    const lv = String(text).match(/Your Mining Level is ([\d,]+)/i), at = lines.findIndex(l => /^Mining Locations$/i.test(l));
+    if (at < 0) return null;
+    const zones = {}, lockedAt = [];
+    let block = [];
+    for (let k = at + 1; k < lines.length && !/^How to Mine$/i.test(lines[k]); k++) {
+      const l = lines[k], f = l.match(/^Floor ([\d,]+)$/i), u = l.match(/^Unlocks at Mining Level ([\d,]+)/i);
+      if (u) { lockedAt.push(toInt(u[1])); block = []; continue; }
+      if (!f) { block.push(l); continue; }
+      const need = block.map(x => x.match(/^Requires: (.+)$/i)).find(Boolean);
+      if (block.length) zones[block[0]] = { floor: toInt(f[1]), aex: block.some(x => /^Auto-Excavation On$/i.test(x)), needs: need ? need[1].trim() : null };
+      block = [];
+    }
+    const num = label => { const k = lines.findIndex(l => new RegExp("^" + label + "$", "i").test(l)); return k > 0 && /^[\d,]+$/.test(lines[k - 1]) ? toInt(lines[k - 1]) : null; };
+    const info = lines.findIndex(l => /^info$/i.test(l)), floor = num("Current Floor");
+    const here = floor == null ? null : { zone: info > 0 && zones[lines[info - 1]] ? lines[info - 1] : null, floor,
+      charms: num("Charms Active"), itemsLeft: num("Items Left"), attempts: num("Attempts Left") };
+    return { level: lv ? toInt(lv[1]) : null, zones, lockedAt, here };
+  }
+
 
   // Bank page: "Silver will grow by 1% every day. The most you can earn each day from interest is 8,000,000 Silver",
   // "Currently in Bank: N Silver" and "Deposit All / N Silver" (silver on hand). knowledge/mechanics/silver.md
@@ -579,6 +604,7 @@
     if (/About the Pig Pen/i.test(text) && /^\s*Pigs \([\d,]+ \/ [\d,]+\)\s*$/im.test(text)) return "pigpen";   // before the farm: it carries the farm list
     if (/About the bank/i.test(text) && /Currently in Bank/i.test(text)) return "bank";
     if (/Sacrifice: /.test(text) && /Items Sacrificed/i.test(text)) return "temple";
+    if (/Down in the depths of T.rah/i.test(text) && /^\s*Mining Locations\s*$/im.test(text)) return "mine";     // before Help Needed: it carries the home list
     if (/Items added to the Craftworks will be crafted automatically/i.test(text) && /Craftworks Items \(\d+\)/i.test(text)) return "craftworks";
     if (/every item that your pets have brought back/i.test(text) || (/All Pet Items/i.test(text) && /currently in Inventory/i.test(text))) return "pets";
     // The Pet Shop after All Pet Items: that page carries the Pet Shop list first
@@ -649,7 +675,7 @@
 
   const api = { parseMastery: noChat(parseMastery), parseInventory: noChat(parseInventory), parseOrchard: noChat(parseOrchard),
     parseFarm: noChat(parseFarm), parseQuests: noChat(parseQuests), parsePerks: noChat(parsePerks), parseBuilding: noChat(parseBuilding), parseMarket: noChat(parseMarket), marketPrices, parseRequest: noChat(parseRequest), parseSteak: noChat(parseSteak), parseFriends: noChat(parseFriends), perkSettings,
-    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseCraftworks: noChat(parseCraftworks), parsePetShop: noChat(parsePetShop), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), stripChat, toInt };
+    parseExploreInfo: noChat(parseExploreInfo), parsePets: noChat(parsePets), parseTemple: noChat(parseTemple), parseCraftworks: noChat(parseCraftworks), parsePetShop: noChat(parsePetShop), parseBank: noChat(parseBank), parsePigPen: noChat(parsePigPen), parseCommunity: noChat(parseCommunity), parseTown: noChat(parseTown), parseFarmToday: noChat(parseFarmToday), detectPage: noChat(detectPage), carriedPages: noChat(carriedPages), parseSilver: noChat(parseSilver), parseMine: noChat(parseMine), stripChat, toInt };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FRP = Object.assign(root.FRP || {}, api);
 })(typeof window !== "undefined" ? window : globalThis);

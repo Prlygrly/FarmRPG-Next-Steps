@@ -289,6 +289,20 @@ console.log("parse tests passed");
   assert.deepStrictEqual(carriedPages("Active Requests", "quests"), []);
 }
 
+// Mine page: zones with floor, AEX and missing pickaxe; a locked zone; a zone page's own counts
+{
+  const { parseMine, detectPage } = require("../parse.js"), nl = "\n";
+  const t = ["Down in the depths of T'rah you can mine for valuable resources and other things. Your Mining Level is 12.", "Mining Locations",
+    "* [Spring Cave](https://x/mining.php?id=1)", "[Found near the Small Spring](https://x)", "[Auto-Excavation On](https://x)", "[Floor 1,204](https://x)",
+    "* Highland Hollow", "Cave system along Highland Hills", "Requires: Bone Pickaxe", "Floor 3",
+    "* ???", "Unlocks at Mining Level 20", "How to Mine"].join(nl);
+  assert.strictEqual(detectPage(t), "mine");
+  assert.deepStrictEqual(parseMine(t), { level: 12, zones: { "Spring Cave": { floor: 1204, aex: true, needs: null },
+    "Highland Hollow": { floor: 3, aex: false, needs: "Bone Pickaxe" } }, lockedAt: [20], here: null });
+  const z = parseMine(["Highland Hollow", "info", t, "3", "Current Floor", "0", "Charms Active", "5", "Items Left", "12", "Attempts Left"].join(nl));
+  assert.deepStrictEqual(z.here, { zone: "Highland Hollow", floor: 3, charms: 0, itemsLeft: 5, attempts: 12 });
+}
+
 // Craftworks page: recipes in order, paused ones marked, slot count
 {
   const { parseCraftworks, detectPage } = require("../parse.js"), nl = "\n";

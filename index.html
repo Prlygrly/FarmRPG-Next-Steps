@@ -778,7 +778,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="engine.js?v=202611240528"></script>
 <script>
 (function () {
-  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseCraftworks, parsePetShop, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
+  const { parseMastery, parseInventory, parseOrchard, parseFarm, parseQuests, parsePerks, perkSettings, detectPage, parseSilver, parseFriends, parseBuilding, parseMarket, marketPrices, parseRequest, parseSteak, parseExploreInfo, parsePets, parseTemple, parseCraftworks, parseMine, parsePetShop, parseBank, parsePigPen, parseCommunity, parseTown, parseFarmToday, carriedPages, towerPlan, akPlan, makeCoster, seasonNote, placesUnlocked, DEFAULT_PERKS } = window.FRP;
   // A new visitor starts with no paid perks (the engine's DEFAULT_PERKS assume all of them); pastes and ticks fill them in
   const START_PERKS = { ...DEFAULT_PERKS, ironDepot: false, runecube: false, lemonSqueezer: false, cinnamonSticks: false, sprintShoes: 0, reinforcedNetting: false,
     fishingTrawl: false, wanderer: 0, resourceSaver: 0, orchardNoon: 0, antlerNoon: 0, sellBonus: 0, craftSilverCut: 0, friendBonus: 0, grapeJuice: 2 };
@@ -1037,6 +1037,16 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         if (!r || r.items.length < Math.min(r.count, 1)) msg = warn("No Craftworks items were found. Copy the whole Craftworks page and try again.");
         else { S.craftworks = { items: r.items, slots: r.slots, at: Date.now() }; done = true;
           msg = `<div class="note" style="border-color:var(--good)">Read your Craftworks: ${fmt(r.items.length)} recipes${r.slots ? ` of ${fmt(r.slots)} slots` : ""}.</div>`; }
+      } else if (kind === "mine") {
+        // Mining zones: floor, auto-excavation, missing pickaxe; a zone's own page adds its charms (knowledge/mechanics/mining.md)
+        const r = parseMine(text);
+        if (!r || !Object.keys(r.zones).length) msg = warn("No mining zones were found. Copy the whole Mine page and try again.");
+        else {
+          const charms = { ...((S.mining && S.mining.charms) || {}) }, h = r.here;
+          if (h && h.zone && h.charms != null) charms[h.zone] = h.charms;
+          S.mining = { level: r.level, zones: r.zones, lockedAt: r.lockedAt, charms, at: Date.now() }; done = true;
+          msg = `<div class="note" style="border-color:var(--good)">Read your mines: ${fmt(Object.keys(r.zones).length)} zones${h && h.zone ? `, ${esc(h.zone)} with ${fmt(h.charms)} charms` : ""}.</div>`;
+        }
       } else if (kind === "explore-info") {
         const r = parseExploreInfo(text), key = r && r.place.toLowerCase();
         const loc = r && Object.keys(DROPS.locs).find(l => l.toLowerCase() === key || l.toLowerCase() === "the " + key);
@@ -1181,7 +1191,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // The last few states before a paste, kept on this device (not in save codes)
   const UNDO_STORE = "frp-undo", UNDO_MAX = 3;
   const PAGE_NAME = { mastery: "Mastery Progress", inventory: "My Inventory", farm: "farm page", perks: "Perks", supply: "Farm Supply perks (Town)", friends: "Friendship",
-    steak: "Steak Market", pets: "All Pet Items", temple: "Temple of Reward", craftworks: "Craftworks", petshop: "Pet Shop", bank: "Bank", town: "Town", pigpen: "Pig Pen", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
+    steak: "Steak Market", pets: "All Pet Items", temple: "Temple of Reward", craftworks: "Craftworks", mine: "Mine", petshop: "Pet Shop", bank: "Bank", town: "Town", pigpen: "Pig Pen", "explore-info": "Exploring Effectiveness", request: "request page", market: "Farmer's Market", building: "building page", orchard: "Orchard", quests: "Help Needed" };
   const undoList = () => { try { return JSON.parse(localStorage.getItem(UNDO_STORE)) || []; } catch (e) { return []; } };
   function pushUndo(label, state) {
     let list = [...undoList(), { label, at: Date.now(), S: state }].slice(-UNDO_MAX);
@@ -1637,6 +1647,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       : `<li class="missing optional">Pet Shop: not pasted yet (optional, your pets' levels)</li>`);
     R(S.craftworks && S.craftworks.at, S.craftworks ? `<li>Craftworks: ${fmt(S.craftworks.items.length)} recipes <span class="muted small">(${ago(S.craftworks.at)})</span></li>`
       : `<li class="missing optional">Craftworks: not pasted yet (optional, for how much your buildings can usefully make)</li>`);
+    R(S.mining && S.mining.at, S.mining ? `<li>Mine: ${fmt(Object.keys(S.mining.zones).length)} zones <span class="muted small">(${ago(S.mining.at)})</span></li>`
+      : `<li class="missing optional">Mine: not pasted yet (optional, for the Mining tab; a zone's own page adds its charms)</li>`);
     if (S.temple) R(S.temple.at, `<li>Temple of Reward: ${fmt(S.temple.chains.length)} open chains <span class="muted small">(${ago(S.temple.at)})</span></li>`);
     if (S.bank && S.bank.at) R(S.bank.at, `<li>Bank: ${S.bank.bank != null ? `${short(S.bank.bank)} banked` : "read"} <span class="muted small">(${ago(S.bank.at)})</span></li>`);
     // Frequent: the Steak Market changes every day
