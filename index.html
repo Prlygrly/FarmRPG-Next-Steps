@@ -1201,7 +1201,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       if (!m) return `<tr><td>${esc(name)}</td><td colspan="6" class="muted">unlocks at Mining level ${z.level}</td></tr>`;
       const base = m.floor >= 100 ? Math.min(100, Math.floor(m.floor / 10)) : 0, run = aexRun(name, m.floor), own = have(z.pickaxe);
       const aex = m.floor < 100 ? `<span class="muted">from floor 100</span>` : m.aex ? "on" : m.needs ? `off: out of ${esc(m.needs)}` : "off";
-      const last = m.aex && base ? ` <span class="muted">(${days(own / (base * AEX_RUNS))})</span>` : "";
+      const last = m.aex && base ? ` <span class="muted">(${own ? `lasts ${days(own / (base * AEX_RUNS))}` : "auto-excavation stops"})</span>` : "";
       return `<tr><td>${esc(name)}</td><td>${fmt(m.floor)}</td><td>${fmt(mineCharms(name))}</td><td>${aex}</td><td>${run ? fmt(run * AEX_RUNS) : "–"}</td>` +
         `<td>${base ? `${fmt(base * AEX_RUNS)} <span class="muted">(${fmt(base * AEX_RUNS / 2)} with lanterns)</span>` : "–"}</td><td>${O ? fmt(own) + last : "–"}</td></tr>`;
     });
