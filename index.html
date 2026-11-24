@@ -708,6 +708,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     </div>
     <label class="small" style="display:block;margin:10px 0 0"><input type="checkbox" id="truffle-bar-on"> Truffle hold/sell line at the top of every tab</label>
     <label class="small" style="display:block;margin:6px 0 0"><input type="checkbox" id="debug-on"> Debug</label>
+    <p class="small muted" style="margin:10px 0 4px">Tabs</p>
+    <div id="tab-picks" class="small"></div>
     <h3>Best use order</h3>
     <div id="best-order"></div>
     <h3>Data</h3>
@@ -816,7 +818,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
   // App settings: how the page looks, kept apart from game data (not in save codes, not cleared by Forget my pastes)
   const UI_STORE = "frp-ui", BEST_IDS = ["best", "trips", "plant", "pets-card", "overflow", "silver-goal", "drinks", "kitchen"];
-  const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], folded: {}, open: {} };
+  const U_DEFAULT = { detail: "condensed", layout: "grid", truffleBar: true, truffleHideUntil: 0, bestOrder: BEST_IDS, bestOff: [], tabsOff: [], folded: {}, open: {} };
   let U = { ...U_DEFAULT };
   try { U = { ...U, ...(JSON.parse(localStorage.getItem(UI_STORE)) || {}) }; } catch (e) {}
   // Cards moved off Best use (the Steak Market went to Checklist) leave the saved order; new ones go in at their place
@@ -4714,7 +4716,20 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     document.querySelectorAll("[data-layout]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.layout === U.layout)));
     $("truffle-bar-on").checked = U.truffleBar !== false;
     $("debug-on").checked = !!U.debug;
+    // Tabs to show: a box for each tab but Setup (always there); an unticked tab leaves the menu
+    $("tab-picks").innerHTML = [...document.querySelectorAll(".tabs [data-go]")].filter(b => b.dataset.go !== "setup").map(b =>
+      `<label style="display:inline-block;margin:0 12px 4px 0"><input type="checkbox" data-tab-pick="${b.dataset.go}"${(U.tabsOff || []).includes(b.dataset.go) ? "" : " checked"}> ${esc(b.textContent)}</label>`).join("");
+    applyTabs();
   }
+  function applyTabs() {
+    const off = U.tabsOff || [];
+    document.querySelectorAll(".tabs [data-go]").forEach(b => { b.hidden = off.includes(b.dataset.go); });
+    if (off.includes(document.querySelector("main").dataset.tab)) showTab("setup");
+  }
+  $("tab-picks").addEventListener("change", e => {
+    const t = e.target.dataset.tabPick; if (!t) return;
+    U.tabsOff = (U.tabsOff || []).filter(x => x !== t).concat(e.target.checked ? [] : [t]); saveU(); applyTabs();
+  });
   $("debug-on").addEventListener("change", e => { U.debug = e.target.checked; if (U.debug) U.debugSeen = []; saveU(); });
   $("truffle-bar-on").addEventListener("change", e => { U.truffleBar = e.target.checked; U.truffleHideUntil = 0; saveU(); renderTruffleStrip(); });
   let gearFrom = null;
@@ -4736,7 +4751,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   document.addEventListener("keydown", e => {
     if (e.ctrlKey || e.metaKey || e.altKey || !$("app-settings").hidden) return;
     const t = e.target; if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
-    const b = document.querySelectorAll(".tabs [data-go]")[+e.key - 1];
+    const b = document.querySelectorAll(".tabs [data-go]:not([hidden])")[+e.key - 1];
     if (/^[1-9]$/.test(e.key) && b) { e.preventDefault(); b.click(); }
   });
 
@@ -4756,7 +4771,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   });
   let startTab = "next";
   try { startTab = localStorage.getItem("frp-tab") || "next"; } catch (e) {}
-  showTab(S.mastery ? (startTab === "trips" ? "best" : startTab) : "setup");     // Trips moved into Best use
+  if (startTab === "trips") startTab = "best";     // Trips moved into Best use
+  showTab(S.mastery && !(U.tabsOff || []).includes(startTab) ? startTab : "setup");
 
   let LAST = null;
   window.__planner = { state: () => S, render, last: () => LAST, coster: () => C, where: () => W };
