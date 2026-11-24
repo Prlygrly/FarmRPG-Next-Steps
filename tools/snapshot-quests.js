@@ -1,6 +1,6 @@
 // Snapshot quests from buddy.farm into quests.js.
 // Run: node tools/snapshot-quests.js   (one request per quest, 4 at a time with a short pause; ~10 minutes)
-// Skips quests that have already ended (past endDate). Keeps requirements, rewards and the chain links both ways.
+// Skips quests that ended over 30 days ago (an accepted quest stays in Help Needed until done). Keeps requirements, rewards and the chain links both ways.
 const fs = require("fs"), path = require("path");
 const root = path.join(__dirname, "..");
 const BASE = "https://buddy.farm/page-data";
@@ -21,9 +21,9 @@ async function get(url) {
 
 (async () => {
   const list = (await get(`${BASE}/quests/page-data.json`)).result.data.farmrpg.quests;
-  const now = Date.now();
+  const now = Date.now() - 30 * 864e5;
   const todo = list.filter(q => !q.endDate || Date.parse(q.endDate) >= now);
-  console.log(`${list.length} quests, ${todo.length} not ended`);
+  console.log(`${list.length} quests, ${todo.length} not ended (or ended within 30 days)`);
   const quests = {}, missing = [];
   let i = 0, done = 0;
   await Promise.all(Array.from({ length: 4 }, async () => {
