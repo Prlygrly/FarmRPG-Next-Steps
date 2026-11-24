@@ -1109,25 +1109,32 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   // ---------- Debug: names from pastes the planner's data doesn't know ----------
   // Checks the whole saved state after each paste and shows only names not shown before (U.debugSeen)
   function debugUnknown(kind) {
-    const out = { "Pages": kind ? [] : ["A paste that isn't a page this planner reads"] };
-    const add = (group, names) => { out[group] = [...new Set([...(out[group] || []), ...names])]; };
-    const inv = Object.keys((S.inventory && S.inventory.items) || {}), mast = Object.keys((S.mastery && S.mastery.items) || {});
-    add("Items", [...inv, ...mast, ...((S.craftworks && S.craftworks.items) || []).map(x => x.name)].filter(n => !(n in ITEMS)));
-    add("Quests", (S.quests || []).filter(q => q.section !== "personal" && !QUESTS.quests[q.name]).map(q => q.name));
-    add("Pets", Object.values((S.pets && S.pets.items) || {}).flatMap(v => Object.keys(v.from || {})).filter(p => !window.PETS.ITEMS[p]));
-    return out;
+    // Each name says which saved paste it came from and when, so an old paste's names aren't taken for today's
+    const out = { "Pages": kind ? [] : ["A paste that isn't a page this planner reads"] }, src = {};
+    const day = t => t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "date unknown";
+    const add = (group, names, page, at) => {
+      for (const n of names) if (!src[group + ":" + n]) src[group + ":" + n] = `${page}, pasted ${day(at)}`;
+      out[group] = [...new Set([...(out[group] || []), ...names])];
+    };
+    const unknown = o => Object.keys((o && o.items) || {}).filter(n => !(n in ITEMS));
+    add("Items", unknown(S.inventory), "Inventory", S.inventory && S.inventory.at);
+    add("Items", unknown(S.mastery), "Mastery", S.mastery && S.mastery.at);
+    add("Items", ((S.craftworks && S.craftworks.items) || []).map(x => x.name).filter(n => !(n in ITEMS)), "Craftworks", S.craftworks && S.craftworks.at);
+    add("Quests", (S.quests || []).filter(q => q.section !== "personal" && !QUESTS.quests[q.name]).map(q => q.name), "Help Needed", S.questsAt);
+    add("Pets", Object.values((S.pets && S.pets.items) || {}).flatMap(v => Object.keys(v.from || {})).filter(p => !window.PETS.ITEMS[p]), "All Pet Items", S.pets && S.pets.at);
+    return { out, src };
   }
   function debugCheck(kind) {
     if (!U.debug) return;
-    const seen = new Set(U.debugSeen || []), found = debugUnknown(kind), fresh = {};
+    const seen = new Set(U.debugSeen || []), { out: found, src } = debugUnknown(kind), fresh = {};
     for (const [g, names] of Object.entries(found)) {
       const n = names.filter(x => g === "Pages" || !seen.has(g + ":" + x));
       if (n.length) fresh[g] = n;
     }
     if (!Object.keys(fresh).length) return;
     U.debugSeen = [...seen, ...Object.entries(fresh).filter(([g]) => g !== "Pages").flatMap(([g, n]) => n.map(x => g + ":" + x))]; saveU();
-    $("debug-list").innerHTML = Object.entries(fresh).map(([g, n]) => `<p class="small" style="margin:6px 0 2px"><b>${esc(g)}</b></p><ul class="small" style="margin:0;padding-left:18px">${n.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`).join("");
-    $("debug-dlg").dataset.text = Object.entries(fresh).map(([g, n]) => g + ":\n" + n.map(x => "- " + x).join("\n")).join("\n\n");
+    $("debug-list").innerHTML = Object.entries(fresh).map(([g, n]) => `<p class="small" style="margin:6px 0 2px"><b>${esc(g)}</b></p><ul class="small" style="margin:0;padding-left:18px">${n.map(x => `<li>${esc(x)}${src[g + ":" + x] ? ` <span class="muted">(${esc(src[g + ":" + x])})</span>` : ""}</li>`).join("")}</ul>`).join("");
+    $("debug-dlg").dataset.text = Object.entries(fresh).map(([g, n]) => g + ":\n" + n.map(x => "- " + x + (src[g + ":" + x] ? ` (${src[g + ":" + x]})` : "")).join("\n")).join("\n\n");
     if (!$("debug-dlg").open) $("debug-dlg").showModal();
   }
   $("debug-close").addEventListener("click", () => $("debug-dlg").close());
