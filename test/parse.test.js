@@ -295,5 +295,5 @@ console.log("parse tests passed");
   const t = ["Items added to the Craftworks will be crafted automatically anytime the resources are available in the order you set below. You can add up to 13 items total to the Craftworks.",
     "[Adjust Order](https://x/#)Craftworks Items (3)", "[play Play Allpause Pause Alltrash Remove All](https://x/#)", "* 1", "Twine", "pauseRemove", "* 2", "Rope", "playRemove", "* 3", "Coal Thing", "pauseRemove", "Save Item Set"].join(nl);
   assert.strictEqual(detectPage(t), "craftworks");
-  assert.deepStrictEqual(parseCraftworks(t), { items: [{ name: "Twine", paused: false }, { name: "Rope", paused: true }, { name: "Coal Thing", paused: false }], slots: 13 });
+  assert.deepStrictEqual(parseCraftworks(t), { items: [{ name: "Twine", paused: false }, { name: "Rope", paused: true }, { name: "Coal Thing", paused: false }], count: 3, slots: 13 });
 }

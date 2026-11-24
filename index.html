@@ -1032,7 +1032,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       } else if (kind === "craftworks") {
         // What runs in the Craftworks, in order (knowledge/mechanics/craftworks.md): for how much a day crafting can use
         const r = parseCraftworks(text);
-        if (!r || !r.items.length) msg = warn("No Craftworks items were found. Copy the whole Craftworks page and try again.");
+        if (!r || r.items.length < Math.min(r.count, 1)) msg = warn("No Craftworks items were found. Copy the whole Craftworks page and try again.");
         else { S.craftworks = { items: r.items, slots: r.slots, at: Date.now() }; done = true;
           msg = `<div class="note" style="border-color:var(--good)">Read your Craftworks: ${fmt(r.items.length)} recipes${r.slots ? ` of ${fmt(r.slots)} slots` : ""}.</div>`; }
       } else if (kind === "explore-info") {

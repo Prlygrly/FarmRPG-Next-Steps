@@ -414,18 +414,21 @@
     return { pets, available };
   }
 
-  // Craftworks page: the recipes in the order they run ("1 / Twine / pauseRemove"; a paused one shows "play" instead of
-  // "pause") and the slot count ("You can add up to 13 items total"). { items: [{ name, paused }], slots }
+  // Craftworks page: the recipes in the order they run, "1 / Twine" (before the Nov 2026 update each row also had a
+  // "pauseRemove" line, "play..." when paused), the header count "Craftworks Items (14)" (can be 0) and the slot count
+  // ("You can add up to 13 items total"). { items: [{ name, paused }], count, slots }
   function parseCraftworks(text) {
     const lines = String(text || "").split(/\r?\n/).map(clean).filter(Boolean), items = [];
     const at = lines.findIndex(l => /Craftworks Items \(\d+\)$/i.test(l));
     if (at < 0) return null;
-    for (let k = at + 1; k < lines.length - 2; k++) {
+    for (let k = at + 1; k < lines.length - 1; k++) {
       if (/^Save Item Set$/i.test(lines[k])) break;
-      if (/^\d+$/.test(lines[k]) && /Remove$/i.test(lines[k + 2])) { items.push({ name: lines[k + 1], paused: /^play/i.test(lines[k + 2]) }); k += 2; }
+      if (+lines[k] !== items.length + 1 || /^\d+$/.test(lines[k + 1])) continue;
+      const ctl = /Remove$/i.test(lines[k + 2] || "") ? lines[k + 2] : "";
+      items.push({ name: lines[k + 1], paused: /^play/i.test(ctl) }); k += ctl ? 2 : 1;
     }
     const s = String(text).match(/add up to ([\d,]+) items total/i);
-    return { items, slots: s ? toInt(s[1]) : null };
+    return { items, count: +lines[at].match(/\((\d+)\)$/)[1], slots: s ? toInt(s[1]) : null };
   }
 
   // Temple of Reward: each chain is "Reward / Sacrifice: Item / a / b Rewards Claimed / x / y Items Sacrificed", plus
