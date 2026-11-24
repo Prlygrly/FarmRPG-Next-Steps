@@ -57,10 +57,11 @@ with a source.
 - **Slow grinds**: the Tower masteries that take months, what limits them, what an upgrade would save, and what maxed buildings would cost and save.
 - **Veggie Juice**: a goal, the next step and the cycle as a checklist (Boost crops, Tomato and Watermelon, Horn / Twine /
   Glass Bottle, Beets); a calculator.
+- **Mining**: from the Mine page paste: each zone's floor, charms, auto-excavation items and pickaxes a day; drops at your floor (and what the next floor band adds); where to mine what your quests need.
 - **Setup**: pastes, perks, general settings, places, production.
 - **⚙ App settings** (header): theme; Detail (Monotask: one thing per section / Condensed / Expanded: labelled points);
-  Grid or one-column layout; the Truffle line above every tab; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
-- Anywhere: Ctrl+V outside a text box reads a page; ▾ folds a card (remembered); keys 1–7 switch tabs; phones get a bottom tab bar.
+  Grid or one-column layout; the Truffle line above every tab; which tabs show (Setup always does); Debug; Best use order; undo a paste; save codes. Kept on this device, apart from game data.
+- Anywhere: Ctrl+V outside a text box reads a page; ▾ folds a card (remembered); keys 1–9 switch the shown tabs; phones get a bottom tab bar.
 
 ## Roadmap
 - Shared Truffle prices: one player's Steak Market paste gives everyone today's prices (needs a free Cloudflare Worker + KV;
