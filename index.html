@@ -1172,6 +1172,26 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   const mineCharms = name => { const c = S.mining.charms && S.mining.charms[name]; return c != null ? c : (O && O.onHand[MINE.zones[name].charm]) || 0; };
   const aexRun = (name, floor) => floor < 100 ? 0 : Math.min(100, Math.floor(floor / 10)) + mineCharms(name);
   const days = d => d < 1 ? `${fmt(Math.max(1, Math.round(d * 24)))} h` : `${fmt(Math.round(d))} days`;
+  // Where an item comes from in the mines, best first: rank 0 auto-excavation at your floor, 1 at your floor by hand or as a deposit,
+  // 2 a deeper floor, 3 a zone you haven't unlocked. With `left`, the auto-excavation one says how long that many takes.
+  function mineSpots(item, left) {
+    const M = S.mining;
+    return Object.entries(MINE.zones).map(([name, z]) => {
+      const m = M && M.zones[name], vein = z.bands.find(b => b.items[item]), dep = z.deposits[item];
+      if (!vein && !dep) return null;
+      if (!m) return { rank: 3, name, txt: `${esc(name)} (unlocks at Mining ${z.level})` };
+      if (vein && m.floor < vein.floor) return { rank: 2, name, txt: `${esc(name)} from floor ${fmt(vein.floor)} (you're on ${fmt(m.floor)})` };
+      const perDay = vein ? aexRun(name, m.floor) * AEX_RUNS * (mineMix(z, m.floor)[item] || 0) : 0;
+      if (perDay) return { rank: 0, name, perDay, txt: `${esc(name)}: about ${fmt(Math.round(perDay))} a day by auto-excavation${m.aex ? "" : " (turn it on)"}${left ? `, ${days(left / perDay)} for ${fmt(left)}` : ""}` };
+      return { rank: 1, name, txt: `${esc(name)}${vein ? ` (floor ${fmt(m.floor)}; auto-excavation from floor 100)` : ` deposits (${dep[0]}-${dep[1]} a tile)`}` };
+    }).filter(Boolean).sort((a, b) => a.rank - b.rank || (b.perDay || 0) - (a.perDay || 0));
+  }
+  // For "can't cost yet" items: the best place to mine it (without a Mine paste: the zones it drops in)
+  function mineSourceText(item, left) {
+    const sp = mineSpots(item, left);
+    if (!sp.length) return null;
+    return S.mining ? `mine it: ${sp[0].txt}` : `mine it: ${sp.slice(0, 2).map(x => esc(x.name)).join(" or ")}`;
+  }
   function renderMining() {
     const el = $("mining-body"), M = S.mining;
     if (!M) { el.innerHTML = `<p class="small muted" style="margin:0">Paste your <b>Mine</b> page (Go Mining) in <a href="#" data-go="setup">Setup</a> to see your mines here. A zone's own page also reads its charms.</p>`; return; }
@@ -1195,15 +1215,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       for (const [item, need] of (data && data.need) || []) if (need > have(item)) (short[item] ||= { n: 0, for: [] }), short[item].n = Math.max(short[item].n, need - have(item)), short[item].for.push(q.name);
     }
     const where = Object.entries(short).map(([item, x]) => {
-      const spots = zones.map(([name, z]) => {
-        const m = M.zones[name], vein = z.bands.find(b => b.items[item]), dep = z.deposits[item];
-        if (!vein && !dep) return null;
-        if (!m) return { rank: 3, txt: `${esc(name)} (unlocks at Mining ${z.level})` };
-        if (vein && m.floor < vein.floor) return { rank: 2, txt: `${esc(name)} from floor ${fmt(vein.floor)} (you're on ${fmt(m.floor)})` };
-        const perDay = vein ? aexRun(name, m.floor) * AEX_RUNS * (mineMix(z, m.floor)[item] || 0) : 0;
-        if (perDay) return { rank: 0, perDay, txt: `${esc(name)}: about ${fmt(Math.round(perDay))} a day by auto-excavation${m.aex ? "" : " (turn it on)"}, ${days(x.n / perDay)} for ${fmt(x.n)}` };
-        return { rank: 1, txt: `${esc(name)}${vein ? ` (floor ${fmt(m.floor)}; auto-excavation from floor 100)` : ` deposits (${dep[0]}-${dep[1]} a tile)`}` };
-      }).filter(Boolean).sort((a, b) => a.rank - b.rank || (b.perDay || 0) - (a.perDay || 0));
+      const spots = mineSpots(item, x.n);
       return spots.length ? `<li><b>${esc(item)}</b>: ${fmt(x.n)} short <span class="muted">(${x.for.map(esc).join(", ")})</span><br>${spots.map(s => s.txt).join("; ")}</li>` : "";
     }).filter(Boolean);
     const need = `<h3 style="margin:14px 0 4px">Mine for your quests</h3>` + (where.length ? `<ul class="small" style="margin:0;padding-left:18px">${where.join("")}</ul>`
@@ -1795,7 +1807,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         cost: ready ? 0 : unknown ? Infinity : n.cost, hours: ready ? 0 : unknown ? Infinity : hours, ready, main,
         done: doneBtn("quest", { name: qkey(q) }), target: unknown ? null : questTarget(q, n), qkey: qkey(q), days,
         xp: { why: `${val.value >= 1 ? `reward ~${short(val.value)} AP: ` : "reward: "}${rewardShort(data, p)}`,
-          needs: ready ? `ready${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}${m.effort ? "" : ` <span class="muted">(${questSourceText(m.item) || "can't cost yet"})</span>`}`)],
+          needs: ready ? `ready${st ? `; uses ${st}` : ""}` : [...n.levels.map(l => `<b class="bad">${l}</b>`), ...n.missing.map(m => `${short(m.left)} ${esc(m.item)}${m.effort ? "" : ` <span class="muted">(${questSourceText(m.item) || mineSourceText(m.item, m.left) || "can't cost yet"})</span>`}`)],
           where: ready ? null : [...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
             ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive }, Object.fromEntries(n.missing.map(m => [m.item, m.left])))] }
       });
@@ -2392,7 +2404,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       ...(first.length ? [`<b>Craft first</b> ${first.map(c => `~${short(c.qty)} ${esc(c.item)}`).join(", ")} <span class="muted">(not enough in stock)</span>`] : []),
       ...["craft", "cook"].map(how => { const xs = n.missing.filter(m => m.effort && m.effort.how === how && !first.some(c => c.item === m.item)); return xs.length ? `<b>${how === "craft" ? "Craft" : "Cook"}</b> ${xs.map(m => `${short(m.left)} ${esc(m.item)}`).join(", ")}` : null; }).filter(Boolean),
       ...todoLines({ how: "craft", byPlace: n.byPlace, forWhat: n.forWhat, passive: n.passive }, Object.fromEntries(n.missing.map(m => [m.item, m.left]))),
-      ...n.missing.filter(m => !m.effort).map(m => { const src = questSourceText(m.item); return `${short(m.left)} ${esc(m.item)} ${src || `<span class="muted">(can't cost yet)</span>`}`; })
+      ...n.missing.filter(m => !m.effort).map(m => { const src = questSourceText(m.item) || mineSourceText(m.item, m.left); return `${short(m.left)} ${esc(m.item)} ${src || `<span class="muted">(can't cost yet)</span>`}`; })
     ];
   }
 
