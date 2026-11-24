@@ -414,7 +414,7 @@
     return { pets, available };
   }
 
-  // Craftworks page: the recipes in the order they run, "1 / Twine" (before the Nov 2026 update each row also had a
+  // Craftworks page: the recipes in the order they run, "1 / Twine" or "4 / Iron Ring (Paused)" (before the Nov 2026 update each row also had a
   // "pauseRemove" line, "play..." when paused), the header count "Craftworks Items (14)" (can be 0) and the slot count
   // ("You can add up to 13 items total"). { items: [{ name, paused }], count, slots }
   function parseCraftworks(text) {
@@ -425,7 +425,8 @@
       if (/^Save Item Set$/i.test(lines[k])) break;
       if (+lines[k] !== items.length + 1 || /^\d+$/.test(lines[k + 1])) continue;
       const ctl = /Remove$/i.test(lines[k + 2] || "") ? lines[k + 2] : "";
-      items.push({ name: lines[k + 1], paused: /^play/i.test(ctl) }); k += ctl ? 2 : 1;
+      const name = lines[k + 1].replace(/\s*\(Paused\)$/i, "");
+      items.push({ name, paused: name !== lines[k + 1] || /^play/i.test(ctl) }); k += ctl ? 2 : 1;
     }
     const s = String(text).match(/add up to ([\d,]+) items total/i);
     return { items, count: +lines[at].match(/\((\d+)\)$/)[1], slots: s ? toInt(s[1]) : null };
