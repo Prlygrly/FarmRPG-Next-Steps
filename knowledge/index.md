@@ -32,6 +32,7 @@ Read the relevant concept before changing game rules in the code.
 * [Townsfolk friendship](mechanics/friendship.md) - gift XP, multipliers, free gifts from production
 * [Progression stages](mechanics/progression.md) - 4x90, ATI, 4x99, which questlines when
 * [Silver](mechanics/silver.md) - Sawmill Silver, crafting by level, best silver later, spending milestones
+* [Mining](mechanics/mining.md) - zones, veins and deposits, charms, auto-excavation output and pickaxes, rewards
 
 # Data
 
@@ -48,6 +49,7 @@ Read the relevant concept before changing game rules in the code.
 * [Wishing well odds](data/wishing-well.md) - what to toss for what
 * [Levels](data/levels.md) - total XP for each level
 * [Seasons](data/seasons.md) - month rules
+* [Mining zones](data/mining.md) - drop rates by floor, deposits, floor and skill rewards
 
 # Planner
 

@@ -1,5 +1,8 @@
 # Update log
 
+## 2026-11-24
+* **Creation**: [Mining](/mechanics/mining.md) and [Mining zones](/data/mining.md) from the player's Library pastes (Mining, Mining Drops, Floor Rewards, Skill Level Rewards) and Mine pages, plus buddy.farm zone rates (tools/snapshot-mining.js).
+
 ## 2026-09-30
 * **Update**: [Planner design rules](/planner/rules.md): blended effort, new-player mode, starting perks, place levels, paste handling (chat, Steam), Veggie Juice setting, pantry kitchen, short text.
 * **Creation**: [Silver](/mechanics/silver.md) from the player's wiki pastes (Sawmill Silver, Crafting Advice, Badymaru's guide, How Should I Spend My Silver).

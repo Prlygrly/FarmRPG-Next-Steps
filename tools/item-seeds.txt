@@ -87,3 +87,9 @@ Coal Storage
 Rune Shard
 Broken Bangle
 Oddvocado
+Fossilized Shell
+Lobster
+Mossy Bone
+Fossilized Viper
+Ruined Ether Hammer
+Ruined Ether Drill
