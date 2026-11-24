@@ -122,6 +122,7 @@ main[data-tab="quests"] > section[data-tab="quests"]:not([hidden]),
 main[data-tab="best"] > section[data-tab="best"]:not([hidden]),
 main[data-tab="grinds"] > section[data-tab="grinds"]:not([hidden]),
 main[data-tab="vj"] > section[data-tab="vj"]:not([hidden]),
+main[data-tab="mine"] > section[data-tab="mine"]:not([hidden]),
 main[data-tab="check"] > section[data-tab="check"]:not([hidden]),
 main[data-tab="ref"] > section[data-tab="ref"]:not([hidden]),
 main[data-tab="setup"] > section[data-tab="setup"]:not([hidden]) { display: block; }
@@ -390,6 +391,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <button type="button" role="tab" data-go="best" title="Where to spend a pile of Large Nets, Arnold Palmers or Apple Ciders; what to plant now; what your farm will soon overflow with; and what to cook.">Best use</button>
     <button type="button" role="tab" data-go="grinds" title="The masteries that take months at your production: how long each takes, what holds it back, and the year-long ones to keep going every day.">Slow grinds</button>
     <button type="button" role="tab" data-go="vj" title="Veggie Juice: where you are in the Tomato/Watermelon, Breakfast Boost and Beet cycle, what's limiting you, and how many juices a crop needs.">Veggie Juice</button>
+    <button type="button" role="tab" data-go="mine" title="Your mines: auto-excavation output and pickaxes a day, what each zone drops at your floor, and where to mine what your quests need.">Mining</button>
     <button type="button" role="tab" data-go="check" title="Daily and monthly checklists (they untick themselves at reset and on the 1st), and the Steak Market.">Checklist</button>
     <button type="button" role="tab" data-go="ref" title="How the game works and the data behind the planner: pigs, the Temple, bank interest, exploring drinks and more. Searchable.">Reference</button>
     <button type="button" role="tab" data-go="setup" title="Paste your game pages, and check your perks, general settings, places and daily production. Save or load your planner here too.">Setup</button>
@@ -464,6 +466,10 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     <div class="mono-hide" id="grind-list"></div>
     <ul class="mono-list" id="mono-grinds"></ul>
     <div class="mono-hide" id="grind-standing"></div>
+  </section>
+  <section class="card" data-tab="mine" id="mining" aria-labelledby="h-mining">
+    <h2 id="h-mining" style="margin:0 0 6px">Mining</h2>
+    <div id="mining-body"></div>
   </section>
   <section class="card" data-tab="ref" id="reference" aria-labelledby="h-ref">
     <h2 id="h-ref" style="margin:0 0 4px">Reference</h2>
@@ -771,6 +777,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
 <script src="ww.js?v=202611240528"></script>
 <script src="levels.js?v=202611240528"></script>
 <script src="quests.js?v=202611240528"></script>
+<script src="mining.js?v=202611240528"></script>
 <script src="loot.js?v=202611240528"></script>
 <script src="trade.js?v=202611240528"></script>
 <script src="prices.js?v=202611240528"></script>
@@ -1151,6 +1158,71 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
   }
   $("debug-close").addEventListener("click", () => $("debug-dlg").close());
   $("debug-copy").addEventListener("click", () => { navigator.clipboard && navigator.clipboard.writeText($("debug-dlg").dataset.text || "").then(() => { $("debug-copy").textContent = "Copied"; setTimeout(() => { $("debug-copy").textContent = "Copy"; }, 1500); }); });
+  // ---------- Mining ----------
+  // From the Mine page paste (knowledge/mechanics/mining.md). Auto-excavation (AEX, from floor 100) runs every 10 minutes: floor / 10
+  // items (at most 100) for as many pickaxes, plus 1 free item per zone charm. The game doesn't say how a run splits between the
+  // zone's drops, so the planner assumes the manual mix: each item weighted by 1 / buddy.farm's hits per drop at that floor.
+  const MINE = window.MINING, AEX_RUNS = 144;
+  const mineBand = (z, floor) => z.bands.filter(b => b.floor <= floor).pop() || z.bands[0];
+  function mineMix(z, floor) {
+    const w = Object.entries(mineBand(z, floor).items).map(([n, r]) => [n, 1 / r]), sum = w.reduce((a, [, x]) => a + x, 0);
+    return Object.fromEntries(w.map(([n, x]) => [n, x / sum]));
+  }
+  // Charms: the zone page's "Charms Active", else the charm count in the inventory
+  const mineCharms = name => { const c = S.mining.charms && S.mining.charms[name]; return c != null ? c : (O && O.onHand[MINE.zones[name].charm]) || 0; };
+  const aexRun = (name, floor) => floor < 100 ? 0 : Math.min(100, Math.floor(floor / 10)) + mineCharms(name);
+  const days = d => d < 1 ? `${fmt(Math.max(1, Math.round(d * 24)))} h` : `${fmt(Math.round(d))} days`;
+  function renderMining() {
+    const el = $("mining-body"), M = S.mining;
+    if (!M) { el.innerHTML = `<p class="small muted" style="margin:0">Paste your <b>Mine</b> page (Go Mining) in <a href="#" data-go="setup">Setup</a> to see your mines here. A zone's own page also reads its charms.</p>`; return; }
+    const have = n => (O && O.onHand[n]) || 0, zones = Object.entries(MINE.zones);
+    const rows = zones.map(([name, z]) => {
+      const m = M.zones[name];
+      if (!m) return `<tr><td>${esc(name)}</td><td colspan="6" class="muted">unlocks at Mining level ${z.level}</td></tr>`;
+      const base = m.floor >= 100 ? Math.min(100, Math.floor(m.floor / 10)) : 0, run = aexRun(name, m.floor), own = have(z.pickaxe);
+      const aex = m.floor < 100 ? `<span class="muted">from floor 100</span>` : m.aex ? "on" : m.needs ? `off: out of ${esc(m.needs)}` : "off";
+      const last = m.aex && base ? ` <span class="muted">(${days(own / (base * AEX_RUNS))})</span>` : "";
+      return `<tr><td>${esc(name)}</td><td>${fmt(m.floor)}</td><td>${fmt(mineCharms(name))}</td><td>${aex}</td><td>${run ? fmt(run * AEX_RUNS) : "–"}</td>` +
+        `<td>${base ? `${fmt(base * AEX_RUNS)} <span class="muted">(${fmt(base * AEX_RUNS / 2)} with lanterns)</span>` : "–"}</td><td>${O ? fmt(own) + last : "–"}</td></tr>`;
+    });
+    const th = ["Zone", "Floor", "Charms", "Auto-excavation", "Items a day", `Pickaxes a day`, "Pickaxes on hand"].map(h => `<th style="text-align:left;padding:2px 10px 2px 0">${h}</th>`).join("");
+    const table = `<div style="overflow-x:auto"><table class="small" style="border-collapse:collapse;width:100%;white-space:nowrap"><tr>${th}</tr>${rows.join("")}</table></div>`;
+
+    // Where to mine what your quests still need
+    const short = {};
+    for (const q of S.quests || []) {
+      const data = questData(q);
+      for (const [item, need] of (data && data.need) || []) if (need > have(item)) (short[item] ||= { n: 0, for: [] }), short[item].n = Math.max(short[item].n, need - have(item)), short[item].for.push(q.name);
+    }
+    const where = Object.entries(short).map(([item, x]) => {
+      const spots = zones.map(([name, z]) => {
+        const m = M.zones[name], vein = z.bands.find(b => b.items[item]), dep = z.deposits[item];
+        if (!vein && !dep) return null;
+        if (!m) return { rank: 3, txt: `${esc(name)} (unlocks at Mining ${z.level})` };
+        if (vein && m.floor < vein.floor) return { rank: 2, txt: `${esc(name)} from floor ${fmt(vein.floor)} (you're on ${fmt(m.floor)})` };
+        const perDay = vein ? aexRun(name, m.floor) * AEX_RUNS * (mineMix(z, m.floor)[item] || 0) : 0;
+        if (perDay) return { rank: 0, perDay, txt: `${esc(name)}: about ${fmt(Math.round(perDay))} a day by auto-excavation${m.aex ? "" : " (turn it on)"}, ${days(x.n / perDay)} for ${fmt(x.n)}` };
+        return { rank: 1, txt: `${esc(name)}${vein ? ` (floor ${fmt(m.floor)}; auto-excavation from floor 100)` : ` deposits (${dep[0]}-${dep[1]} a tile)`}` };
+      }).filter(Boolean).sort((a, b) => a.rank - b.rank || (b.perDay || 0) - (a.perDay || 0));
+      return spots.length ? `<li><b>${esc(item)}</b>: ${fmt(x.n)} short <span class="muted">(${x.for.map(esc).join(", ")})</span><br>${spots.map(s => s.txt).join("; ")}</li>` : "";
+    }).filter(Boolean);
+    const need = `<h3 style="margin:14px 0 4px">Mine for your quests</h3>` + (where.length ? `<ul class="small" style="margin:0;padding-left:18px">${where.join("")}</ul>`
+      : `<p class="small muted" style="margin:0">${S.quests ? "None of your quests are short of anything from the mines." : `Paste <b>Help Needed</b> in <a href="#" data-go="setup">Setup</a> to see what your quests need from the mines.`}</p>`);
+
+    // What each zone drops at your floor, and what the next floor band adds
+    const lists = zones.filter(([name]) => M.zones[name]).map(([name, z]) => {
+      const f = M.zones[name].floor, mix = mineMix(z, f), run = aexRun(name, f), next = z.bands.find(b => b.floor > f);
+      const added = next ? Object.keys(next.items).filter(n => !mix[n]) : [];
+      const li = Object.entries(mix).sort((a, b) => b[1] - a[1]).map(([n, sh]) => `<li>${esc(n)} <span class="muted">${Math.round(sh * 100)}%${run ? `, about ${fmt(Math.round(run * AEX_RUNS * sh))} a day` : ""}</span></li>`).join("");
+      return `<details class="small" style="margin:4px 0"><summary style="cursor:pointer">${esc(name)}: drops at floor ${fmt(f)}</summary>` +
+        `<ul style="margin:4px 0;padding-left:18px">${li}</ul>` +
+        (added.length ? `<p class="muted" style="margin:2px 0">From floor ${fmt(next.floor)}: ${added.map(esc).join(", ")}.</p>` : "") +
+        `<p class="muted" style="margin:2px 0">Deposits: ${Object.entries(z.deposits).map(([n, [a, b]]) => `${esc(n)} ${a === b ? a : `${a}-${b}`}`).join(", ")}.</p></details>`;
+    }).join("");
+    el.innerHTML = `<p class="small muted" style="margin:0 0 8px">Mining level ${fmt(M.level || 0)}. Auto-excavation runs ${AEX_RUNS} times a day: floor / 10 items a run (at most 100) for as many pickaxes, plus 1 free item per charm. A loaded lantern halves pickaxe use. Items a day assume the same mix as manual mining.</p>` +
+      table + need + `<h3 style="margin:14px 0 4px">Drops at your floors</h3>` + lists;
+  }
+
   // ---------- Pet levels ----------
   // The My Pets list is always in this order and never says which pet is which (knowledge/mechanics/pets.md): a full list
   // maps one to one; a shorter one maps onto the types that brought items (All Pet Items). S.petLevels holds your fixes.
@@ -1462,6 +1534,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
     renderPigStrip();
     renderDrinks();
     renderChecklist();
+    renderMining();
     if (syncFields) {
       $("f-level").value = p.level ?? "";
       $("f-ak").value = S.manual.ak ?? p.fromPaste.ak ?? "";
