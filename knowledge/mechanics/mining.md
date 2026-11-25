@@ -8,7 +8,7 @@ sources:
     resource: in-game Library pages Mining (2026-10-24, Rkm), Mining Drops (2026-10-15, sponge), Mining Floor Rewards (2026-09-07), Skill Level Rewards (2026-08-31), pasted by the player 2026-11-23
     title: "FarmRPG Library: Mining"
   - id: page
-    resource: the player's Mine page and Spring Cave page, 2026-11-23
+    resource: the player's Mine page and Spring Cave page, 2026-11-23 and 2026-11-25 (with a screenshot)
     title: "Mine pages"
   - id: buddy
     resource: https://buddy.farm/l/fenrir-s-den/ (and the other five zones)
@@ -65,9 +65,11 @@ generated: { by: claude-code/opus-5.5, at: 2026-11-24T06:00:00Z }
 - Each zone charm adds +1 item per run that uses no pickaxe.[^library]
 - Which items come out depends on the current floor.[^library] The Library doesn't say how they're split; the planner assumes the same
   mix as manual mining, i.e. each item weighted by 1 / buddy.farm's hits-per-drop rate (an assumption, not a game rule).
-- Lanterns can be loaded (any number, not capped by the inventory); each gives AEX a 50% chance not to use pickaxes. The planner reads
-  that as "loaded lanterns halve pickaxe use".[^library]
-- Per day: 144 runs, so (floor / 10 + charms) x 144 items and floor / 10 x 144 pickaxes (half with lanterns). Floor 100 with 9 charms:
+- Lanterns are loaded on the zone page and can't be taken back out. Every 10 loaded give +1% chance that a pickaxe isn't used, up to
+  50% (500 loaded). A loaded lantern is used up only when it saves a pickaxe. The zone page shows Loaded, Save Chance and In Inventory,
+  but a copy of the page doesn't include Loaded or Save Chance (only the inventory count, after "Mining Floor Rewards").[^page]
+- The zone page confirms it: Spring Cave floor 100 with 9 charms shows "19 Items / 10 min" and "114 Items / hr".[^page]
+- Per day: 144 runs, so (floor / 10 + charms) x 144 items and floor / 10 x 144 pickaxes (down to half at a 50% lantern save chance). Floor 100 with 9 charms:
   19 items a run, 2,736 a day, 1,440 pickaxes (720 with lanterns).
 
 # Perks

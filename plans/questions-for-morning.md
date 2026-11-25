@@ -4,12 +4,15 @@ Answered questions are removed; their answers live in knowledge/.
 
 ## Questions
 
-### Mining (built overnight 2026-11-24, local only, not pushed)
+### Mining (built 2026-11-24, pushed 2026-11-25)
 1. **How does auto-excavation split its items?** buddy.farm only has manual "hits per drop" rates per floor band. The Mining tab
    assumes AEX gives the same mix (each item weighted by 1 / rate), e.g. Spring Cave floor 100: Esperium 43%, Briomine 17% ...
    Fossilized Print 3%. If you watch your AEX haul for a day, compare it with the tab's "Drops at your floors" list.
+   **Answered 2026-11-25:** keep the estimate; the tab now warns that drop rates are estimates.
 2. **Lanterns:** the tab shows pickaxes a day with and without lanterns (a lantern = 50% chance not to use pickaxes, read as
    "half"). Does the Mine/zone page show loaded lanterns anywhere? If so, paste it and the tab can use your real number.
+   **Answered 2026-11-25:** the zone page shows Loaded and Save Chance (1% per 10 loaded, max 50%), but a copy doesn't include them.
+   The tab now states the real rule and shows pickaxes a day at 0% and 50%.
 3. **Floor 100 to 109:** the tab takes AEX as floor / 10 rounded down (floor 105 = 10 items a run). Right?
 4. **Charms:** only the zone's own page shows "Charms Active"; otherwise the tab counts charms in your inventory. Paste each
    zone's page once (or your inventory) for the right numbers. Fine, or should Setup ask for them?

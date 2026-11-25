@@ -1203,7 +1203,7 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
       const aex = m.floor < 100 ? `<span class="muted">from floor 100</span>` : m.aex ? "on" : m.needs ? `off: out of ${esc(m.needs)}` : "off";
       const last = m.aex && base ? ` <span class="muted">(${own ? `lasts ${days(own / (base * AEX_RUNS))}` : "auto-excavation stops"})</span>` : "";
       return `<tr><td>${esc(name)}</td><td>${fmt(m.floor)}</td><td>${fmt(mineCharms(name))}</td><td>${aex}</td><td>${run ? fmt(run * AEX_RUNS) : "–"}</td>` +
-        `<td>${base ? `${fmt(base * AEX_RUNS)} <span class="muted">(${fmt(base * AEX_RUNS / 2)} with lanterns)</span>` : "–"}</td><td>${O ? fmt(own) + last : "–"}</td></tr>`;
+        `<td>${base ? `${fmt(base * AEX_RUNS)} <span class="muted">(${fmt(base * AEX_RUNS / 2)} at the 50% lantern save chance)</span>` : "–"}</td><td>${O ? fmt(own) + last : "–"}</td></tr>`;
     });
     const th = ["Zone", "Floor", "Charms", "Auto-excavation", "Items a day", `Pickaxes a day`, "Pickaxes on hand"].map(h => `<th style="text-align:left;padding:2px 10px 2px 0">${h}</th>`).join("");
     const table = `<div style="overflow-x:auto"><table class="small" style="border-collapse:collapse;width:100%;white-space:nowrap"><tr>${th}</tr>${rows.join("")}</table></div>`;
@@ -1231,7 +1231,8 @@ main.grid-on .card.mono > .mono-list > li:last-child { border-bottom: 1px solid 
         (added.length ? `<p class="muted" style="margin:2px 0">From floor ${fmt(next.floor)}: ${added.map(esc).join(", ")}.</p>` : "") +
         `<p class="muted" style="margin:2px 0">Deposits: ${Object.entries(z.deposits).map(([n, [a, b]]) => `${esc(n)} ${a === b ? a : `${a}-${b}`}`).join(", ")}.</p></details>`;
     }).join("");
-    el.innerHTML = `<p class="small muted" style="margin:0 0 8px">Mining level ${fmt(M.level || 0)}. Auto-excavation runs ${AEX_RUNS} times a day: floor / 10 items a run (at most 100) for as many pickaxes, plus 1 free item per charm. A loaded lantern halves pickaxe use. Items a day assume the same mix as manual mining.</p>` +
+    el.innerHTML = `<p class="small muted" style="margin:0 0 8px">Mining level ${fmt(M.level || 0)}. Auto-excavation runs ${AEX_RUNS} times a day: floor / 10 items a run (at most 100) for as many pickaxes, plus 1 free item per charm. Every 10 loaded lanterns give a 1% chance (up to 50% at 500) that a pickaxe isn't used; each pickaxe saved uses up one lantern.</p>` +
+      `<p class="small" style="margin:0 0 8px;padding:6px 8px;border-left:3px solid #c90"><b>Drop rates are estimates.</b> The game doesn't say how auto-excavation splits its items, so the shares and amounts a day below use buddy.farm's manual-mining rates and may be off.</p>` +
       table + need + `<h3 style="margin:14px 0 4px">Drops at your floors</h3>` + lists;
   }
 
